@@ -11,7 +11,7 @@ Each gate below comes with the smell that means you are breaking it. When you ca
 - **YAGNI.** Build only the `users` slice and the machinery it proves. No config knobs, extension points, or "future" abstractions with a single implementation.
   - Smell: an abstraction with exactly one implementer and no second one imminent. Inline it.
 - **DRY, docs included.** No fact is stated twice by hand. The catalog is generated, form models are `z.infer`, DTOs are generated from OpenAPI.
-  - Smell: a shape copied between two files; a validation rule written in both a zod schema and an Angular validator.
+  - Smell: a shape copied between two files; a validation rule written in both a zod schema and a hand-written validator.
 - **TDD, strict red-green-refactor.** No production line exists before a failing test that demands it.
   - Smell: production code in a diff with no test that would have failed without it.
 - **AI-native throughout.** LSP navigation over grep; generated catalogs over tribal knowledge; machine-checked gates over "please remember".
@@ -26,7 +26,7 @@ The order is always: write the failing test, run it, confirm the red is for the 
 Per language:
 
 - **.NET:** unit tests against handlers with FakeItEasy doubles; integration tests through the FastEndpoints test host per endpoint (real routing, real validation, SQLite in-memory or Testcontainers per ADR 0001). Assert the Result envelope, not thrown exceptions, for expected failures.
-- **Angular:** ViewModels tested as plain classes with a fake `Transport` implementing the operation registry (this is why the port exists). Components via Angular Testing Library. One Playwright smoke that boots the SPA and drives the `users` slice.
+- **Angular:** ViewModels tested as plain classes with a fake `Transport` implementing the operation registry (this is why the port exists). Components via Angular's `TestBed` under Vitest. One Playwright smoke that boots the SPA and drives the `users` slice.
 - **Rust:** every Tauri command has a test that calls it directly with a payload matching the operation registry's `req` shape and asserts the `res` shape. Keep the command layer thin; unit-test the logic it delegates to in isolation.
 
 The `users` slice ships with tests at all three levels as the reference pattern future features copy.
@@ -35,7 +35,7 @@ The `users` slice ships with tests at all three levels as the reference pattern 
 
 - **Error handling.** Backend expected failures travel as a `Result` envelope, never thrown exceptions. Frontend failures fold to one `AppError` at the `NormalizingTransport` seam; nothing above it branches on the wire. See `docs/architecture/conduit.md`.
 - **Types are generated, not hand-written.** Frontend DTOs come from the OpenAPI spec (`npm run codegen`); form model types are `z.infer<typeof schema>`. If you are typing a shape by hand that already exists at a boundary, stop and generate it.
-- **Naming mirrors the areas.** Frontend workspace scope is `@jig/*`; .NET projects are `Jig.Api`, `Jig.Application`, `Jig.Domain`, `Jig.Infrastructure`; the Rust crate and Tauri identifier are `jig`.
+- **Naming mirrors the app.** The .NET projects are `Jig.Api`, `Jig.Application`, `Jig.Domain`, `Jig.Infrastructure`; the Rust crate and Tauri identifier are `jig`; spartan helm components sit under the `@spartan-ng/helm/*` alias. `tools/init` rewrites all of these when the template is renamed to a new app.
 - **Match the surrounding code.** Comment density, naming, and idiom follow the file you are editing, not your defaults.
 
 ## Annotate every reusable unit (this feeds the catalog)
@@ -79,10 +79,19 @@ Examples:
 
 ## Running the gates
 
-- One-command environment bootstrap: `npm run setup` (idempotent; checks the toolchain and all three language servers, wires git hooks, generates the catalog).
-- Tooling tests: `npm run test:tools`
-- Catalog freshness: `npm run catalog:check`
-- Per-language test gates arrive with their phases: `dotnet test` (backend), the frontend test runner (Vitest + Playwright), and `cargo test` (Rust).
+- **The gate, one command:** `npm run verify` — the full build, all tests across .NET, Rust, and the frontend, plus catalog freshness. Green here is the definition of done, and commits land only here.
+- **Fresh-clone bootstrap:** `npm run setup` (idempotent; checks the toolchain and all three language servers, installs dependencies, wires git hooks, generates the catalog).
+- **Individual checks** when you want one slice: `npm run test:tools`, `npm run catalog:check`, `dotnet test services/api/Jig.sln`, `cargo test` (in `apps/desktop/src-tauri`), `npm --prefix frontend test` (Vitest), `npm --prefix frontend run e2e` (Playwright).
+
+## Development loop
+
+For iterative work, do not full-build after every change. Start the watchers and let compile errors come to you:
+
+- `npm run dev` runs the Angular dev server (frontend HMR) and `dotnet watch` (backend hot reload) together, output line-prefixed `[web]` / `[api]`. Run it in the background and watch it for compile errors.
+- **LSP is the type-check backup:** `workspace/symbol`, hover, and diagnostics catch type errors with no build at all.
+- For the desktop shell (Rust + WebView), use `cargo tauri dev` instead; it opens a window, so it is on-demand.
+
+This is the inner loop, not the gate. HMR being green means the code compiles, not that it is correct — it runs no tests. Run `npm run verify` before you commit. (In dev the frontend on `:4200` calling the API will hit CORS on live data; compile feedback is unaffected. Add CORS to the API if you want live cross-calls in the browser.)
 
 ## Adding a feature
 

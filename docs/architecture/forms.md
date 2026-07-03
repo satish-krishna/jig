@@ -27,7 +27,7 @@ For a schema not known until runtime, `forms/schema-form.ts` builds the form for
 - It builds a reactive `FormGroup` from the schema's fields (`fieldsFromSchema`), renders each by its `meta.control` kind with spartan controls, and on submit validates through `schema.safeParse`, folding zod issues back onto the matching fields.
 - Usage: `<app-schema-form [schema]="mySchema" submitLabel="Save" (submitted)="onSaved($event)" />`. The emitted value is the parsed, valid data.
 - The zod-to-control mapping lives only in this component's `@switch`. Add a control kind there, never in a feature.
-- This is the substrate for agent-generated forms (AG-UI): an agent emits a zod schema, the renderer turns it into a validated form with no hand-written component.
+- This is the substrate for agent-generated forms: an agent emits a zod schema, the renderer turns it into a validated form with no hand-written component.
 
 ## Where spartan lives
 
