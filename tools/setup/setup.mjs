@@ -93,6 +93,27 @@ function installDeps() {
   ok('npm install complete');
 }
 
+function installFrontend() {
+  log('\nFrontend dependencies:');
+  execSync('npm install', { cwd: join(ROOT, 'frontend'), stdio: 'inherit' });
+  ok('frontend npm install complete');
+  log('  installing Playwright browser (chromium)...');
+  execSync('npx playwright install chromium', { cwd: join(ROOT, 'frontend'), stdio: 'inherit' });
+  ok('Playwright chromium installed');
+}
+
+function restoreBackend() {
+  log('\nBackend restore (.NET):');
+  execSync('dotnet restore services/api/Jig.sln', { cwd: ROOT, stdio: 'inherit' });
+  ok('dotnet restore complete');
+}
+
+function fetchRust() {
+  log('\nRust crates:');
+  execSync('cargo fetch', { cwd: join(ROOT, 'apps', 'desktop', 'src-tauri'), stdio: 'inherit' });
+  ok('cargo fetch complete');
+}
+
 function generateCatalog() {
   log('\nCapability catalog:');
   execSync('node tools/catalog/catalog.ts', { cwd: ROOT, stdio: 'inherit' });
@@ -107,8 +128,12 @@ function main() {
   }
   wireGitHooks();
   installDeps();
+  installFrontend();
+  restoreBackend();
+  fetchRust();
   generateCatalog();
-  log('\nSetup complete. You are ready to build. Next: read CLAUDE.md and .forge/registry/CATALOG.md.');
+  log('\nSetup complete. Run `npm run verify` to confirm the fixture is green.');
+  log('Next: read CLAUDE.md and .forge/registry/CATALOG.md.');
 }
 
 main();

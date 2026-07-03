@@ -9,6 +9,7 @@
   },
   "scripts": {
     "setup": "node tools/setup/setup.mjs",
+    "verify": "node tools/verify/verify.mjs",
     "catalog": "node tools/catalog/catalog.ts",
     "catalog:check": "node tools/catalog/catalog.ts --check",
     "codegen": "node tools/codegen/generate.mjs",
