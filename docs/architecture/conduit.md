@@ -37,4 +37,6 @@ Everything else is identical across wires. These three are the only sanctioned d
 - A `catch` that inspects `.status`.
 - A shared operation implemented as a throw on one wire.
 
+The port is a DI seam: an app that genuinely needs per-operation routing (some operations over HTTP, others over IPC in one build) can supply a composite transport that dispatches per operation, at the cost of the parity guarantee above; record that departure as an ADR.
+
 If you need cross-transport reasoning beyond this file, the `conduit` skill covers the full design rationale.
