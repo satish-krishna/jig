@@ -60,10 +60,10 @@
 - **Reuse:** Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field.
 - **Where:** `frontend/src/app/forms/form-field-meta.ts` · since 0.1.0
 
-### `forms.schema-renderer` — selector (typescript)
-- **Intent:** Build every form from one zod schema; never hand-wire FormControls in a feature.
-- **Reuse:** Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted).
-- **Where:** `frontend/src/app/forms/schema-form.ts` · since 0.1.0
+### `forms.zod-meta` — formMeta (typescript)
+- **Intent:** Field presentation stays on the zod schema; components read it, never duplicate it.
+- **Reuse:** Call formMeta(schema) in a form component; pair with validateStandardSchema for validation.
+- **Where:** `frontend/src/app/forms/zod-meta.ts` · since 0.1.0
 
 ## repositories
 

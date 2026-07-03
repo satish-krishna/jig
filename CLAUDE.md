@@ -55,7 +55,7 @@ frontend/src/app/
   contracts/           operation registry + generated DTOs (single source of truth)
   transport/           port, http/ipc/normalizing transports, provide-transport
   repositories/        speak operations only
-  forms/               zod to spartan renderer + FormFieldMeta
+  forms/               FormFieldMeta + zod-meta helper (forms are signal-forms, per feature)
   capabilities/        native-only services (absent from web bootstrap)
   features/users/       the reference slice. Copy this shape.
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure

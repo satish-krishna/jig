@@ -1,25 +1,24 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import type { SaveUserInput } from '../../contracts';
-import { SchemaForm } from '../../forms/schema-form';
-import { userFormSchema } from './user-form.schema';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { UserForm } from './user-form';
+import type { UserFormModel } from './user-form.schema';
 import { UserListViewModel } from './user-list.view-model';
 
 /**
- * The users slice view. Binds only to the ViewModel's signals and the shared
- * form renderer. It has no idea a transport, a wire, or a repository exists.
+ * The users slice view. Binds only to the ViewModel's signals and the form
+ * component. It has no idea a transport, a wire, or a repository exists.
  * This is the reference view to copy for a new feature.
  */
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [SchemaForm],
-  providers: [UserListViewModel],
   changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [UserForm],
+  providers: [UserListViewModel],
   template: `
     <section class="users">
       <h1>Users</h1>
 
-      <app-schema-form [schema]="schema" submitLabel="Add user" (submitted)="onSubmit($event)" />
+      <app-user-form (saved)="onSaved($event)" />
 
       @if (vm.loading()) {
         <p class="status">Loading...</p>
@@ -40,13 +39,12 @@ import { UserListViewModel } from './user-list.view-model';
 })
 export class UserListView implements OnInit {
   protected readonly vm = inject(UserListViewModel);
-  protected readonly schema = userFormSchema;
 
   ngOnInit(): void {
     this.vm.load();
   }
 
-  onSubmit(value: Record<string, unknown>): void {
-    this.vm.save(value as SaveUserInput);
+  onSaved(value: UserFormModel): void {
+    this.vm.save(value);
   }
 }
