@@ -1,5 +1,5 @@
 using FakeItEasy;
-using FluentAssertions;
+using Shouldly;
 using Jig.Domain;
 
 namespace Jig.Application.Tests;
@@ -17,8 +17,8 @@ public class UserServiceTests
 
         var result = await Sut().ListAsync(CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(users);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(users);
     }
 
     [Fact]
@@ -28,8 +28,8 @@ public class UserServiceTests
 
         var result = await Sut().GetAsync(Guid.NewGuid(), CancellationToken.None);
 
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Kind.Should().Be(ErrorKind.NotFound);
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.Kind.ShouldBe(ErrorKind.NotFound);
     }
 
     [Fact]
@@ -40,8 +40,8 @@ public class UserServiceTests
 
         var result = await Sut().GetAsync(user.Id, CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(user);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(user);
     }
 
     [Fact]
@@ -53,9 +53,9 @@ public class UserServiceTests
 
         var result = await Sut().SaveAsync(null, "Cy", "cy@x.io", CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Value!.Id.Should().NotBe(Guid.Empty);
-        result.Value.Name.Should().Be("Cy");
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Id.ShouldNotBe(Guid.Empty);
+        result.Value.Name.ShouldBe("Cy");
         A.CallTo(() => _repo.UpsertAsync(A<User>.That.Matches(u => u.Email == "cy@x.io"), A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
     }
@@ -68,8 +68,8 @@ public class UserServiceTests
 
         var result = await Sut().SaveAsync(null, "New", "dup@x.io", CancellationToken.None);
 
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Kind.Should().Be(ErrorKind.Conflict);
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.Kind.ShouldBe(ErrorKind.Conflict);
         A.CallTo(() => _repo.UpsertAsync(A<User>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
 
@@ -81,7 +81,7 @@ public class UserServiceTests
 
         var result = await Sut().SaveAsync(Guid.NewGuid(), "Ghost", "ghost@x.io", CancellationToken.None);
 
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Kind.Should().Be(ErrorKind.NotFound);
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.Kind.ShouldBe(ErrorKind.NotFound);
     }
 }
