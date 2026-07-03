@@ -1,8 +1,27 @@
 #!/bin/sh
-# Green-gate the commit: the capability catalog must be fresh and the tooling
-# tests must pass. A stale catalog or a broken generator blocks the commit —
-# this is what makes "100% embedded docs" a mechanical guarantee, not a promise.
+# Green-gate the commit: work lands on a feature branch, the capability catalog
+# must be fresh, and the tooling tests must pass. A wrong branch, a stale catalog,
+# or a broken generator blocks the commit — this is what makes the standards a
+# mechanical guarantee, not a promise.
 set -e
+
+# Feature-branch gate: no direct commits to main/master, and branch names follow
+# the conventional-commit prefix. The init bootstrap commit sets JIG_ALLOW_MAIN=1.
+branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+  if [ "$JIG_ALLOW_MAIN" != "1" ]; then
+    echo "pre-commit: refusing to commit on '$branch' — work happens on a feature branch." >&2
+    echo "  git switch -c feat/<short-description>   (or fix/, docs/, refactor/, chore/, …)" >&2
+    exit 1
+  fi
+elif [ -n "$branch" ]; then
+  echo "$branch" | grep -Eq '^(feat|fix|docs|refactor|test|chore|build|ci|perf|style|revert)(\([a-z0-9-]+\))?/[a-z0-9._-]+$' || {
+    echo "pre-commit: branch '$branch' does not follow the naming rule." >&2
+    echo "  expected  <type>[(scope)]/<kebab-description>   e.g. feat/design-system, fix(api)/null-user" >&2
+    echo "  types: feat fix docs refactor test chore build ci perf style revert" >&2
+    exit 1
+  }
+fi
 
 echo "pre-commit: checking capability catalog freshness…"
 node tools/catalog/catalog.ts --check

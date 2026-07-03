@@ -1,0 +1,73 @@
+<!-- @dsCard group="Components" viewport="700x330" name="Core — Button, Badge, Card, Separator" subtitle="Actions, status pills, surfaces, dividers" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; padding: 20px; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .grid { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Button, Badge, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Separator } = window.JigDesignSystem_ac97f9;
+  function Demo() {
+    return (
+      <div className="grid">
+        <div>
+          <div className="row">
+            <Button>Default</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="outline">Outline</Button>
+          </div>
+          <div className="row">
+            <Button variant="ghost">Ghost</Button>
+            <Button variant="destructive">Delete</Button>
+            <Button variant="link">Link</Button>
+          </div>
+          <div className="row">
+            <Button size="sm">Small</Button>
+            <Button size="xs">XS</Button>
+            <Button disabled>Disabled</Button>
+          </div>
+          <div className="row">
+            <Badge>Stable</Badge>
+            <Badge variant="secondary">v0.4.0</Badge>
+            <Badge variant="destructive">Failing</Badge>
+            <Badge variant="outline">thick client</Badge>
+          </div>
+          <div className="row" style={{ height: 20 }}>
+            <span style={{ fontSize: 13 }}>Docs</span>
+            <Separator orientation="vertical" />
+            <span style={{ fontSize: 13 }}>API</span>
+            <Separator orientation="vertical" />
+            <span style={{ fontSize: 13 }}>Rust</span>
+          </div>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>users slice</CardTitle>
+            <CardDescription>The one worked vertical slice, end to end.</CardDescription>
+          </CardHeader>
+          <CardContent style={{ fontSize: 14, color: 'var(--muted-foreground)' }}>
+            Exercises every layer: view, view-model, repository, transport.
+          </CardContent>
+          <CardFooter>
+            <Button size="sm">Open</Button>
+            <Button size="sm" variant="ghost">Docs</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

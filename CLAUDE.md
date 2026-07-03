@@ -24,6 +24,7 @@ This is a template, not a product. The `users` slice is the one worked example t
 - **TDD, red-green-refactor:** no production line exists before a failing test that demands it. Holds in TypeScript, C#, and Rust.
 - **AI-native:** LSP navigation over grep; generated catalogs over tribal knowledge; machine-checked gates over "please remember".
 - **Conventional Commits:** every commit is `type(scope): summary`, and commits land only at a green gate (`npm run verify`).
+- **Feature-branch workflow:** all work lands on a feature branch named `type[(scope)]/kebab-description` (the conventional-commit prefix); `main` takes no direct commits and integrates by squash merge, keeping history linear. Enforced by the `pre-commit` hook.
 
 The smell test for each lives in CONTRIBUTING.md. If any instruction conflicts with these six, stop and surface the conflict before proceeding.
 
@@ -36,6 +37,7 @@ This file is tier one. Everything below is disclosed on demand: open the file th
 | Write code, run tests, or commit | `CONTRIBUTING.md` |
 | Touch the transport seam (IPC or HTTP) | `docs/architecture/conduit.md` |
 | Build or change a form | `docs/architecture/forms.md` |
+| Build UI, style a component, or make a mock | `docs/architecture/design.md` |
 | Add a whole feature | `.forge/prompts/new-feature.md` |
 | Understand a past decision | `.forge/adr/` |
 
@@ -73,6 +75,8 @@ frontend/src/app/
   capabilities/        native-only services (pattern; add when first needed, absent from web bootstrap)
   features/users/       the reference slice. Copy this shape.
 frontend/libs/ui/       spartan-ng helm components (generated; @spartan-ng/helm/* alias)
+frontend/src/styles.css theme tokens: source of truth for UI (OKLCH neutral scale, light + dark)
+.claude/skills/jig-design/  design-language skill: mocks/previews + the feel spec (downstream mirror of the app, ADR 0007)
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure
 contracts/openapi/     OpenAPI spec emitted by the API (source for TS codegen)
 tools/                 setup, init (template rename), catalog generator, codegen, verify (the gate)

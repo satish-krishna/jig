@@ -21,7 +21,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const sh = (cmd, opts = {}) => execSync(cmd, { cwd: ROOT, stdio: 'inherit', ...opts });
 const shOut = (cmd) => execSync(cmd, { cwd: ROOT, encoding: 'utf8' }).trim();
 
-const BINARY = ['.png', '.ico', '.icns', '.jpg', '.jpeg', '.gif', '.woff', '.woff2', '.ttf'];
+const BINARY = ['.png', '.ico', '.icns', '.jpg', '.jpeg', '.gif', '.woff', '.woff2', '.ttf', '.webp', '.thumbnail'];
 const TEMPLATE_ONLY = ['bootstrap-prompt.md', 'docs/superpowers', 'tools/init'];
 
 function parseArgs(argv) {
@@ -60,15 +60,17 @@ function main() {
   }
   console.log('  content rewritten');
 
-  // 2. Rename paths (files carry their dirs), deepest first; then drop leftover Jig.* dirs.
-  for (const rel of [...files].filter((r) => r.includes('Jig')).sort((a, b) => b.length - a.length)) {
+  // 2. Rename paths (files carry their dirs), deepest first; then drop leftover
+  // source dirs. A path is renamed when renamePath changes it — this catches both
+  // the PascalCase `Jig.*` .NET dirs and the lowercase `jig-design` skill folder.
+  for (const rel of [...files].filter((r) => renamePath(r, n) !== r).sort((a, b) => b.length - a.length)) {
     const src = join(ROOT, rel);
     const dst = join(ROOT, renamePath(rel, n));
     if (src === dst || !existsSync(src)) continue;
     mkdirSync(dirname(dst), { recursive: true });
     renameSync(src, dst);
   }
-  for (const dir of new Set(files.map((r) => dirname(r)).filter((d) => d.includes('Jig')))) {
+  for (const dir of new Set(files.map((r) => dirname(r)).filter((d) => renamePath(d, n) !== d))) {
     rmSync(join(ROOT, dir), { recursive: true, force: true });
   }
   console.log('  paths renamed');
@@ -103,9 +105,12 @@ function main() {
     sh('node tools/verify/verify.mjs');
   }
 
-  // 8. Commit the fresh app.
+  // 8. Commit the fresh app. This bootstrap commit is the one sanctioned commit on
+  // main; JIG_ALLOW_MAIN lets it past the feature-branch gate (see .githooks/pre-commit).
   sh('git add -A');
-  sh(`git commit -q -m "chore(repo): initialize ${n.pascal} from the Jig template"`);
+  sh(`git commit -q -m "chore(repo): initialize ${n.pascal} from the Jig template"`, {
+    env: { ...process.env, JIG_ALLOW_MAIN: '1' },
+  });
 
   console.log(`\nDone. ${n.pascal} is initialized on a fresh git history.`);
   console.log('Next: review CLAUDE.md, set your bundle id / signing, and build your first feature.');

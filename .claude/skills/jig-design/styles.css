@@ -1,0 +1,18 @@
+/* ────────────────────────────────────────────────────────────
+   Jig Design System — global entry point
+   Consumers link ONLY this file. It is a manifest of @imports;
+   no rules are declared here directly.
+   Source of truth: satish-krishna/jig (frontend, Spartan-ng).
+   ──────────────────────────────────────────────────────────── */
+
+/* Tokens */
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/radius.css";
+@import "./tokens/shadows.css";
+@import "./tokens/spacing.css";
+
+/* Foundations & components */
+@import "./css/base.css";
+@import "./css/components.css";
+@import "./css/layout.css";
