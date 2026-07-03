@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 19,
+  "count": 20,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -75,6 +75,15 @@
       "language": "typescript",
       "symbol": "ROUTES",
       "since": "0.1.0"
+    },
+    {
+      "capability": "forms.dynamic-renderer",
+      "intent": "Render any zod schema at runtime; the schema stays the source of truth for shape and validation.",
+      "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.",
+      "file": "frontend/src/app/forms/schema-form.ts",
+      "language": "typescript",
+      "symbol": "selector",
+      "since": "0.2.0"
     },
     {
       "capability": "forms.field-meta",

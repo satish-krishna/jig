@@ -1,44 +1,42 @@
-# Schema-driven forms (zod + Angular signal-forms + spartan)
+# Schema-driven forms (zod + spartan)
 
-Read this before you build or change a form. A form is built on Angular signal-forms (`@angular/forms/signals`) with spartan helm controls, and the **zod schema is the single source of truth** for shape, validation, and field labels. Copy the reference `UserForm` (`features/users/user-form.ts`).
+Read this before you build or change a form. A **zod schema is always the single source of truth** for shape, validation, and field labels. There are two ways to turn that schema into a form; pick by whether you know the schema at compile time.
 
-## The rules
+## The rule: which form system
 
-- **One zod schema per form is the source of truth.** It owns field shapes and validation rules. Nothing restates them. See `user-form.schema.ts`.
+| You know the fields when you write the code | The schema arrives at runtime |
+|---|---|
+| **Angular signal-forms** (typed, you author it) | **Dynamic reactive renderer** (`SchemaForm`) |
+| `features/users/user-form.ts` is the reference | agent-emitted forms, admin/config UIs |
+| `form(model, p => validateStandardSchema(p, schema))` | `<app-schema-form [schema]="schema" (submitted)="...">` |
+
+Both read shape and labels from the same zod schema. Do not reach for reactive forms when you are hand-authoring a known form (use signal-forms), and do not try to render an unknown runtime schema through signal-forms (its typed field paths fight you) — use the dynamic renderer.
+
+## Compile-time forms: signal-forms
+
 - **The model type is `z.infer<typeof schema>`.** Never hand-write a form interface.
-- **Validation runs through the schema, natively.** zod 4 is a Standard Schema, and signal-forms validates a Standard Schema directly:
-  ```ts
-  protected readonly model = signal<UserFormModel>({ name: '', email: '' });
-  protected readonly form = form(this.model, (path) => validateStandardSchema(path, userFormSchema));
-  ```
-  Do not add `required()` / `minLength()` validators that duplicate a zod rule, and do not mirror a rule as a separate Angular validator. The schema owns it.
-- **Field labels ride on the schema** via zod `.meta()` against a typed `FormFieldMeta`, read with `formMeta(schema)`. A missing label is a compile error.
-- **Controls are spartan helm.** Bind each field with the signal-forms `[formField]` directive inside an `hlm-field`:
-  ```html
-  <hlm-field>
-    <label hlmFieldLabel for="name">{{ meta['name'].label }}</label>
-    <input hlmInput id="name" [formField]="form.name" />
-    @if (form.name().touched()) {
-      @for (error of form.name().errors(); track error.kind) {
-        <hlm-field-error>{{ error.message }}</hlm-field-error>
-      }
-    }
-  </hlm-field>
-  ```
-- **Errors show after interaction.** Gate the error `@for` on `form.field().touched()`; mark fields touched on submit so a fresh form does not shout on first paint.
-- **Submit runs only when valid.** Use `submit(this.form, async () => { ... })`; the action runs only if the schema passes.
+- **Validation is native.** zod 4 is a Standard Schema, so `form(model, (path) => validateStandardSchema(path, schema))` validates the whole form through zod. Do not restate a rule as a `required()`/`minLength()` validator.
+- **Labels ride on the schema** via `.meta()`, read with `formMeta(schema)`.
+- **Controls are spartan helm.** Bind with `[formField]="form.name"` inside `hlm-field`; show errors from `form.name().errors()`, gated on `form.name().touched()` so a fresh form does not shout.
+- **Submit runs only when valid:** `submit(this.form, async () => { ... })`.
 
-## Why per-feature, not one generic renderer
+## Runtime forms: the dynamic renderer (`SchemaForm`)
 
-signal-forms is built around statically-typed field paths (`form.name`), which a fully-dynamic "render any schema" component fights. So each feature has its own small form component. The reuse is real but lives elsewhere: the one zod schema (shape + validation + meta), the native Standard Schema validation bridge, and the spartan helm controls. See ADR 0006.
+For a schema not known until runtime, `forms/schema-form.ts` builds the form for you.
+
+- It builds a reactive `FormGroup` from the schema's fields (`fieldsFromSchema`), renders each by its `meta.control` kind with spartan controls, and on submit validates through `schema.safeParse`, folding zod issues back onto the matching fields.
+- Usage: `<app-schema-form [schema]="mySchema" submitLabel="Save" (submitted)="onSaved($event)" />`. The emitted value is the parsed, valid data.
+- The zod-to-control mapping lives only in this component's `@switch`. Add a control kind there, never in a feature.
+- This is the substrate for agent-generated forms (AG-UI): an agent emits a zod schema, the renderer turns it into a validated form with no hand-written component.
 
 ## Where spartan lives
 
-Helm components are generated into `frontend/libs/ui` (the CLI copy model) behind the `@spartan-ng/helm/*` tsconfig alias. Add a component with `ng g @spartan-ng/cli:ui <name>`. The spartan MCP and the `spartan` skill are wired for component APIs and project context.
+Helm components are generated into `frontend/libs/ui` (the CLI copy model) behind the `@spartan-ng/helm/*` tsconfig alias. Add one with `ng g @spartan-ng/cli:ui <name>`. `vite-tsconfig-paths` makes Vitest resolve the same alias. The spartan MCP and `spartan` skill are wired for component APIs.
 
 ## Smells that mean the pattern is breaking
 
 - A hand-written form-model interface instead of `z.infer`.
-- A validation rule stated in both the zod schema and a signal-forms validator.
-- A form field wired without its zod schema, or labels hard-coded instead of read from `.meta()`.
-- Reaching for reactive `FormGroup`/`FormControl` instead of signal-forms.
+- A validation rule stated in both the zod schema and a validator.
+- Rendering a runtime schema by hand instead of through `SchemaForm`, or hand-authoring a known form through `SchemaForm` instead of signal-forms.
+- A `switch` on control type living in a feature instead of in `SchemaForm`.
+- Labels hard-coded instead of read from `.meta()`.
