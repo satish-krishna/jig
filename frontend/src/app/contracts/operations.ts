@@ -20,7 +20,7 @@ export type SaveUserInput = Schemas['SaveUserRequest'];
  * @since 0.1.0
  */
 export interface Operations {
-  'users.list': { req: void; res: UserDto[] };
+  'users.list': { req: Record<string, never>; res: UserDto[] };
   'users.get': { req: { id: string }; res: UserDto };
   'users.save': { req: SaveUserInput; res: UserDto };
 }
