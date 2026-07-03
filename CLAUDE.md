@@ -48,9 +48,12 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 | Command | What it does |
 |---|---|
 | `npm run setup` | One-command environment bootstrap for a fresh clone |
+| `npm run dev` | Frontend HMR + backend hot-reload together; monitor it for compile errors |
 | `npm run verify` | Full build, all tests, and catalog freshness (the green gate) |
 | `npm run catalog` | Regenerate the capability catalog after annotating code |
 | `npm run codegen` | Emit OpenAPI from the API and generate the TypeScript DTOs |
+
+**Development loop:** for iterative work, run `npm run dev` in the background and watch its output for compile errors instead of full-building per change; LSP diagnostics are the type-check backup. This speeds the inner loop only. It is not the gate: run `npm run verify` (which runs the tests) before committing.
 
 ## Map of the repo
 

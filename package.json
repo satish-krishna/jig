@@ -10,6 +10,7 @@
   "scripts": {
     "setup": "node tools/setup/setup.mjs",
     "init": "node tools/init/init.mjs",
+    "dev": "node tools/dev/dev.mjs",
     "verify": "node tools/verify/verify.mjs",
     "catalog": "node tools/catalog/catalog.ts",
     "catalog:check": "node tools/catalog/catalog.ts --check",
