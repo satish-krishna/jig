@@ -1,3 +1,6 @@
+[![CI](https://github.com/satish-krishna/jig/actions/workflows/verify.yml/badge.svg)](https://github.com/satish-krishna/jig/actions/workflows/verify.yml)
+[![Release](https://img.shields.io/github/v/release/satish-krishna/jig)](https://github.com/satish-krishna/kata/jig)
+
 # Jig
 
 A jig is the fixture a maker builds once so every part after it comes out identical and correct without rework. That is this repository's whole job: build the fixture once, and every app cloned from it comes out following the same patterns, gates, and conventions.
