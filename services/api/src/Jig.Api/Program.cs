@@ -1,8 +1,12 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using Jig.Application;
+using Jig.Infrastructure;
 
 var bld = WebApplication.CreateBuilder(args);
 bld.Services
+    .AddApplication()
+    .AddInfrastructure(bld.Configuration.GetConnectionString("Default") ?? "Data Source=jig.db")
     .AddFastEndpoints()
     .SwaggerDocument(o =>
     {
@@ -15,6 +19,9 @@ bld.Services
     });
 
 var app = bld.Build();
+
+await app.Services.InitializeDatabaseAsync();
+
 app.UseFastEndpoints()
    .UseSwaggerGen();
 app.Run();

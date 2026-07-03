@@ -1,7 +1,31 @@
 {
   "generator": "tools/catalog",
-  "count": 3,
+  "count": 9,
   "capabilities": [
+    {
+      "capability": "api.application-module",
+      "intent": "One call registers the use-case services, so the host does not name each by hand.",
+      "reuse": "Call services.AddApplication() from the API composition root.",
+      "file": "services/api/src/Jig.Application/ApplicationModule.cs",
+      "language": "csharp",
+      "symbol": "ApplicationModule"
+    },
+    {
+      "capability": "api.infrastructure-module",
+      "intent": "One call wires the database and repositories, so the host does not know EF Core details.",
+      "reuse": "Call services.AddInfrastructure(connectionString) from the API composition root, then InitializeDatabaseAsync on startup.",
+      "file": "services/api/src/Jig.Infrastructure/InfrastructureModule.cs",
+      "language": "csharp",
+      "symbol": "InfrastructureModule"
+    },
+    {
+      "capability": "api.result-endpoint",
+      "intent": "One place maps Result to HTTP, so no endpoint invents its own status handling.",
+      "reuse": "Derive request/response endpoints from ResultEndpoint and call SendResultAsync.",
+      "file": "services/api/src/Jig.Api/ResultEndpoint.cs",
+      "language": "csharp",
+      "symbol": "ResultEndpoint"
+    },
     {
       "capability": "api.result-envelope",
       "intent": "Expected failures travel as data, not exceptions.",
@@ -9,6 +33,30 @@
       "file": "services/api/src/Jig.Domain/Result.cs",
       "language": "csharp",
       "symbol": "Result"
+    },
+    {
+      "capability": "api.user-repository",
+      "intent": "The only place that touches EF Core for users; the application never sees a DbContext.",
+      "reuse": "Registered for IUserRepository by AddInfrastructure; do not new it up directly.",
+      "file": "services/api/src/Jig.Infrastructure/UserRepository.cs",
+      "language": "csharp",
+      "symbol": "UserRepository"
+    },
+    {
+      "capability": "api.user-repository-port",
+      "intent": "The use-case layer owns the persistence contract it needs, not the database.",
+      "reuse": "Depend on IUserRepository from application services; implement it in Infrastructure only.",
+      "file": "services/api/src/Jig.Application/IUserRepository.cs",
+      "language": "csharp",
+      "symbol": "IUserRepository"
+    },
+    {
+      "capability": "api.user-service",
+      "intent": "One cohesive place for the user use-case logic, independent of transport and database.",
+      "reuse": "Inject UserService into endpoints; it speaks IUserRepository, never EF Core directly.",
+      "file": "services/api/src/Jig.Application/UserService.cs",
+      "language": "csharp",
+      "symbol": "UserService"
     },
     {
       "capability": "contracts.operation-registry",

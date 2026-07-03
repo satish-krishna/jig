@@ -50,8 +50,27 @@ export interface components {
         SaveUserRequest: {
             /** Format: guid */
             id?: string | null;
-            name?: string;
-            email?: string;
+            name: string;
+            /** Format: email */
+            email: string;
+        };
+        /** @description the dto used to send an error response to the client */
+        ErrorResponse: {
+            /**
+             * Format: int32
+             * @description the http status code sent to the client. default is 400.
+             * @default 400
+             */
+            statusCode: number;
+            /**
+             * @description the message for the error response
+             * @default One or more errors occurred!
+             */
+            message: string;
+            /** @description the collection of errors for the current context */
+            errors?: {
+                [key: string]: string[];
+            };
         };
     };
     responses: never;
@@ -124,6 +143,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
