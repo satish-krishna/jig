@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 17,
+  "count": 19,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -74,6 +74,24 @@
       "file": "frontend/src/app/contracts/registry.ts",
       "language": "typescript",
       "symbol": "ROUTES",
+      "since": "0.1.0"
+    },
+    {
+      "capability": "forms.field-meta",
+      "intent": "Field presentation lives on the schema field, not in a parallel config object.",
+      "reuse": "Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field.",
+      "file": "frontend/src/app/forms/form-field-meta.ts",
+      "language": "typescript",
+      "symbol": "ControlKind",
+      "since": "0.1.0"
+    },
+    {
+      "capability": "forms.schema-renderer",
+      "intent": "Build every form from one zod schema; never hand-wire FormControls in a feature.",
+      "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted).",
+      "file": "frontend/src/app/forms/schema-form.ts",
+      "language": "typescript",
+      "symbol": "selector",
       "since": "0.1.0"
     },
     {

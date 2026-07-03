@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test"
   },
   "prettier": {
     "printWidth": 100,
@@ -32,6 +33,7 @@
     "@tauri-apps/api": "^2.11.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "zod": "^4.4.3",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
@@ -40,6 +42,7 @@
     "@angular/build": "^20.3.31",
     "@angular/cli": "^20.3.31",
     "@angular/compiler-cli": "^20.3.0",
+    "@playwright/test": "^1.61.1",
     "jsdom": "^29.1.1",
     "typescript": "~5.9.2",
     "vitest": "^3.2.6"
