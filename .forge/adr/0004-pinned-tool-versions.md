@@ -10,7 +10,7 @@ The bootstrap says "latest stable" for Angular and names FluentAssertions. Both 
 
 ## Decision
 
-**Angular pinned to 20 (not 22).** Angular CLI 22 requires Node `^24.15.0` in the 24.x line; the environment has Node `24.12.0`. Rather than upgrade the user's Node unattended (a system-wide change with broad blast radius), the template pins Angular 20, which supports Node `>=24.0`. Bump to 22+ once Node moves past 24.15.
+**Angular pin retired — now on 22.** Angular was initially pinned to 20 because CLI 22 requires Node `^24.15.0` and the environment had `24.12.0`; upgrading the user's Node unattended was out of scope. Once Node moved to `24.18`, the pin was lifted: Angular was updated 20 → 21 → 22 (stepwise, verified between hops), which also unlocked `@angular/forms/signals`. This paragraph is kept as the record of why the pin existed.
 
 **Assertions use Shouldly (not FluentAssertions).** FluentAssertions v8 moved to a commercial Xceed license: commercial use requires a paid per-seat license, and v7 is a frozen Apache-2.0 tail. Rather than pin a dead version, the tests use Shouldly (MIT, actively maintained). Both backend test projects assert with `x.ShouldBe(...)` and friends.
 
