@@ -79,9 +79,12 @@ function main() {
   conf.productName = n.pascal;
   writeFileSync(confPath, JSON.stringify(conf, null, 2) + '\n');
 
-  // 4. Strip template-only files (full reset).
+  // 4. Strip template-only files (full reset) and the now-dead `init` script.
   for (const p of TEMPLATE_ONLY) rmSync(join(ROOT, p), { recursive: true, force: true });
-  rmSync(join(ROOT, 'docs/superpowers'), { recursive: true, force: true }); // in case it lingers
+  const pkgPath = join(ROOT, 'package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+  delete pkg.scripts.init;
+  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
   console.log('  template-only files removed');
 
   // 5. Regenerate the catalog (file paths changed).
