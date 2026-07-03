@@ -41,8 +41,8 @@ flowchart TD
     VM --> Repo["Repository (operation calls)"]
     Repo --> Norm["NormalizingTransport (single error seam)"]
     Norm --> Port["Transport port (DI token)"]
-    Port -. isTauri picks one at bootstrap .-> Ipc["IpcTransport → invoke"]
-    Port -. .-> Http["HttpTransport → HttpClient"]
+    Port -. "isTauri() at bootstrap" .-> Ipc["IpcTransport (invoke)"]
+    Port -.-> Http["HttpTransport (HttpClient)"]
     Ipc --> Rust["Rust core (thick)"]
     Http --> Api[".NET API (thin)"]
 ```
