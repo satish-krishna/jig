@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import type { SaveUserInput } from '../../contracts';
 import { SchemaForm } from '../../forms/schema-form';
 import { userFormSchema } from './user-form.schema';
@@ -14,6 +14,7 @@ import { UserListViewModel } from './user-list.view-model';
   standalone: true,
   imports: [SchemaForm],
   providers: [UserListViewModel],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <section class="users">
       <h1>Users</h1>

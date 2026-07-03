@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import type { z } from 'zod';
 import type { FormFieldMeta } from './form-field-meta';
@@ -28,6 +28,7 @@ function defaultFor(meta: FormFieldMeta): unknown {
   selector: 'app-schema-form',
   standalone: true,
   imports: [ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <form [formGroup]="form()" (ngSubmit)="onSubmit()">
       @for (field of fields(); track field.name) {
