@@ -1,5 +1,32 @@
 {
   "generator": "tools/catalog",
-  "count": 0,
-  "capabilities": []
+  "count": 3,
+  "capabilities": [
+    {
+      "capability": "api.result-envelope",
+      "intent": "Expected failures travel as data, not exceptions.",
+      "reuse": "Return Result<T> from handlers; do not throw for validation or not-found. Endpoints map it to a transport status.",
+      "file": "services/api/src/Jig.Domain/Result.cs",
+      "language": "csharp",
+      "symbol": "Result"
+    },
+    {
+      "capability": "contracts.operation-registry",
+      "intent": "One typed map of operations so HTTP and IPC cannot disagree about a shape.",
+      "reuse": "Add an operation here first; response types must resolve to generated DTOs.",
+      "file": "frontend/src/app/contracts/operations.ts",
+      "language": "typescript",
+      "symbol": "Operations",
+      "since": "0.1.0"
+    },
+    {
+      "capability": "contracts.transport-registry",
+      "intent": "Compiler-enforced parity: every operation has both an HTTP route and an IPC command.",
+      "reuse": "Add the operation to Operations, then its ROUTES and COMMANDS entry; omissions fail the build.",
+      "file": "frontend/src/app/contracts/registry.ts",
+      "language": "typescript",
+      "symbol": "ROUTES",
+      "since": "0.1.0"
+    }
+  ]
 }

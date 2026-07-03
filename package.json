@@ -11,11 +11,13 @@
     "setup": "node tools/setup/setup.mjs",
     "catalog": "node tools/catalog/catalog.ts",
     "catalog:check": "node tools/catalog/catalog.ts --check",
+    "codegen": "node tools/codegen/generate.mjs",
     "test:tools": "node --test \"tools/**/*.test.ts\"",
     "commitlint": "commitlint"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
-    "@commitlint/config-conventional": "^19.0.0"
+    "@commitlint/config-conventional": "^19.0.0",
+    "openapi-typescript": "^7.0.0"
   }
 }
