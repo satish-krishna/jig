@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.jig.app",
   "build": {
-    "frontendDist": "../../frontend/dist/jig/browser",
+    "frontendDist": "../../../frontend/dist/jig/browser",
     "devUrl": "http://localhost:4200",
     "beforeDevCommand": "npm --prefix ../../frontend run start",
     "beforeBuildCommand": "npm --prefix ../../frontend run build"
