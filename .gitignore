@@ -1,0 +1,28 @@
+# Node / frontend
+node_modules/
+dist/
+.angular/
+*.tsbuildinfo
+
+# .NET
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# Rust / Tauri
+target/
+apps/desktop/src-tauri/target/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.vs/
+.idea/
+*.user
+
+# Local env
+*.local
+.env
+.env.*
+!.env.example

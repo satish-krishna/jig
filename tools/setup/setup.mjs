@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+// Idempotent environment bootstrap for a fresh Jig clone. One command
+// (`npm run setup`) from clone to a working, LSP-aware agent environment:
+// it verifies every toolchain and language server the repo depends on, wires
+// git to the committed hooks, installs commit tooling, and generates the catalog.
+//
+// Fails early and loudly if a required binary is missing — a half-working
+// environment is worse than a clear "install this first".
+
+import { execSync, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const log = (m) => console.log(m);
+const ok = (m) => console.log(`  ok   ${m}`);
+const bad = (m) => console.log(`  MISS ${m}`);
+
+// Each check: a binary, how to ask its version, and whether it is required.
+// The optional alternatives (alt) let one of several satisfy a slot — e.g. any
+// TypeScript language server, csharp-ls or the Roslyn server for C#.
+const CHECKS = [
+  { slot: 'git', required: true, candidates: [['git', ['--version']]] },
+  { slot: 'node', required: true, candidates: [['node', ['--version']]], min: 22 },
+  { slot: '.NET SDK', required: true, candidates: [['dotnet', ['--version']]] },
+  { slot: 'rustc', required: true, candidates: [['rustc', ['--version']]] },
+  { slot: 'cargo', required: true, candidates: [['cargo', ['--version']]] },
+  { slot: 'tauri-cli', required: true, candidates: [['cargo-tauri', ['--version']], ['cargo', ['tauri', '--version']]] },
+  { slot: 'rust-analyzer (LSP)', required: true, candidates: [['rust-analyzer', ['--version']]] },
+  { slot: 'TypeScript LSP', required: true, candidates: [['typescript-language-server', ['--version']], ['vtsls', ['--version']]] },
+  { slot: 'C# LSP', required: true, candidates: [['csharp-ls', ['--version']]] },
+];
+
+function tryVersion(cmd, args) {
+  // On Windows many tools are .cmd/.bat shims that need a shell to resolve. Pass
+  // one command string in that case (avoids DEP0190 from args + shell:true).
+  const r = process.platform === 'win32'
+    ? spawnSync([cmd, ...args].join(' '), { encoding: 'utf8', shell: true })
+    : spawnSync(cmd, args, { encoding: 'utf8' });
+  if (r.status === 0 && (r.stdout || r.stderr)) {
+    return (r.stdout || r.stderr).trim().split('\n')[0];
+  }
+  return null;
+}
+
+function checkTools() {
+  log('\nToolchain and language servers:');
+  let missing = 0;
+  for (const c of CHECKS) {
+    let found = null;
+    for (const [cmd, args] of c.candidates) {
+      const v = tryVersion(cmd, args);
+      if (v) { found = v; break; }
+    }
+    if (!found) {
+      bad(`${c.slot} — not found (looked for: ${c.candidates.map((x) => x[0]).join(', ')})`);
+      if (c.required) missing++;
+      continue;
+    }
+    if (c.min) {
+      const major = Number((found.match(/(\d+)/) ?? [])[1]);
+      if (major && major < c.min) {
+        bad(`${c.slot} — ${found} (need >= ${c.min})`);
+        missing++;
+        continue;
+      }
+    }
+    ok(`${c.slot} — ${found}`);
+  }
+  return missing;
+}
+
+function wireGitHooks() {
+  log('\nGit hooks:');
+  try {
+    execSync('git rev-parse --is-inside-work-tree', { cwd: ROOT, stdio: 'ignore' });
+    execSync('git config core.hooksPath .githooks', { cwd: ROOT, stdio: 'ignore' });
+    ok('core.hooksPath → .githooks');
+  } catch {
+    bad('not a git repository — run `git init` first');
+  }
+}
+
+function installDeps() {
+  log('\nCommit tooling (commitlint):');
+  if (existsSync(join(ROOT, 'node_modules', '@commitlint', 'cli'))) {
+    ok('commitlint already installed');
+    return;
+  }
+  log('  installing dev dependencies…');
+  execSync('npm install', { cwd: ROOT, stdio: 'inherit' });
+  ok('npm install complete');
+}
+
+function generateCatalog() {
+  log('\nCapability catalog:');
+  execSync('node tools/catalog/catalog.ts', { cwd: ROOT, stdio: 'inherit' });
+}
+
+function main() {
+  log('Jig setup — building the fixture environment.');
+  const missing = checkTools();
+  if (missing > 0) {
+    log(`\nSetup incomplete: ${missing} required tool(s) missing. Install them and re-run \`npm run setup\`.`);
+    process.exit(1);
+  }
+  wireGitHooks();
+  installDeps();
+  generateCatalog();
+  log('\nSetup complete. You are ready to build. Next: read CLAUDE.md and .forge/registry/CATALOG.md.');
+}
+
+main();

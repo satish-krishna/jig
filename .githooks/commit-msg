@@ -1,0 +1,5 @@
+#!/bin/sh
+# Reject any commit message that is not Conventional Commits (see commitlint.config.mjs).
+# Installed by pointing git at .githooks via `git config core.hooksPath .githooks`
+# (the setup script does this on a fresh clone).
+npx --no-install commitlint --edit "$1"

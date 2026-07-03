@@ -1,0 +1,13 @@
+#!/bin/sh
+# Green-gate the commit: the capability catalog must be fresh and the tooling
+# tests must pass. A stale catalog or a broken generator blocks the commit —
+# this is what makes "100% embedded docs" a mechanical guarantee, not a promise.
+set -e
+
+echo "pre-commit: checking capability catalog freshness…"
+node tools/catalog/catalog.ts --check
+
+echo "pre-commit: running tooling tests…"
+node --test "tools/**/*.test.ts" >/dev/null
+
+echo "pre-commit: ok"

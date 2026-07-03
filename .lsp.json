@@ -1,0 +1,7 @@
+{
+  "csharp": {
+    "command": ["csharp-ls"],
+    "extensions": [".cs"],
+    "rootPatterns": ["*.sln", "*.csproj"]
+  }
+}

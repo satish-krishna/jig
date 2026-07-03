@@ -1,0 +1,21 @@
+{
+  "name": "jig",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jig — AI-native desktop template (Tauri + Angular SPA + .NET FastEndpoints). Build the fixture once; every app comes out identical.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "setup": "node tools/setup/setup.mjs",
+    "catalog": "node tools/catalog/catalog.ts",
+    "catalog:check": "node tools/catalog/catalog.ts --check",
+    "test:tools": "node --test \"tools/**/*.test.ts\"",
+    "commitlint": "commitlint"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0"
+  }
+}
