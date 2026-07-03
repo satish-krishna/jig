@@ -6,7 +6,7 @@
 
 ## Goal
 
-Make "AI chat" a first-class, reusable capability of the Jig template, working over **both** wires: the desktop (thick) build talks to a local `claude -p` agent via Kata over IPC; the web (thin) build talks to a server-side agent loop over HTTP/SSE. One frontend, two providers, and the frontend never learns which is behind it.
+Make "AI chat" a first-class, reusable capability of the Jig template, working over **both** wires: the desktop (thick) build talks to a local `claude -p` agent via Kata over IPC; the web (thin) build talks to a server-side agent (built on the Microsoft Agent Framework) over HTTP/SSE. One frontend, two providers, and the frontend never learns which is behind it.
 
 The experience is **agent-task interaction** (Kata-style), not token-streaming chat: start a task, watch a coarse event stream (narration, tool calls), answer the agent's questions inline, see it complete. Token streaming and the AG-UI protocol are explicitly out of scope (see Non-goals).
 
@@ -33,9 +33,9 @@ flowchart TD
     Sess -. "isTauri() at bootstrap" .-> IpcS["IpcAgentTransport"]
     Sess -.-> SseS["HttpAgentTransport (SSE + POST answers)"]
     IpcS --> Rust["Rust core: spawn + bridge kata"]
-    SseS --> Net[".NET agent loop"]
+    SseS --> Net[".NET AIAgent (Agent Framework)"]
     Rust --> Kata["kata -> claude -p (local)"]
-    Net --> Anthropic["Anthropic Messages API"]
+    Net --> Anthropic["Claude via Agent Framework (Anthropic connector)"]
 ```
 
 ## Components
@@ -50,7 +50,13 @@ flowchart TD
 
 **Desktop provider (`apps/desktop/src-tauri`):** a thin bridge — spawn `kata`, read its stdout JSON-lines, forward each as a typed Tauri IPC event; write `answer <id> <json>` to Kata's stdin. No agent logic; Kata owns it.
 
-**Web provider (`services/api`):** the heavy piece — a **.NET agent loop** that runs the Anthropic Messages API directly: streams the model, executes tools, and exposes an `ask_user` tool it correlates back over SSE + a POST answer endpoint. It emits the **same** `KataEvent` protocol so the frontend cannot tell it apart from Kata. This is the effort center of gravity; it is arguably its own sub-project (see Sequencing).
+**Web provider (`services/api`):** a **`Microsoft.Agents.AI` `AIAgent`** (Microsoft Agent Framework — the Semantic Kernel + AutoGen successor). The framework owns the agent loop, tool execution, and streaming, so the provider's job shrinks to three things:
+
+1. **Configure the agent against a model connector.** Use the framework's **Anthropic connector so the web agent runs Claude**, matching the desktop's `claude -p` and keeping behavior parity across wires — the two wires differ only in transport, not model.
+2. **Map the framework's streaming run updates to `KataEvent`** — assistant text → `assistant.text`, function calls → `tool.use` / `tool.result`, completion → `run.completed`. Framework **middleware** is the clean interception point for this.
+3. **Register `ask_user` as a function tool**, backed by the framework's human-in-the-loop / session state: when the agent calls it, emit `ask.requested`, block, and resolve on a POSTed answer correlated by id. (If a bare agent's tool-blocking is insufficient for a durable pause, implement this leg as an Agent Framework **Workflow** with a HITL step — its state management is built for exactly this.)
+
+It emits the **same** `KataEvent` protocol, so the frontend cannot tell it apart from Kata.
 
 **Codegen (`tools/codegen`):** extend the pipeline to fetch Kata's published JSON Schema and generate the TS `AgentEvent` types (and, for the web loop, C# types).
 
@@ -68,13 +74,13 @@ flowchart TD
 
 - **Chat feature:** a fake `AgentSession` that emits a scripted `AgentEvent[]`; assert narration/tool rows render and that an `ask.requested` renders through `SchemaForm` and produces the right `answers` matrix. No real agent.
 - **Desktop bridge:** feed canned Kata stdout lines; assert IPC events out and stdin answers in.
-- **Web loop:** drive the agent loop against a fake LLM transport; assert it emits the `KataEvent` protocol and that an `ask_user` tool call blocks and resolves on a POSTed answer.
+- **Web provider:** run the `AIAgent` against the framework's test/fake chat client; assert the middleware maps run updates to the `KataEvent` protocol and that the `ask_user` function tool blocks and resolves on a POSTed answer.
 
 ## Sequencing
 
 1. **Upstream (Kata, separate session):** publish the schema (companion spec).
 2. **Contract + codegen:** generate `AgentEvent` types in Jig.
-3. **Web loop** (thin client, the hard part — likely splits into its own spec).
+3. **Web provider** (thin client — configure the `AIAgent` with the Anthropic connector, map its updates to `KataEvent` via middleware, wire the `ask_user` HITL tool). The framework removes the from-scratch runtime, but this is still the most substantive new piece.
 4. **Desktop bridge.**
 5. **Chat feature + ask→SchemaForm adapter.**
 
@@ -87,5 +93,5 @@ flowchart TD
 
 ## Open risks
 
-- The web agent loop is a real agent runtime (tool execution, streaming, ask correlation, concurrency, sandboxing). Size the project around it, not the chat UI.
+- The Microsoft Agent Framework removes the from-scratch agent runtime, but the web provider still owns the event mapping (framework updates → `KataEvent`) and the human-in-the-loop `ask` correlation, plus per-session state and concurrency. It is still the effort center of gravity. The framework is prerelease (`Microsoft.Agents.AI.* --prerelease`); confirm its streaming-update, middleware, and HITL APIs at implementation time.
 - Kata's `tool.result` currently lacks the tool name (correlation TODO); tool rows render better once the companion Kata spec fixes it.
