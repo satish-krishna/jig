@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+// Template init: turn this Jig checkout into a fresh app.
+//
+// Renames every Jig/jig identifier to your app name (context-aware — see
+// rename.ts), strips the template-only files, re-inits git with clean history,
+// regenerates the catalog, verifies the renamed app is green, and commits.
+//
+// Run AFTER `npm run setup` (it assumes dependencies are installed). Pass the app
+// name (and options) directly to the script, or through npm with `--`:
+//   node tools/init/init.mjs AcmePortal
+//   node tools/init/init.mjs AcmePortal --bundle-id=io.acme.desktop
+//   npm run init -- AcmePortal --skip-verify   (--skip-verify skips the full test gate)
+
+import { execSync } from 'node:child_process';
+import { readFileSync, writeFileSync, renameSync, rmSync, mkdirSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { deriveNames, renameContent, renamePath, stripTemplateBlocks } from './rename.ts';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const sh = (cmd, opts = {}) => execSync(cmd, { cwd: ROOT, stdio: 'inherit', ...opts });
+const shOut = (cmd) => execSync(cmd, { cwd: ROOT, encoding: 'utf8' }).trim();
+
+const BINARY = ['.png', '.ico', '.icns', '.jpg', '.jpeg', '.gif', '.woff', '.woff2', '.ttf'];
+const TEMPLATE_ONLY = ['bootstrap-prompt.md', 'docs/superpowers', 'tools/init'];
+
+function parseArgs(argv) {
+  const args = argv.slice(2);
+  return {
+    name: args.find((a) => !a.startsWith('--')),
+    bundleId: (args.find((a) => a.startsWith('--bundle-id=')) ?? '').split('=')[1] || undefined,
+    skipVerify: args.includes('--skip-verify'),
+  };
+}
+
+function main() {
+  const { name, bundleId, skipVerify } = parseArgs(process.argv);
+  if (!name) {
+    console.error('Usage: npm run init <AppNamePascalCase> [--bundle-id=com.org.app] [--skip-verify]');
+    process.exit(1);
+  }
+
+  const rootPkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+  if (rootPkg.name !== 'jig') {
+    console.error(`Refusing to run: package.json name is "${rootPkg.name}", not "jig". This is not a fresh Jig template.`);
+    process.exit(1);
+  }
+
+  const n = deriveNames(name, bundleId);
+  console.log(`Initializing as ${n.pascal}  (npm: ${n.kebab}, rust: ${n.snake}, bundle: ${n.bundleId})\n`);
+
+  // 1. Rewrite content of every tracked text file.
+  const files = shOut('git ls-files').split('\n').filter(Boolean);
+  for (const rel of files) {
+    if (BINARY.some((e) => rel.endsWith(e))) continue;
+    const abs = join(ROOT, rel);
+    const before = readFileSync(abs, 'utf8');
+    const after = renameContent(stripTemplateBlocks(before), n);
+    if (after !== before) writeFileSync(abs, after);
+  }
+  console.log('  content rewritten');
+
+  // 2. Rename paths (files carry their dirs), deepest first; then drop leftover Jig.* dirs.
+  for (const rel of [...files].filter((r) => r.includes('Jig')).sort((a, b) => b.length - a.length)) {
+    const src = join(ROOT, rel);
+    const dst = join(ROOT, renamePath(rel, n));
+    if (src === dst || !existsSync(src)) continue;
+    mkdirSync(dirname(dst), { recursive: true });
+    renameSync(src, dst);
+  }
+  for (const dir of new Set(files.map((r) => dirname(r)).filter((d) => d.includes('Jig')))) {
+    rmSync(join(ROOT, dir), { recursive: true, force: true });
+  }
+  console.log('  paths renamed');
+
+  // 3. Tauri productName is a display name — prefer Pascal over the generic kebab pass.
+  const confPath = join(ROOT, 'apps/desktop/src-tauri/tauri.conf.json');
+  const conf = JSON.parse(readFileSync(confPath, 'utf8'));
+  conf.productName = n.pascal;
+  writeFileSync(confPath, JSON.stringify(conf, null, 2) + '\n');
+
+  // 4. Strip template-only files (full reset).
+  for (const p of TEMPLATE_ONLY) rmSync(join(ROOT, p), { recursive: true, force: true });
+  rmSync(join(ROOT, 'docs/superpowers'), { recursive: true, force: true }); // in case it lingers
+  console.log('  template-only files removed');
+
+  // 5. Regenerate the catalog (file paths changed).
+  sh('node tools/catalog/catalog.ts');
+
+  // 6. Fresh git history + re-wire the hooks (config is not carried across init).
+  rmSync(join(ROOT, '.git'), { recursive: true, force: true });
+  sh('git init -q');
+  sh('git config core.autocrlf false');
+  sh('git config core.hooksPath .githooks');
+  console.log('  git re-initialized');
+
+  // 7. Prove the renamed app is green.
+  if (!skipVerify) {
+    console.log('\nRunning verify (full build + all tests)...');
+    sh('node tools/verify/verify.mjs');
+  }
+
+  // 8. Commit the fresh app.
+  sh('git add -A');
+  sh(`git commit -q -m "chore(repo): initialize ${n.pascal} from the Jig template"`);
+
+  console.log(`\nDone. ${n.pascal} is initialized on a fresh git history.`);
+  console.log('Next: review CLAUDE.md, set your bundle id / signing, and build your first feature.');
+}
+
+main();

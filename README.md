@@ -6,6 +6,25 @@ Jig is an AI-native desktop template. One Angular SPA runs two ways: as a **thic
 
 This is a template, not a product. It ships one worked vertical slice, `users`, that exercises every layer end to end. Copy its shape; do not add speculative features.
 
+<!-- template:start -->
+## Using this template (start a new app)
+
+"Jig" is threaded through every layer by design — the .NET solution and namespaces, the Rust crate and Tauri bundle id, the npm and Angular project names. So the first thing you do is rename it to your app.
+
+1. **Get your own copy.** On GitHub, click **Use this template** (gives you a repo with fresh history), or `git clone` this one.
+2. **Install the toolchain:** `npm run setup`.
+3. **Rename to your app** (PascalCase name):
+
+   ```
+   node tools/init/init.mjs AcmePortal
+   node tools/init/init.mjs AcmePortal --bundle-id=io.acme.desktop
+   ```
+
+   This rewrites every `Jig`/`jig` identifier in the right form (`AcmePortal` for .NET, `acme-portal` for npm/Angular, `acme_portal` for the Rust lib, `com.acmeportal.app` for the bundle), strips the template-only files (this section, the bootstrap prompt, the design specs, and the init tooling), re-inits git with clean history, regenerates the catalog, runs `npm run verify`, and commits. When it finishes, `AcmePortal` is a fresh app with no trace of Jig.
+
+Everything below this line is the app's own documentation and survives the rename.
+<!-- template:end -->
+
 ## One-command setup
 
 From a fresh clone:
