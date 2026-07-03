@@ -92,7 +92,7 @@ function main() {
 
   // 6. Fresh git history + re-wire the hooks (config is not carried across init).
   rmSync(join(ROOT, '.git'), { recursive: true, force: true });
-  sh('git init -q');
+  sh('git init -q -b main');
   sh('git config core.autocrlf false');
   sh('git config core.hooksPath .githooks');
   console.log('  git re-initialized');
