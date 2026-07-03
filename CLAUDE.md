@@ -23,7 +23,7 @@ This is a template, not a product. The `users` slice is the one worked example t
 - **DRY, docs included:** no fact stated twice by hand. The catalog is generated; form models are `z.infer`; DTOs are generated from OpenAPI.
 - **TDD, red-green-refactor:** no production line exists before a failing test that demands it. Holds in TypeScript, C#, and Rust.
 - **AI-native:** LSP navigation over grep; generated catalogs over tribal knowledge; machine-checked gates over "please remember".
-- **Conventional Commits:** every commit is `type(scope): summary`, and commits land only at a green gate.
+- **Conventional Commits:** every commit is `type(scope): summary`, and commits land only at a green gate (`npm run verify`).
 
 The smell test for each lives in CONTRIBUTING.md. If any instruction conflicts with these six, stop and surface the conflict before proceeding.
 
@@ -41,6 +41,17 @@ This file is tier one. Everything below is disclosed on demand: open the file th
 
 Two rules that apply everywhere: the catalog under `.forge/registry/` is generated, so never hand-edit it (annotate the code and run `npm run catalog`); and prefer LSP navigation (`workspace/symbol`, find-references, hover) over grep. Native LSP covers TypeScript and Rust (install via `/plugin`); C# is wired through `.lsp.json`.
 
+## Commands
+
+The everyday commands. Full per-language build/test commands live in `CONTRIBUTING.md`.
+
+| Command | What it does |
+|---|---|
+| `npm run setup` | One-command environment bootstrap for a fresh clone |
+| `npm run verify` | Full build, all tests, and catalog freshness (the green gate) |
+| `npm run catalog` | Regenerate the capability catalog after annotating code |
+| `npm run codegen` | Emit OpenAPI from the API and generate the TypeScript DTOs |
+
 ## Map of the repo
 
 ```
@@ -55,12 +66,13 @@ frontend/src/app/
   contracts/           operation registry + generated DTOs (single source of truth)
   transport/           port, http/ipc/normalizing transports, provide-transport
   repositories/        speak operations only
-  forms/               FormFieldMeta + zod-meta helper (forms are signal-forms, per feature)
+  forms/               FormFieldMeta, zod-meta, dynamic SchemaForm renderer (signal-forms for authored forms)
   capabilities/        native-only services (absent from web bootstrap)
   features/users/       the reference slice. Copy this shape.
+frontend/libs/ui/       spartan-ng helm components (generated; @spartan-ng/helm/* alias)
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure
 contracts/openapi/     OpenAPI spec emitted by the API (source for TS codegen)
-tools/                 setup, catalog generator, codegen
+tools/                 setup, init (template rename), catalog generator, codegen, verify (the gate)
 ```
 
 Discover first. Annotate what you build. Commit at green.
