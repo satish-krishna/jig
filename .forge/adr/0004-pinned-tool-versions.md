@@ -16,6 +16,6 @@ The bootstrap says "latest stable" for Angular and names FluentAssertions. Both 
 
 ## Consequences
 
-- A fresh clone on Node `24.12` builds the frontend without a Node upgrade.
+- A fresh clone needs Node in the range Angular 22 requires (`^22.22.3 || ^24.15.0 || >=26.0.0`). `npm run setup` validates the full version and fails early if it is not met, so a diligent user never reaches a cryptic Angular engines error at `verify`.
 - No clone inherits a paid or frozen test-assertion dependency.
-- The Angular pin is a single-line bump when Node moves. This ADR is the record of why it is not "latest," so a future agent does not "helpfully" upgrade it without understanding the trade-off.
+- The Angular version is now current (22); this ADR remains the record of why it was temporarily pinned to 20, so a future agent understands the history rather than "helpfully" reverting it.

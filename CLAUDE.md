@@ -53,7 +53,7 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 | `npm run catalog` | Regenerate the capability catalog after annotating code |
 | `npm run codegen` | Emit OpenAPI from the API and generate the TypeScript DTOs |
 
-**Development loop:** for iterative work, run `npm run dev` in the background and watch its output for compile errors instead of full-building per change; LSP diagnostics are the type-check backup. This speeds the inner loop only. It is not the gate: run `npm run verify` (which runs the tests) before committing.
+**Development loop:** for iterative work, run `npm run dev` in the background and watch its output for compile errors instead of full-building per change; LSP diagnostics are the type-check backup. This speeds the inner loop only. It is not the gate: run `npm run verify` (which runs the tests) before committing. The `pre-commit` hook enforces only the fast checks (catalog freshness and tooling tests); CI runs the full `npm run verify` on every push.
 
 ## Map of the repo
 
@@ -70,7 +70,7 @@ frontend/src/app/
   transport/           port, http/ipc/normalizing transports, provide-transport
   repositories/        speak operations only
   forms/               FormFieldMeta, zod-meta, dynamic SchemaForm renderer (signal-forms for authored forms)
-  capabilities/        native-only services (absent from web bootstrap)
+  capabilities/        native-only services (pattern; add when first needed, absent from web bootstrap)
   features/users/       the reference slice. Copy this shape.
 frontend/libs/ui/       spartan-ng helm components (generated; @spartan-ng/helm/* alias)
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure

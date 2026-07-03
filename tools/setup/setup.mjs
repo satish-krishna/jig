@@ -17,12 +17,24 @@ const log = (m) => console.log(m);
 const ok = (m) => console.log(`  ok   ${m}`);
 const bad = (m) => console.log(`  MISS ${m}`);
 
-// Each check: a binary, how to ask its version, and whether it is required.
-// The optional alternatives (alt) let one of several satisfy a slot — e.g. any
-// TypeScript language server, csharp-ls or the Roslyn server for C#.
+// Angular 22's packages require this Node range. A major-only check would pass
+// unsupported versions (23.x, 24.0-24.14, 25.x) and then fail cryptically deep in
+// the Angular build, so the Node slot validates the full major.minor.patch.
+const NODE_REQUIREMENT = '^22.22.3 || ^24.15.0 || >=26.0.0';
+function isSupportedNode(versionString) {
+  const m = versionString.match(/(\d+)\.(\d+)\.(\d+)/);
+  if (!m) return false;
+  const [maj, min, pat] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  if (maj === 22) return min > 22 || (min === 22 && pat >= 3);
+  if (maj === 24) return min >= 15;
+  return maj >= 26;
+}
+
+// Each check: a slot, one or more candidate commands (the first that responds
+// wins, so any of several tools can satisfy a slot), and whether it is required.
 const CHECKS = [
   { slot: 'git', required: true, candidates: [['git', ['--version']]] },
-  { slot: 'node', required: true, candidates: [['node', ['--version']]], min: 22 },
+  { slot: 'node', required: true, candidates: [['node', ['--version']]], node: true },
   { slot: '.NET SDK', required: true, candidates: [['dotnet', ['--version']]] },
   { slot: 'rustc', required: true, candidates: [['rustc', ['--version']]] },
   { slot: 'cargo', required: true, candidates: [['cargo', ['--version']]] },
@@ -58,13 +70,10 @@ function checkTools() {
       if (c.required) missing++;
       continue;
     }
-    if (c.min) {
-      const major = Number((found.match(/(\d+)/) ?? [])[1]);
-      if (major && major < c.min) {
-        bad(`${c.slot} — ${found} (need >= ${c.min})`);
-        missing++;
-        continue;
-      }
+    if (c.node && !isSupportedNode(found)) {
+      bad(`${c.slot} — ${found} (need ${NODE_REQUIREMENT})`);
+      missing++;
+      continue;
     }
     ok(`${c.slot} — ${found}`);
   }

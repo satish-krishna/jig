@@ -1,0 +1,13 @@
+# LF everywhere. The tooling (node, dotnet, cargo, git-bash) is line-ending
+# agnostic, and the POSIX-sh git hooks must be LF, so normalize all text to LF in
+# both the repo and every working copy. A CRLF commit would silently break the
+# hooks the next time they run.
+* text=auto eol=lf
+
+# Binary assets: never touch line endings.
+*.png binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.ttf binary

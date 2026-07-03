@@ -5,7 +5,7 @@
   "description": "Jig — AI-native desktop template (Tauri + Angular SPA + .NET FastEndpoints). Build the fixture once; every app comes out identical.",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
     "setup": "node tools/setup/setup.mjs",

@@ -1,0 +1,46 @@
+name: verify
+
+# The green gate, machine-enforced. The pre-commit hook only runs the fast
+# checks (catalog freshness + tooling tests); this runs the full `npm run verify`
+# (build + all tests across .NET, Rust, and the frontend) on every push and PR.
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    # Windows matches the desktop target: WebView2 is present, so the Tauri crate
+    # compiles without the Linux system-dependency setup.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24' # latest 24.x, within the supported Node range
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - name: Install root tooling
+        run: npm install
+
+      - name: Install frontend deps and Playwright browser
+        working-directory: frontend
+        run: |
+          npm install
+          npx playwright install chromium
+
+      - name: Verify (full build, all tests, catalog freshness)
+        run: npm run verify

@@ -43,7 +43,7 @@ npm run verify
 
 ### Prerequisites
 
-The setup script checks for and fails early without: Node 22+, the .NET 10 SDK, the Rust toolchain, the Tauri CLI, and three language servers (`rust-analyzer`, a TypeScript server, and `csharp-ls`).
+The setup script checks for and fails early without: Node `^22.22.3 || ^24.15.0 || >=26.0.0` (the range the Angular toolchain requires), the .NET 10 SDK, the Rust toolchain, the Tauri CLI, and three language servers (`rust-analyzer`, a TypeScript server, and `csharp-ls`).
 
 ## How it fits together
 

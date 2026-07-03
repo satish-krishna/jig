@@ -70,7 +70,7 @@ Format: `type(scope): summary`.
 - **Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`, `perf`, `style`, `revert`.
 - **Scopes (required):** `transport`, `forms`, `contracts`, `api`, `shell`, `catalog`, `tools`, `repo`.
 - Enforced by the `commit-msg` hook via `commitlint` (`commitlint.config.mjs`). A malformed message is rejected, not merely discouraged.
-- Commits land only at a green gate. The `pre-commit` hook blocks the commit if the catalog is stale or the tooling tests fail.
+- Commits land at green. The `pre-commit` hook blocks a commit if the catalog is stale or the tooling tests fail (the fast checks). The full `npm run verify` gate runs in CI on every push and PR (`.github/workflows/verify.yml`); run it yourself before pushing meaningful work.
 
 Examples:
 - Good: `feat(transport): add NormalizingTransport error seam`
