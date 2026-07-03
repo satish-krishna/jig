@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 16,
+  "count": 17,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -84,6 +84,14 @@
       "language": "typescript",
       "symbol": "UserRepository",
       "since": "0.1.0"
+    },
+    {
+      "capability": "shell.user-store",
+      "intent": "The thick client's user use-cases, mirroring the API so both wires agree.",
+      "reuse": "Manage one UserStore in the Tauri app state; commands delegate to it.",
+      "file": "apps/desktop/src-tauri/src/users.rs",
+      "language": "rust",
+      "symbol": "UserStore"
     },
     {
       "capability": "transport.app-error",
