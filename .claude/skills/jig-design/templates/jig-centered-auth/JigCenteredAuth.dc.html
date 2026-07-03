@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Jig centered auth" description="Full-page centered content layout — sign-in card with Field/Input/Button" -->
+<helmet>
+<script src="./ds-base.js"></script>
+</helmet>
+<div class="hlm-centered" style="font-family:var(--font-sans)">
+  <div class="hlm-centered__inner" style="max-width:380px">
+    <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:20px">
+      <span style="display:grid;place-items:center;width:32px;height:32px;border-radius:var(--radius-lg);background:var(--primary);color:var(--primary-foreground);font-family:var(--font-mono);font-weight:700">J</span>
+      <span style="font-size:20px;font-weight:600;letter-spacing:-0.02em">jig</span>
+    </div>
+    <div class="hlm-card">
+      <div class="hlm-card__header">
+        <div class="hlm-card__title">Sign in to your workspace</div>
+        <div class="hlm-card__description">One frontend, two wires. Pick up where you left off.</div>
+      </div>
+      <div class="hlm-card__content">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="hlm-field">
+            <label class="hlm-label" for="email">Email</label>
+            <input class="hlm-input" id="email" type="email" placeholder="you@example.com" value="satish@jig.dev" />
+          </div>
+          <div class="hlm-field">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label class="hlm-label" for="pass">Password</label>
+              <button type="button" class="hlm-btn hlm-btn--link hlm-btn--sm">Forgot?</button>
+            </div>
+            <input class="hlm-input" id="pass" type="password" value="hunter2hunter2" />
+          </div>
+          <button type="button" class="hlm-btn hlm-btn--default" style="width:100%">Sign in</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin:18px 0">
+          <div class="hlm-separator hlm-separator--horizontal" style="flex:1"></div>
+          <span style="font-size:12px;color:var(--muted-foreground)">or</span>
+          <div class="hlm-separator hlm-separator--horizontal" style="flex:1"></div>
+        </div>
+        <button type="button" class="hlm-btn hlm-btn--outline" style="width:100%">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+          Continue with GitHub
+        </button>
+      </div>
+      <div class="hlm-card__footer" style="justify-content:center">
+        <span class="hlm-field__description">No account? <a href="#" style="color:var(--foreground);font-weight:500">Request access</a></span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -35,6 +35,7 @@ The `users` slice ships with tests at all three levels as the reference pattern 
 
 - **Error handling.** Backend expected failures travel as a `Result` envelope, never thrown exceptions. Frontend failures fold to one `AppError` at the `NormalizingTransport` seam; nothing above it branches on the wire. See `docs/architecture/conduit.md`.
 - **Types are generated, not hand-written.** Frontend DTOs come from the OpenAPI spec (`npm run codegen`); form model types are `z.infer<typeof schema>`. If you are typing a shape by hand that already exists at a boundary, stop and generate it.
+- **UI follows the design system, tokens are not hand-written.** Production UI composes spartan helm components (`frontend/libs/ui/*`) and reads every visual value from the `frontend/src/styles.css` custom properties (`--primary`, `--border`, `--radius`, …). A literal hex or px in a component is the smell — the same DRY-at-a-boundary rule as types. For mocks, previews, and prototypes, use the `jig-design` skill (portable, buildless). The skill is a downstream mirror of the app, not a second source of truth: change the theme in `styles.css`, never fork the skill's CSS into production. See `docs/architecture/design.md` and ADR 0007.
 - **Naming mirrors the app.** The .NET projects are `Jig.Api`, `Jig.Application`, `Jig.Domain`, `Jig.Infrastructure`; the Rust crate and Tauri identifier are `jig`; spartan helm components sit under the `@spartan-ng/helm/*` alias. `tools/init` rewrites all of these when the template is renamed to a new app.
 - **Match the surrounding code.** Comment density, naming, and idiom follow the file you are editing, not your defaults.
 
@@ -53,8 +54,7 @@ TypeScript (TSDoc):
  */
 ```
 
-Rust (rustdoc): `/// @capability`, `/// @intent`, `/// @reuse`.
-C# (XML doc): `<capability>`, `<intent>`, `<reuse>`.
+Rust (rustdoc): `/// @capability`, `/// @intent`, `/// @reuse`. C# (XML doc): `<capability>`, `<intent>`, `<reuse>`.
 
 ## The catalog is generated, never written
 
@@ -62,6 +62,14 @@ C# (XML doc): `<capability>`, `<intent>`, `<reuse>`.
 
 - Regenerate: `npm run catalog`
 - Verify freshness: `npm run catalog:check` (this is what the pre-commit hook and CI run; a stale catalog fails the build)
+
+## Branching: work on a feature branch, never on main
+
+All work happens on a feature branch. `main` takes no direct commits: it stays linear and integrates feature branches by squash merge, so every unit of work reaches `main` as one commit. This is a hard gate, enforced by the `pre-commit` hook — a commit on `main`/`master` is refused, and a feature branch whose name breaks the convention is refused too.
+
+Branch names follow the conventional-commit prefix: `type[(scope)]/kebab-description`. The `type` is one of the commit types below and the optional `scope` is one of the scopes below, matching the commit the branch will land as. Examples: `feat/design-system`, `fix(api)/null-user`, `docs(repo)/branching-gate`, `refactor(transport)/collapse-seam`.
+
+Start work with `git switch -c feat/<short-description>`. The one sanctioned commit on `main` is the template bootstrap `tools/init` makes; it sets `JIG_ALLOW_MAIN=1` to pass the gate. Nothing else should.
 
 ## Commits: Conventional Commits, enforced
 

@@ -1,0 +1,15 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Radius scale · Lyra (flat)" subtitle="Lyra style: --radius is 0, so every control and card is squared" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;padding:20px;display:flex;gap:18px;align-items:flex-end;font-family:var(--font-sans)}
+  .b{width:76px;height:60px;background:var(--secondary);border:1px solid var(--border)}
+  .n{font-size:12px;font-weight:500;margin-top:6px}
+  .v{font-family:var(--font-mono);font-size:11px;color:var(--muted-foreground)}
+  .c{text-align:center}
+</style></head><body>
+  <div class="c"><div class="b" style="border-radius:var(--radius-sm)"></div><div class="n">sm</div><div class="v">0</div></div>
+  <div class="c"><div class="b" style="border-radius:var(--radius-md)"></div><div class="n">md</div><div class="v">0</div></div>
+  <div class="c"><div class="b" style="border-radius:var(--radius-lg)"></div><div class="n">lg · controls</div><div class="v">0</div></div>
+  <div class="c"><div class="b" style="border-radius:var(--radius-xl)"></div><div class="n">xl · cards</div><div class="v">0</div></div>
+  <div class="c"><div class="b" style="border-radius:var(--radius-full)"></div><div class="n">full · avatars</div><div class="v">9999px</div></div>
+</body></html>

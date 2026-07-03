@@ -53,9 +53,13 @@ export function renameContent(text: string, n: Names): string {
     .split('jig').join(n.kebab);
 }
 
-/** Rewrite a repo PATH. Only the PascalCase `Jig` appears in tracked paths (.NET). */
+/**
+ * Rewrite a repo PATH. `Jig` (PascalCase) appears in .NET project paths; the
+ * lowercase `jig` appears in the design-system skill folder (`.claude/skills/
+ * jig-design`). Replace Pascal before lowercase, same order as renameContent.
+ */
 export function renamePath(path: string, n: Names): string {
-  return path.split('Jig').join(n.pascal);
+  return path.split('Jig').join(n.pascal).split('jig').join(n.kebab);
 }
 
 /** Remove template-only prose wrapped in `<!-- template:start -->` / `<!-- template:end -->`. */

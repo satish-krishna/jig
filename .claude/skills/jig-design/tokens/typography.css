@@ -1,0 +1,46 @@
+/* ────────────────────────────────────────────────────────────
+   Jig — Typography tokens
+   The jig frontend ships no webfonts; it uses the native Windows
+   system sans (Segoe UI). We add a matching mono stack (Consolas /
+   Cascadia) for developer surfaces (code, IDs, keyboard hints).
+   No @font-face — these are system fonts.
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+  /* Families */
+  --font-sans: "Segoe UI", system-ui, Roboto, Arial,
+    "Noto Sans", sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-mono: Consolas, "Liberation Mono", ui-monospace, monospace;
+
+  /* Type scale — Tailwind/shadcn ramp used across jig */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px — control + body default */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+
+  /* Line heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+
+  /* Weights */
+  --font-normal: 400;
+  --font-medium: 500;   /* buttons, labels, badges */
+  --font-semibold: 600; /* headings */
+  --font-bold: 700;
+
+  /* Tracking */
+  --tracking-tight: -0.015em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+
+  /* Semantic aliases */
+  --text-body: var(--text-sm);
+  --text-heading: var(--text-2xl);
+  --text-code: var(--text-sm);
+}

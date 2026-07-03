@@ -1,0 +1,16 @@
+/* ────────────────────────────────────────────────────────────
+   Jig — Radius tokens · LYRA style
+   Lyra is Spartan's flat, squared-corner look: the --radius knob
+   is 0, so every control and card renders with sharp corners.
+   --radius-full is kept for genuinely circular elements (avatars).
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+  --radius: 0;            /* flat — the defining Lyra trait */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;         /* controls: buttons, inputs */
+  --radius-xl: 0;         /* cards */
+  --radius-2xl: 0;
+  --radius-full: 9999px;  /* avatars / circular badges only */
+}

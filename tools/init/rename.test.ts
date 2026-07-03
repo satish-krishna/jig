@@ -57,3 +57,11 @@ test('renamePath maps .NET project directories', () => {
     'services/api/src/AcmePortal.Api/AcmePortal.Api.csproj',
   );
 });
+
+test('renamePath rewrites the lowercase design-system skill folder via kebab', () => {
+  const n = deriveNames('AcmePortal');
+  assert.equal(
+    renamePath('.claude/skills/jig-design/components/core/Button.jsx', n),
+    '.claude/skills/acme-portal-design/components/core/Button.jsx',
+  );
+});
