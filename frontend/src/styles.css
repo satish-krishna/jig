@@ -73,11 +73,6 @@ color-scheme: dark;
 --sidebar-accent-foreground: oklch(0.985 0 0);
 --sidebar-border: oklch(1 0 0 / 10%);
 --sidebar-ring: oklch(0.556 0 0);
---sidebar-width: 15rem;
---sidebar-width-collapsed: 3.25rem;
---header-height: 3rem;
---footer-height: 2.25rem;
---content-max: 26rem;
 }
 
 @layer base {
