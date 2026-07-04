@@ -24,7 +24,7 @@ Two coupled goals:
 2. **Runtime registration** via `MenuService.register(region, command)`, which **auto-unregisters on the caller's `DestroyRef`**. No feature code writes a manual `unregister` in `ngOnDestroy`.
 3. **One `MenuService`, keyed by region** (`'sidebar' | 'header'`). The "header menu service" is the `'header'` region, not a second class.
 4. **`canExecute` is a `Signal<boolean>`** (reactive), so the menu re-renders when a command becomes enabled/disabled.
-5. **Icons via the spartan-native path**: `@spartan-ng/cli add icon` (generates `libs/ui/icon`, i.e. `hlm-icon` over `@ng-icons/core`) plus `@ng-icons/lucide`. `Command.icon` is the registered ng-icon name string (e.g. `'lucideUsers'`). Not the standalone `lucide-angular` package.
+5. **Icons via `@ng-icons/lucide`**, rendered with `NgIcon` from `@ng-icons/core` directly (`<ng-icon [name]="…"/>`). This spartan version (`@spartan-ng/cli` 1.0.4) has no `hlm-icon` wrapper — it ships a `migrate-icon` generator that converts `hlm-icon` → `ng-icon`, so `ng-icon` is the current spartan-native path. `Command.icon` is the registered ng-icon name string (e.g. `'lucideUsers'`). Not the standalone `lucide-angular` package.
 6. **Scope stops at two `users` commands** — one nav, one action — proving both command shapes. No other menu entries.
 
 ## Architecture
@@ -102,7 +102,7 @@ All specs written red before the implementation that satisfies them.
 
 ## Build sequence
 
-1. `@spartan-ng/cli add icon`; add `@ng-icons/lucide`. Port the design system's `layout.css` (app-shell grid + sidebar) into the app styles; adopt tokens.
+1. Add `@ng-icons/core` + `@ng-icons/lucide` (rendered via `<ng-icon>`; no helm wrapper). Port the design system's `layout.css` (app-shell grid + sidebar) into the app styles; adopt tokens.
 2. Build the static app-shell components (header/sidebar/main/footer) matching jig-design — hardcoded nav, no menu service yet. Visual checkpoint.
 3. Build `Command` + `MenuService` + `navigateCommand` (TDD, red-green).
 4. Swap the shell to render from `MenuService`; wire the two `users` commands; add the `/users` route and `'' -> /users` redirect.

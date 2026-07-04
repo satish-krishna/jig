@@ -13,7 +13,7 @@
 - TDD red-green: no production line before a failing test demands it. Specs are vitest, run with `npm --prefix frontend test`.
 - Feature-branch workflow; work lands on `feat/app-shell-command-menu`. Commits are Conventional Commits with scope in `[transport, forms, contracts, api, shell, catalog, tools, repo]` — use `shell`. Commit body lines ≤100 chars. Every commit ends with `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
 - Copy rules (jig-design): sentence case; product/code identifiers stay lowercase (`users`, `jig`). No emoji in UI.
-- Icons: `@ng-icons/lucide` names only (e.g. `lucideUsers`, `lucidePlus`, `lucidePanelLeft`); rendered `<ng-icon hlm [name]="…"/>`. Do not hand-draw glyphs.
+- Icons: `@ng-icons/lucide` names only (e.g. `lucideUsers`, `lucidePlus`, `lucidePanelLeft`); rendered `<ng-icon [name]="…"/>` via `NgIcon` from `@ng-icons/core`. This spartan version (`@spartan-ng/cli` 1.0.4) has no `hlm-icon` wrapper — use `ng-icon` directly (the button CSS styles `[&_ng-icon]` descendants automatically). Do not hand-draw glyphs.
 - Discover before build: reuse `libs/ui` helm; generate new helm via `@spartan-ng/cli`, never hand-roll.
 - The catalog under `.forge/registry/` is generated. If a new reusable unit is annotated, run `npm run catalog` before committing (the pre-commit hook checks freshness).
 - Gate before final done: `npm run verify` green.
@@ -43,23 +43,21 @@
 ## Task 1: Icon dependency, sizing tokens, ported shell CSS
 
 **Files:**
-- Modify: `frontend/package.json` (via CLI/install)
-- Create: `frontend/libs/ui/icon/*` (via `@spartan-ng/cli add icon`)
+- Modify: `frontend/package.json` (via install)
 - Modify: `frontend/src/styles.css`
 - Create: `frontend/src/app/shell/shell.layout.css`
 
 **Interfaces:**
-- Produces: the `@spartan-ng/helm/icon` barrel (`HlmIcon`), `@ng-icons/lucide` icon names, CSS classes `.hlm-shell`, `.hlm-shell__header`, `.hlm-shell__main`, `.hlm-shell__footer`, `.hlm-sidebar*`, `.hlm-nav__item[data-active]`, and tokens `--sidebar-width`, `--sidebar-width-collapsed`, `--header-height`, `--footer-height`, `--content-max`.
+- Produces: `@ng-icons/lucide` icon names rendered via `NgIcon` from `@ng-icons/core` (no `hlm-icon` wrapper in this spartan version), CSS classes `.hlm-shell`, `.hlm-shell__header`, `.hlm-shell__main`, `.hlm-shell__footer`, `.hlm-sidebar*`, `.hlm-nav__item[data-active]`, and tokens `--sidebar-width`, `--sidebar-width-collapsed`, `--header-height`, `--footer-height`, `--content-max`.
 
-- [ ] **Step 1: Install icons and generate the helm icon component**
+- [ ] **Step 1: Install the icon libraries**
 
-Run (needs network):
+Run (needs network — already done in the first attempt; skip if `@ng-icons/*` are present in `package.json`):
 ```bash
 cd frontend
 npm i @ng-icons/core @ng-icons/lucide
-npx @spartan-ng/cli add icon
 ```
-Expected: `frontend/libs/ui/icon/` created, `@spartan-ng/helm/icon` path added to tsconfig, `@ng-icons/*` in `package.json` dependencies.
+Expected: `@ng-icons/core` and `@ng-icons/lucide` in `package.json` dependencies. Do NOT run `@spartan-ng/cli add icon` — `@spartan-ng/cli` 1.0.4 has no `icon` primitive; this spartan version uses `<ng-icon>` from `@ng-icons/core` directly. Icons render as `<ng-icon [name]="…"/>` with `provideIcons({...})` at the app config.
 
 - [ ] **Step 2: Add the shell sizing tokens**
 
@@ -91,7 +89,7 @@ Expected: build succeeds; no unknown-token or missing-import errors.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add frontend/package.json frontend/package-lock.json frontend/libs/ui/icon frontend/tsconfig*.json frontend/src/styles.css frontend/src/app/shell/shell.layout.css
+git add frontend/package.json frontend/package-lock.json frontend/src/styles.css frontend/src/app/shell/shell.layout.css
 git commit -m "feat(shell): add icon deps, shell sizing tokens, ported layout css"
 ```
 
@@ -316,7 +314,7 @@ git commit -m "feat(shell): add region-keyed MenuService with DestroyRef auto-di
 - Test: `frontend/src/app/shell/app-shell.spec.ts`
 
 **Interfaces:**
-- Consumes: `MenuService`, `Command` from `../menu`; `Router`, `RouterOutlet` from `@angular/router`; `HlmButton`/`HlmButtonImports` from `@spartan-ng/helm/button`; `NgIcon` from `@ng-icons/core`; `HlmIcon` from `@spartan-ng/helm/icon`.
+- Consumes: `MenuService`, `Command` from `../menu`; `Router`, `RouterOutlet` from `@angular/router`; `HlmButton`/`HlmButtonImports` from `@spartan-ng/helm/button`; `NgIcon` from `@ng-icons/core` (no helm icon wrapper in this spartan version).
 - Produces: `AppShell` (selector `app-shell`) and `SidebarNavItem` (selector `app-sidebar-nav-item`, input `command: Command`).
 
 - [ ] **Step 1: Write the failing test**
@@ -369,14 +367,13 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { NgIcon } from '@ng-icons/core';
-import { HlmIcon } from '@spartan-ng/helm/icon';
 import type { Command } from '../menu';
 
 @Component({
   selector: 'app-sidebar-nav-item',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgIcon, HlmIcon],
+  imports: [NgIcon],
   template: `
     <button
       class="hlm-nav__item"
@@ -385,7 +382,7 @@ import type { Command } from '../menu';
       (click)="command().execute()"
     >
       @if (command().icon; as icon) {
-        <ng-icon hlm class="hlm-nav__icon" [name]="icon" />
+        <ng-icon class="hlm-nav__icon" [name]="icon" />
       }
       <span class="hlm-nav__label">{{ command().label }}</span>
     </button>
@@ -417,7 +414,6 @@ Create `frontend/src/app/shell/app-shell.ts`:
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
-import { HlmIcon } from '@spartan-ng/helm/icon';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { MenuService } from '../menu';
 import { SidebarNavItem } from './sidebar-nav-item';
@@ -427,7 +423,7 @@ import { SidebarNavItem } from './sidebar-nav-item';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None, // uses the global .hlm-shell* classes
-  imports: [RouterOutlet, NgIcon, HlmIcon, HlmButtonImports, SidebarNavItem],
+  imports: [RouterOutlet, NgIcon, HlmButtonImports, SidebarNavItem],
   template: `
     <div class="hlm-shell" [attr.data-collapsed]="collapsed()">
       <aside class="hlm-sidebar">
@@ -445,12 +441,12 @@ import { SidebarNavItem } from './sidebar-nav-item';
 
       <header class="hlm-shell__header" data-region="header">
         <button hlmBtn variant="ghost" size="icon" (click)="toggle()" aria-label="Toggle sidebar">
-          <ng-icon hlm name="lucidePanelLeft" />
+          <ng-icon name="lucidePanelLeft" />
         </button>
         <span class="grow"></span>
         @for (cmd of header(); track cmd.id) {
           <button hlmBtn size="sm" [disabled]="!cmd.canExecute()" (click)="cmd.execute()">
-            @if (cmd.icon; as icon) { <ng-icon hlm [name]="icon" /> }
+            @if (cmd.icon; as icon) { <ng-icon [name]="icon" /> }
             {{ cmd.label }}
           </button>
         }
