@@ -5,6 +5,10 @@
 
 @import "@spartan-ng/brain/hlm-tailwind-preset.css";
 
+/* App-shell + sidebar layout (jig-design port). @import must precede style
+   rules per CSS spec, so it lives here with the other imports, not at EOF. */
+@import './app/shell/shell.layout.css';
+
 :root {
 color-scheme: light;
 
@@ -83,5 +87,3 @@ body {
 @apply bg-background text-foreground;
 }
 }
-
-@import './app/shell/shell.layout.css';

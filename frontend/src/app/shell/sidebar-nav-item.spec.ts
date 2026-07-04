@@ -4,21 +4,20 @@ import { EMPTY } from 'rxjs';
 import { Router } from '@angular/router';
 import { SidebarNavItem } from './sidebar-nav-item';
 
-// Fake Command: `route` is extra (Command has no such field) but harmless —
-// the component only reads id/label/canExecute/execute; the router itself
-// carries the url the `active` computed derives from.
+// Fake Command. Active state derives from the router url vs the command's
+// id-segment (id 'nav-users' -> '/users'), so the id is what matters here;
+// Command has no `route` field.
 function makeCommand() {
   return {
     id: 'nav-users',
     label: 'users',
-    route: '/users',
     canExecute: signal(true),
     execute: () => {},
   };
 }
 
 describe('SidebarNavItem', () => {
-  it('is data-active="true" when the router url matches the command route', () => {
+  it('is data-active="true" when the router url matches the nav id segment', () => {
     TestBed.configureTestingModule({
       providers: [{ provide: Router, useValue: { url: '/users', events: EMPTY } }],
     });
@@ -29,7 +28,7 @@ describe('SidebarNavItem', () => {
     expect(btn.getAttribute('data-active')).toBe('true');
   });
 
-  it('is NOT data-active="true" when the router url does not match the command route', () => {
+  it('is NOT data-active="true" when the router url does not match the nav id segment', () => {
     TestBed.configureTestingModule({
       providers: [{ provide: Router, useValue: { url: '/settings', events: EMPTY } }],
     });
