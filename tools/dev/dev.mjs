@@ -10,7 +10,7 @@
 // For the desktop shell (Rust + WebView), use `cargo tauri dev` instead; it opens
 // a window, so it is on-demand rather than part of this headless loop.
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -60,7 +60,9 @@ function shutdown() {
     // On Windows the children are spawned through cmd.exe (shell: true), so
     // child.kill() reaps only the shell and orphans the real dotnet/ng servers,
     // which keep holding :5025/:4200 and break the next run. Kill the whole tree.
-    if (win) spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+    // spawnSync (not spawn): block until taskkill finishes, else the process.exit
+    // below can cut it off and leave the very orphans this is meant to reap.
+    if (win) spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
     else child.kill();
   }
   process.exit(0);
