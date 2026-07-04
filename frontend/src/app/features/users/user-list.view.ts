@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { MenuService } from '../../menu';
 import { UserForm } from './user-form';
 import type { UserFormModel } from './user-form.schema';
 import { UserListViewModel } from './user-list.view-model';
+import { newUserCommand } from './users.commands';
 
 /**
  * The users slice view. Binds only to the ViewModel's signals and the form
@@ -18,7 +20,9 @@ import { UserListViewModel } from './user-list.view-model';
     <section class="users">
       <h1>Users</h1>
 
-      <app-user-form (saved)="onSaved($event)" />
+      @if (vm.formOpen()) {
+        <app-user-form (saved)="onSaved($event)" />
+      }
 
       @if (vm.loading()) {
         <p class="status">Loading...</p>
@@ -39,6 +43,11 @@ import { UserListViewModel } from './user-list.view-model';
 })
 export class UserListView implements OnInit {
   protected readonly vm = inject(UserListViewModel);
+
+  constructor() {
+    const menu = inject(MenuService);
+    menu.register('header', newUserCommand(this.vm));
+  }
 
   ngOnInit(): void {
     this.vm.load();
