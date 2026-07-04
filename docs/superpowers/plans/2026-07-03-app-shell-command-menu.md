@@ -180,7 +180,10 @@ export function navigateCommand(opts: {
     label: opts.label,
     icon: opts.icon,
     canExecute: signal(true),
-    execute: () => router.navigate([opts.route]),
+    execute: async () => {
+      // Discard router.navigate's Promise<boolean>; Command.execute is Promise<void>.
+      await router.navigate([opts.route]);
+    },
   };
 }
 ```
