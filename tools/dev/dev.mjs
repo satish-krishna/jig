@@ -22,6 +22,21 @@ const procs = [
   { tag: 'api', cmd: 'dotnet', args: ['watch', 'run', '--project', 'services/api/src/Jig.Api'] },
 ];
 
+// Say where things live up front. The API root (:5025) has no page and answers
+// 404 by design — its real surface is /swagger and the registered endpoints.
+// The app is the web dev server. Auto-opening a browser is deliberately off
+// (launchSettings launchBrowser: false); this loop is headless.
+process.stdout.write(
+  [
+    '',
+    '  jig dev loop (headless — no browser is opened for you)',
+    '    web app   http://localhost:4200',
+    '    api docs  http://localhost:5025/swagger   (:5025/ itself is a 404, that is expected)',
+    '    desktop   run `cargo tauri dev` separately for the Tauri shell',
+    '',
+  ].join('\n') + '\n',
+);
+
 const children = procs.map(({ tag, cmd, args }) => {
   const child = spawn(cmd, args, { cwd: ROOT, shell: win });
   const forward = (stream) => {
@@ -40,7 +55,14 @@ const children = procs.map(({ tag, cmd, args }) => {
 });
 
 function shutdown() {
-  for (const child of children) child.kill();
+  for (const child of children) {
+    if (child.pid == null) continue;
+    // On Windows the children are spawned through cmd.exe (shell: true), so
+    // child.kill() reaps only the shell and orphans the real dotnet/ng servers,
+    // which keep holding :5025/:4200 and break the next run. Kill the whole tree.
+    if (win) spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+    else child.kill();
+  }
   process.exit(0);
 }
 process.on('SIGINT', shutdown);
