@@ -65,9 +65,9 @@ Rust (rustdoc): `/// @capability`, `/// @intent`, `/// @reuse`. C# (XML doc): `<
 
 ## Branching: work on a feature branch, never on main
 
-All work happens on a feature branch. `main` takes no direct commits: it stays linear and integrates feature branches by squash merge, so every unit of work reaches `main` as one commit. This is a hard gate, enforced by the `pre-commit` hook — a commit on `main`/`master` is refused, and a feature branch whose name breaks the convention is refused too.
+All work happens on a feature branch. `main` takes no direct commits: it stays linear and integrates feature branches by pull request, so every unit of work reaches `main` as merged pull request. This is a hard gate, enforced by the `pre-commit` hook — a commit on `main`/`master` is refused, and a feature branch whose name breaks the convention is refused too.
 
-Branch names follow the conventional-commit prefix: `type[(scope)]/kebab-description`. The `type` is one of the commit types below and the optional `scope` is one of the scopes below, matching the commit the branch will land as. Examples: `feat/design-system`, `fix(api)/null-user`, `docs(repo)/branching-gate`, `refactor(transport)/collapse-seam`.
+Branch names follow the conventional-commit prefix: `type/kebab-description`. The `type` is one of the commit types below, matching the commit the branch will land as. Examples: `feat/design-system`, `fix/null-user`, `docs/branching-gate`, `refactor/collapse-seam`.
 
 Start work with `git switch -c feat/<short-description>`. The one sanctioned commit on `main` is the template bootstrap `tools/init` makes; it sets `JIG_ALLOW_MAIN=1` to pass the gate. Nothing else should.
 
