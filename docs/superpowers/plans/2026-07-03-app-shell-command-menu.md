@@ -218,7 +218,7 @@ git commit -m "feat(shell): add Command interface and navigateCommand router ada
 Create `frontend/src/app/menu/menu.service.spec.ts`:
 ```ts
 import { TestBed } from '@angular/core/testing';
-import { Component, signal, DestroyRef } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { MenuService } from './menu.service';
 import type { Command } from './command';
 
@@ -341,8 +341,8 @@ describe('AppShell', () => {
     const injector = TestBed.inject(EnvironmentInjector);
     const executed: string[] = [];
     runInInjectionContext(injector, () => {
-      svc.register('sidebar', { id: 'nav-users', label: 'users', icon: 'lucideUsers', canExecute: signal(true), execute: () => executed.push('nav') });
-      svc.register('header', { id: 'new-user', label: 'new user', icon: 'lucidePlus', canExecute: signal(false), execute: () => executed.push('new') });
+      svc.register('sidebar', { id: 'nav-users', label: 'users', icon: 'lucideUsers', canExecute: signal(true), execute: () => { executed.push('nav'); } });
+      svc.register('header', { id: 'new-user', label: 'new user', icon: 'lucidePlus', canExecute: signal(false), execute: () => { executed.push('new'); } });
     });
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();
@@ -442,17 +442,21 @@ import { SidebarNavItem } from './sidebar-nav-item';
         <div class="hlm-sidebar__footer"></div>
       </aside>
 
-      <header class="hlm-shell__header" data-region="header">
+      <header class="hlm-shell__header">
         <button hlmBtn variant="ghost" size="icon" (click)="toggle()" aria-label="Toggle sidebar">
           <ng-icon name="lucidePanelLeft" />
         </button>
         <span class="grow"></span>
-        @for (cmd of header(); track cmd.id) {
-          <button hlmBtn size="sm" [disabled]="!cmd.canExecute()" (click)="cmd.execute()">
-            @if (cmd.icon; as icon) { <ng-icon [name]="icon" /> }
-            {{ cmd.label }}
-          </button>
-        }
+        <!-- data-region scopes to the looped buttons only, so the toggle button
+             above is not mistaken for a header command. display:contents is layout-neutral. -->
+        <div data-region="header" style="display: contents">
+          @for (cmd of header(); track cmd.id) {
+            <button hlmBtn size="sm" [disabled]="!cmd.canExecute()" (click)="cmd.execute()">
+              @if (cmd.icon; as icon) { <ng-icon [name]="icon" /> }
+              {{ cmd.label }}
+            </button>
+          }
+        </div>
       </header>
 
       <main class="hlm-shell__main">

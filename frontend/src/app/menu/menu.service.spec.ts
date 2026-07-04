@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Component, signal, DestroyRef } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { MenuService } from './menu.service';
 import type { Command } from './command';
 

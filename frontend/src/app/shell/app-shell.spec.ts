@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { signal, runInInjectionContext, EnvironmentInjector } from '@angular/core';
 import { AppShell } from './app-shell';
 import { MenuService } from '../menu';
@@ -15,8 +15,8 @@ describe('AppShell', () => {
     const injector = TestBed.inject(EnvironmentInjector);
     const executed: string[] = [];
     runInInjectionContext(injector, () => {
-      svc.register('sidebar', { id: 'nav-users', label: 'users', icon: 'lucideUsers', canExecute: signal(true), execute: () => executed.push('nav') });
-      svc.register('header', { id: 'new-user', label: 'new user', icon: 'lucidePlus', canExecute: signal(false), execute: () => executed.push('new') });
+      svc.register('sidebar', { id: 'nav-users', label: 'users', icon: 'lucideUsers', canExecute: signal(true), execute: () => { executed.push('nav'); } });
+      svc.register('header', { id: 'new-user', label: 'new user', icon: 'lucidePlus', canExecute: signal(false), execute: () => { executed.push('new'); } });
     });
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();
