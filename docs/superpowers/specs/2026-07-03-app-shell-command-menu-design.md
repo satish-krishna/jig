@@ -81,7 +81,7 @@ Built to match the jig-design full-width shell, using generated helm components 
 
 - `AppShell` (CSS grid container) with `ShellHeader`, `Sidebar`, `ShellMain` (`router-outlet`), `ShellFooter`.
 - `SidebarNavItem` — renders a sidebar-region `Command`; active highlight from `router.url`.
-- The header renders header-region `Command`s as buttons (`hlmBtn`) with `hlm-icon`, disabled when `!canExecute()`.
+- The header renders header-region `Command`s as buttons (`hlmBtn`) with `<ng-icon>`, disabled when `!canExecute()`.
 
 ## The worked example
 
