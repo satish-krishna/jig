@@ -1,3 +1,6 @@
+/* This file is a verbatim port of the jig-design design-system layout.css (ADR
+   0007); some rules (e.g. .hlm-centered* layout, nested-nav tiers) are
+   intentionally present but not all are wired by the current shell yet. */
 /* ────────────────────────────────────────────────────────────
    Jig — Sidebar & app-shell layout
    The two default jig layouts:

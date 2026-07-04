@@ -38,5 +38,9 @@ export class SidebarNavItem {
   );
   // Active state is DERIVED from the URL, never stored. This is the guardrail:
   // the sidebar highlight can never disagree with the address bar.
+  // CAVEAT: match is a URL prefix check (startsWith), correct for the single
+  // nav-users case today and keeps a parent active on its child routes, but it
+  // is NOT segment-bounded — a future nav id sharing a prefix (e.g. 'nav-user'
+  // vs '/users') needs an explicit matcher instead of relying on startsWith.
   protected readonly active = computed(() => this.url().startsWith('/' + this.command().id.replace(/^nav-/, '')));
 }
