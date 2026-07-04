@@ -18,6 +18,10 @@ export class UserListViewModel {
   readonly users = signal<UserDto[]>([]);
   readonly loading = signal(false);
   readonly error = signal<AppError | null>(null);
+  readonly formOpen = signal(false);
+  readonly saving = signal(false);
+
+  openForm(): void { this.formOpen.set(true); }
 
   load(): void {
     this.loading.set(true);
@@ -36,9 +40,10 @@ export class UserListViewModel {
 
   save(input: SaveUserInput): void {
     this.error.set(null);
+    this.saving.set(true);
     this.repo.save(input).subscribe({
-      next: () => this.load(),
-      error: (err: AppError) => this.error.set(err),
+      next: () => { this.saving.set(false); this.formOpen.set(false); this.load(); },
+      error: (err: AppError) => { this.saving.set(false); this.error.set(err); },
     });
   }
 }

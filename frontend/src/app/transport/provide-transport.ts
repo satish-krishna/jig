@@ -1,9 +1,11 @@
-import { type EnvironmentProviders, makeEnvironmentProviders, inject } from '@angular/core';
+import { type EnvironmentProviders, makeEnvironmentProviders, inject, InjectionToken } from '@angular/core';
 import { isTauri } from '@tauri-apps/api/core';
 import { Transport } from './transport.port';
 import { API_BASE_URL, HttpTransport } from './http.transport';
 import { IpcTransport } from './ipc.transport';
 import { NormalizingTransport } from './normalizing.transport';
+
+export const WIRE = new InjectionToken<'ipc' | 'http'>('transport wire');
 
 /**
  * Picks the wire once, at bootstrap: IPC under Tauri, HTTP in the browser, wrapped
@@ -20,6 +22,7 @@ export function provideTransport(apiBaseUrl: string): EnvironmentProviders {
     HttpTransport,
     IpcTransport,
     { provide: API_BASE_URL, useValue: apiBaseUrl },
+    { provide: WIRE, useValue: isTauri() ? 'ipc' : 'http' },
     {
       provide: Transport,
       useFactory: () => new NormalizingTransport(isTauri() ? inject(IpcTransport) : inject(HttpTransport)),

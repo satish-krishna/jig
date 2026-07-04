@@ -8,6 +8,9 @@ test('users slice boots and validates the form', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible();
 
+  // The form is gated behind the header's "new user" action command.
+  await page.getByRole('button', { name: 'new user' }).click();
+
   // Submitting empty surfaces the zod rule on the matching field.
   await page.getByRole('button', { name: 'Add user' }).click();
   await expect(page.locator('[data-error-for="name"]')).toContainText('Name is required');
