@@ -10,7 +10,7 @@ import { provideUsersMenu } from './features/users/users.commands';
 
 // The web build talks to the .NET API here; under Tauri the IPC wire is chosen
 // instead and this base URL is unused. Point it at your API for the browser build.
-const API_BASE_URL = 'http://localhost:5199';
+const API_BASE_URL = 'http://localhost:5025';
 
 export const appConfig: ApplicationConfig = {
   providers: [

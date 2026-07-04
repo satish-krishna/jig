@@ -1,5 +1,4 @@
-import { computed, inject } from '@angular/core';
-import { provideAppInitializer, type EnvironmentProviders } from '@angular/core';
+import { computed, inject, provideAppInitializer, type EnvironmentProviders } from '@angular/core';
 import { MenuService, navigateCommand, type Command } from '../../menu';
 import { UserListViewModel } from './user-list.view-model';
 
@@ -19,11 +18,10 @@ export function newUserCommand(vm: UserListViewModel): Command {
  * so it lives for the app's lifetime — provideAppInitializer runs in the root
  * injection context). The ACTION command is registered view-scoped in the view.
  */
+export function registerUsersNav(menu: MenuService): void {
+  menu.register('sidebar', navigateCommand({ id: 'nav-users', label: 'users', icon: 'lucideUsers', route: '/users' }));
+}
+
 export function provideUsersMenu(): EnvironmentProviders {
-  return provideAppInitializer(() => {
-    inject(MenuService).register(
-      'sidebar',
-      navigateCommand({ id: 'nav-users', label: 'users', icon: 'lucideUsers', route: '/users' }),
-    );
-  });
+  return provideAppInitializer(() => registerUsersNav(inject(MenuService)));
 }

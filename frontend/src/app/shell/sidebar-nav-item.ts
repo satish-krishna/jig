@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd } from '@angular/router';
-import { filter, map, startWith } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { NgIcon } from '@ng-icons/core';
 import type { Command } from '../menu';
 
@@ -32,7 +32,6 @@ export class SidebarNavItem {
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
       map(() => this.router.url),
-      startWith(this.router.url),
     ),
     { initialValue: this.router.url },
   );

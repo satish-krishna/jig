@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, inject, signal, type Signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal, type Signal, type WritableSignal } from '@angular/core';
 import type { Command, Region } from './command';
 
 /**
@@ -9,7 +9,7 @@ import type { Command, Region } from './command';
  */
 @Injectable({ providedIn: 'root' })
 export class MenuService {
-  private readonly regions: Record<Region, ReturnType<typeof signal<readonly Command[]>>> = {
+  private readonly regions: Record<Region, WritableSignal<readonly Command[]>> = {
     sidebar: signal<readonly Command[]>([]),
     header: signal<readonly Command[]>([]),
   };
