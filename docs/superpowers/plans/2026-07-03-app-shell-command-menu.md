@@ -15,7 +15,7 @@
 - Copy rules (jig-design): sentence case; product/code identifiers stay lowercase (`users`, `jig`). No emoji in UI.
 - Icons: `@ng-icons/lucide` names only (e.g. `lucideUsers`, `lucidePlus`, `lucidePanelLeft`); rendered `<ng-icon [name]="…"/>` via `NgIcon` from `@ng-icons/core`. This spartan version (`@spartan-ng/cli` 1.0.4) has no `hlm-icon` wrapper — use `ng-icon` directly (the button CSS styles `[&_ng-icon]` descendants automatically). Do not hand-draw glyphs.
 - Discover before build: reuse `libs/ui` helm; generate new helm via `@spartan-ng/cli`, never hand-roll.
-- The catalog under `.forge/registry/` is generated. If a new reusable unit is annotated, run `npm run catalog` before committing (the pre-commit hook checks freshness).
+- The catalog under `.bob/registry/` is generated. If a new reusable unit is annotated, run `npm run catalog` before committing (the pre-commit hook checks freshness).
 - Gate before final done: `npm run verify` green.
 
 ---

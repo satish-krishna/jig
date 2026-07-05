@@ -8,11 +8,11 @@ This file is the always-loaded entry point. It stays short on purpose: it carrie
 
 Agents reinvent because they cannot cheaply find what exists. Before authoring any **reusable unit** (a transport, a repository, a base endpoint, a validator, a shared component, a capability service, a Rust command helper), run this checklist in order:
 
-1. Read `.forge/registry/CATALOG.md` for the relevant area.
+1. Read `.bob/registry/CATALOG.md` for the relevant area.
 2. Run an LSP `workspace/symbol` search for the concept.
 3. If a match exists, reuse or extend it. Generalising the existing unit beats adding a parallel one.
 4. If nothing fits, create it, annotate it (see CONTRIBUTING.md), and regenerate the catalog with `npm run catalog`.
-5. If you create something that overlaps an existing capability, that is a defect. Record why in an ADR under `.forge/adr/`.
+5. If you create something that overlaps an existing capability, that is a defect. Record why in an ADR under `.bob/adr/`.
 
 This is a template, not a product. The `users` slice is the one worked example that exercises every layer. Copy its shape; add no speculative features.
 
@@ -38,10 +38,10 @@ This file is tier one. Everything below is disclosed on demand: open the file th
 | Touch the transport seam (IPC or HTTP) | `docs/architecture/conduit.md` |
 | Build or change a form | `docs/architecture/forms.md` |
 | Build UI, style a component, or make a mock | `docs/architecture/design.md` |
-| Add a whole feature | `.forge/prompts/new-feature.md` |
-| Understand a past decision | `.forge/adr/` |
+| Add a whole feature | `.bob/prompts/new-feature.md` |
+| Understand a past decision | `.bob/adr/` |
 
-Two rules that apply everywhere: the catalog under `.forge/registry/` is generated, so never hand-edit it (annotate the code and run `npm run catalog`); and prefer LSP navigation (`workspace/symbol`, find-references, hover) over grep. Native LSP covers TypeScript and Rust (install via `/plugin`); C# is wired through `.lsp.json`.
+Two rules that apply everywhere: the catalog under `.bob/registry/` is generated, so never hand-edit it (annotate the code and run `npm run catalog`); and prefer LSP navigation (`workspace/symbol`, find-references, hover) over grep. Native LSP covers TypeScript and Rust (install via `/plugin`); C# is wired through `.lsp.json`.
 
 ## Commands
 
@@ -63,9 +63,9 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 CLAUDE.md              this file, always read first
 CONTRIBUTING.md        how to work here: standards, TDD, commits, gates
 docs/architecture/     task-scoped deep rules (conduit, forms)
-.forge/registry/       GENERATED catalog (do not hand-edit)
-.forge/adr/            architecture decision records
-.forge/prompts/        feature recipes
+.bob/registry/         GENERATED catalog (do not hand-edit)
+.bob/adr/              architecture decision records
+.bob/prompts/          feature recipes
 apps/desktop/          Tauri shell (Rust core, src-tauri)
 frontend/src/app/
   contracts/           operation registry + generated DTOs (single source of truth)

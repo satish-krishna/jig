@@ -4,7 +4,7 @@ Adding a feature means copying the `users` slice shape end to end, not inventing
 
 ## 0. Discover first
 
-Run the discovery gate from `CLAUDE.md`: read `.forge/registry/CATALOG.md` for the area, then `workspace/symbol` for the concept. Reuse or extend an existing capability before creating a new one. Creating something that overlaps an existing capability is a defect; record an ADR if you must.
+Run the discovery gate from `CLAUDE.md`: read `.bob/registry/CATALOG.md` for the area, then `workspace/symbol` for the concept. Reuse or extend an existing capability before creating a new one. Creating something that overlaps an existing capability is a defect; record an ADR if you must.
 
 ## 1. Contract
 

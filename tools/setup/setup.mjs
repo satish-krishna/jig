@@ -142,7 +142,7 @@ function main() {
   fetchRust();
   generateCatalog();
   log('\nSetup complete. Run `npm run verify` to confirm the fixture is green.');
-  log('Next: read CLAUDE.md and .forge/registry/CATALOG.md.');
+  log('Next: read CLAUDE.md and .bob/registry/CATALOG.md.');
 }
 
 main();
