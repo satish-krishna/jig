@@ -9,7 +9,6 @@ import type { OperationName, Req, Res } from '../contracts';
  * @capability transport.port
  * @intent One abstract seam; View, ViewModel, and repositories never learn which wire is live.
  * @reuse Inject Transport (the DI token) and call request(op, payload). Never branch on wire above this.
- * @since 0.1.0
  */
 export abstract class Transport {
   abstract request<K extends OperationName>(op: K, payload: Req<K>): Observable<Res<K>>;

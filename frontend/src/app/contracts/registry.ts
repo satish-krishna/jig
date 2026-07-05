@@ -17,7 +17,6 @@ export interface HttpRoute<K extends OperationName> {
  * @capability contracts.transport-registry
  * @intent Compiler-enforced parity: every operation has both an HTTP route and an IPC command.
  * @reuse Add the operation to Operations, then its ROUTES and COMMANDS entry; omissions fail the build.
- * @since 0.1.0
  */
 export const ROUTES: { [K in OperationName]: HttpRoute<K> } = {
   'users.list': { method: 'GET', path: () => '/users', hasBody: false },

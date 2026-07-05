@@ -64,8 +64,7 @@
       "reuse": "Add an operation here first; response types must resolve to generated DTOs.",
       "file": "frontend/src/app/contracts/operations.ts",
       "language": "typescript",
-      "symbol": "Operations",
-      "since": "0.1.0"
+      "symbol": "Operations"
     },
     {
       "capability": "contracts.transport-registry",
@@ -73,8 +72,7 @@
       "reuse": "Add the operation to Operations, then its ROUTES and COMMANDS entry; omissions fail the build.",
       "file": "frontend/src/app/contracts/registry.ts",
       "language": "typescript",
-      "symbol": "ROUTES",
-      "since": "0.1.0"
+      "symbol": "ROUTES"
     },
     {
       "capability": "forms.dynamic-renderer",
@@ -82,8 +80,7 @@
       "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.",
       "file": "frontend/src/app/forms/schema-form.ts",
       "language": "typescript",
-      "symbol": "selector",
-      "since": "0.2.0"
+      "symbol": "selector"
     },
     {
       "capability": "forms.field-meta",
@@ -91,8 +88,7 @@
       "reuse": "Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field.",
       "file": "frontend/src/app/forms/form-field-meta.ts",
       "language": "typescript",
-      "symbol": "ControlKind",
-      "since": "0.1.0"
+      "symbol": "ControlKind"
     },
     {
       "capability": "forms.zod-meta",
@@ -100,8 +96,7 @@
       "reuse": "Call formMeta(schema) in a form component; pair with validateStandardSchema for validation.",
       "file": "frontend/src/app/forms/zod-meta.ts",
       "language": "typescript",
-      "symbol": "formMeta",
-      "since": "0.1.0"
+      "symbol": "formMeta"
     },
     {
       "capability": "repositories.user",
@@ -109,8 +104,7 @@
       "reuse": "Inject UserRepository from ViewModels; copy this shape for new feature repositories.",
       "file": "frontend/src/app/repositories/user.repository.ts",
       "language": "typescript",
-      "symbol": "UserRepository",
-      "since": "0.1.0"
+      "symbol": "UserRepository"
     },
     {
       "capability": "shell.user-store",
@@ -126,8 +120,7 @@
       "reuse": "Called only by NormalizingTransport. Do not catch raw wire errors elsewhere.",
       "file": "frontend/src/app/transport/app-error.ts",
       "language": "typescript",
-      "symbol": "toAppError",
-      "since": "0.1.0"
+      "symbol": "toAppError"
     },
     {
       "capability": "transport.http",
@@ -135,8 +128,7 @@
       "reuse": "Selected by provideTransport when not under Tauri. Do not call directly.",
       "file": "frontend/src/app/transport/http.transport.ts",
       "language": "typescript",
-      "symbol": "HttpTransport",
-      "since": "0.1.0"
+      "symbol": "HttpTransport"
     },
     {
       "capability": "transport.ipc",
@@ -144,8 +136,7 @@
       "reuse": "Selected by provideTransport under Tauri. Do not call directly.",
       "file": "frontend/src/app/transport/ipc.transport.ts",
       "language": "typescript",
-      "symbol": "IpcTransport",
-      "since": "0.1.0"
+      "symbol": "IpcTransport"
     },
     {
       "capability": "transport.normalizing",
@@ -153,8 +144,7 @@
       "reuse": "Wrap the selected Transport at bootstrap. Never add error branching above this.",
       "file": "frontend/src/app/transport/normalizing.transport.ts",
       "language": "typescript",
-      "symbol": "NormalizingTransport",
-      "since": "0.1.0"
+      "symbol": "NormalizingTransport"
     },
     {
       "capability": "transport.port",
@@ -162,8 +152,7 @@
       "reuse": "Inject Transport (the DI token) and call request(op, payload). Never branch on wire above this.",
       "file": "frontend/src/app/transport/transport.port.ts",
       "language": "typescript",
-      "symbol": "Transport",
-      "since": "0.1.0"
+      "symbol": "Transport"
     },
     {
       "capability": "transport.provide",
@@ -171,8 +160,7 @@
       "reuse": "Call provideTransport(apiBaseUrl) in the app config. Nothing else selects a wire.",
       "file": "frontend/src/app/transport/provide-transport.ts",
       "language": "typescript",
-      "symbol": "provideTransport",
-      "since": "0.1.0"
+      "symbol": "provideTransport"
     }
   ]
 }

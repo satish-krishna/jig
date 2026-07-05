@@ -46,36 +46,36 @@
 ### `contracts.operation-registry` — Operations (typescript)
 - **Intent:** One typed map of operations so HTTP and IPC cannot disagree about a shape.
 - **Reuse:** Add an operation here first; response types must resolve to generated DTOs.
-- **Where:** `frontend/src/app/contracts/operations.ts` · since 0.1.0
+- **Where:** `frontend/src/app/contracts/operations.ts`
 
 ### `contracts.transport-registry` — ROUTES (typescript)
 - **Intent:** Compiler-enforced parity: every operation has both an HTTP route and an IPC command.
 - **Reuse:** Add the operation to Operations, then its ROUTES and COMMANDS entry; omissions fail the build.
-- **Where:** `frontend/src/app/contracts/registry.ts` · since 0.1.0
+- **Where:** `frontend/src/app/contracts/registry.ts`
 
 ## forms
 
 ### `forms.dynamic-renderer` — selector (typescript)
 - **Intent:** Render any zod schema at runtime; the schema stays the source of truth for shape and validation.
 - **Reuse:** Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.
-- **Where:** `frontend/src/app/forms/schema-form.ts` · since 0.2.0
+- **Where:** `frontend/src/app/forms/schema-form.ts`
 
 ### `forms.field-meta` — ControlKind (typescript)
 - **Intent:** Field presentation lives on the schema field, not in a parallel config object.
 - **Reuse:** Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field.
-- **Where:** `frontend/src/app/forms/form-field-meta.ts` · since 0.1.0
+- **Where:** `frontend/src/app/forms/form-field-meta.ts`
 
 ### `forms.zod-meta` — formMeta (typescript)
 - **Intent:** Field presentation stays on the zod schema; components read it, never duplicate it.
 - **Reuse:** Call formMeta(schema) in a form component; pair with validateStandardSchema for validation.
-- **Where:** `frontend/src/app/forms/zod-meta.ts` · since 0.1.0
+- **Where:** `frontend/src/app/forms/zod-meta.ts`
 
 ## repositories
 
 ### `repositories.user` — UserRepository (typescript)
 - **Intent:** Domain-facing user data access that is oblivious to HTTP vs IPC.
 - **Reuse:** Inject UserRepository from ViewModels; copy this shape for new feature repositories.
-- **Where:** `frontend/src/app/repositories/user.repository.ts` · since 0.1.0
+- **Where:** `frontend/src/app/repositories/user.repository.ts`
 
 ## shell
 
@@ -89,29 +89,29 @@
 ### `transport.app-error` — toAppError (typescript)
 - **Intent:** One error type above the seam, so no ViewModel grows two error branches.
 - **Reuse:** Called only by NormalizingTransport. Do not catch raw wire errors elsewhere.
-- **Where:** `frontend/src/app/transport/app-error.ts` · since 0.1.0
+- **Where:** `frontend/src/app/transport/app-error.ts`
 
 ### `transport.http` — HttpTransport (typescript)
 - **Intent:** The thin-client wire; route knowledge lives in the registry, not in callers.
 - **Reuse:** Selected by provideTransport when not under Tauri. Do not call directly.
-- **Where:** `frontend/src/app/transport/http.transport.ts` · since 0.1.0
+- **Where:** `frontend/src/app/transport/http.transport.ts`
 
 ### `transport.ipc` — IpcTransport (typescript)
 - **Intent:** The thick-client wire; command knowledge lives in the registry, not in callers.
 - **Reuse:** Selected by provideTransport under Tauri. Do not call directly.
-- **Where:** `frontend/src/app/transport/ipc.transport.ts` · since 0.1.0
+- **Where:** `frontend/src/app/transport/ipc.transport.ts`
 
 ### `transport.normalizing` — NormalizingTransport (typescript)
 - **Intent:** One error seam; every failure above it is already an AppError.
 - **Reuse:** Wrap the selected Transport at bootstrap. Never add error branching above this.
-- **Where:** `frontend/src/app/transport/normalizing.transport.ts` · since 0.1.0
+- **Where:** `frontend/src/app/transport/normalizing.transport.ts`
 
 ### `transport.port` — Transport (typescript)
 - **Intent:** One abstract seam; View, ViewModel, and repositories never learn which wire is live.
 - **Reuse:** Inject Transport (the DI token) and call request(op, payload). Never branch on wire above this.
-- **Where:** `frontend/src/app/transport/transport.port.ts` · since 0.1.0
+- **Where:** `frontend/src/app/transport/transport.port.ts`
 
 ### `transport.provide` — provideTransport (typescript)
 - **Intent:** Collapse the whole "which world" decision to one factory at startup.
 - **Reuse:** Call provideTransport(apiBaseUrl) in the app config. Nothing else selects a wire.
-- **Where:** `frontend/src/app/transport/provide-transport.ts` · since 0.1.0
+- **Where:** `frontend/src/app/transport/provide-transport.ts`
