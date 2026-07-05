@@ -14,7 +14,6 @@ export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
  * @capability transport.http
  * @intent The thin-client wire; route knowledge lives in the registry, not in callers.
  * @reuse Selected by provideTransport when not under Tauri. Do not call directly.
- * @since 0.1.0
  */
 @Injectable()
 export class HttpTransport extends Transport {

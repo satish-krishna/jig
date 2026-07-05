@@ -39,3 +39,6 @@ frontend/.playwright/
 
 # Claude Code personal/local settings (never shared)
 .claude/settings.local.json
+
+# Implementation plans are working scaffolding, not shipped artifacts — never checked in
+docs/superpowers/plans/

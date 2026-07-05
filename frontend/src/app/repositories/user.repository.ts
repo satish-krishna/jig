@@ -10,7 +10,6 @@ import { Transport } from '../transport';
  * @capability repositories.user
  * @intent Domain-facing user data access that is oblivious to HTTP vs IPC.
  * @reuse Inject UserRepository from ViewModels; copy this shape for new feature repositories.
- * @since 0.1.0
  */
 @Injectable({ providedIn: 'root' })
 export class UserRepository {

@@ -41,7 +41,6 @@ function messageFrom(cause: { error?: unknown; message?: string }): string {
  * @capability transport.app-error
  * @intent One error type above the seam, so no ViewModel grows two error branches.
  * @reuse Called only by NormalizingTransport. Do not catch raw wire errors elsewhere.
- * @since 0.1.0
  */
 export function toAppError(operation: string, cause: unknown): AppError {
   if (isHttpLike(cause)) {

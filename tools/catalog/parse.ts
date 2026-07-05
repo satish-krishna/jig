@@ -13,7 +13,6 @@ export type CapabilityEntry = {
   capability: string;
   intent: string;
   reuse: string;
-  since?: string;
   file: string;
   language: 'typescript' | 'rust' | 'csharp';
   symbol: string;
@@ -114,7 +113,6 @@ export function parseAnnotations(text: string, filePath: string): CapabilityEntr
     if (capability) {
       const intent = (tag('intent') ?? decodeXml(xml('intent')?.trim() ?? '')) || '';
       const reuse = (tag('reuse') ?? decodeXml(xml('reuse')?.trim() ?? '')) || '';
-      const since = tag('since') ?? xml('since')?.trim();
       const entry: CapabilityEntry = {
         capability,
         intent,
@@ -123,7 +121,6 @@ export function parseAnnotations(text: string, filePath: string): CapabilityEntr
         language,
         symbol: symbolFrom(lines, j),
       };
-      if (since) entry.since = since;
       entries.push(entry);
     }
     i = j - 1;

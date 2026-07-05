@@ -21,12 +21,13 @@ This is a template, not a product. The `users` slice is the one worked example t
 - **SOLID:** one reason to change; depend on abstractions; small client-specific interfaces; new behaviour by extension, not by editing stable code.
 - **YAGNI:** build only the `users` slice and the machinery it proves. One implementer and no second one imminent means inline it.
 - **DRY, docs included:** no fact stated twice by hand. The catalog is generated; form models are `z.infer`; DTOs are generated from OpenAPI.
+- **KISS:** the code you do write is the plainest version that works — straight-line over clever, obvious over compact. If a tired reader cannot trace it at 3AM without a comment explaining *how* it works, it is too clever; rewrite it simpler. (YAGNI decides whether to build it; KISS decides that what you build stays simple.)
 - **TDD, red-green-refactor:** no production line exists before a failing test that demands it. Holds in TypeScript, C#, and Rust.
 - **AI-native:** LSP navigation over grep; generated catalogs over tribal knowledge; machine-checked gates over "please remember".
 - **Conventional Commits:** every commit is `type(scope): summary`, and commits land only at a green gate (`npm run verify`).
 - **Feature-branch workflow:** all work lands on a feature branch named `type[(scope)]/kebab-description` (the conventional-commit prefix); `main` takes no direct commits and integrates by squash merge, keeping history linear. Enforced by the `pre-commit` hook.
 
-The smell test for each lives in CONTRIBUTING.md. If any instruction conflicts with these six, stop and surface the conflict before proceeding.
+The smell test for each lives in CONTRIBUTING.md. If any instruction conflicts with these non-negotiables, stop and surface the conflict before proceeding.
 
 ## Read before you start (progressive disclosure)
 

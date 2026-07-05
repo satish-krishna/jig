@@ -4,7 +4,7 @@ import { renderJson, renderMarkdown } from './catalog.ts';
 import type { CapabilityEntry } from './parse.ts';
 
 const sample: CapabilityEntry[] = [
-  { capability: 'transport.normalizing', intent: 'one seam', reuse: 'wrap it', file: 'a.ts', language: 'typescript', symbol: 'N', since: '0.1.0' },
+  { capability: 'transport.normalizing', intent: 'one seam', reuse: 'wrap it', file: 'a.ts', language: 'typescript', symbol: 'N' },
 ];
 
 test('empty catalog renders valid JSON with zero count', () => {
