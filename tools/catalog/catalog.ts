@@ -2,12 +2,12 @@
 // Jig capability catalog generator.
 //
 // Walks the source tree, extracts every @capability block (see parse.ts), and
-// emits the machine index (.forge/registry/catalog.json) and the agent-readable
-// view (.forge/registry/CATALOG.md). Run with --check to fail when either file
+// emits the machine index (.bob/registry/catalog.json) and the agent-readable
+// view (.bob/registry/CATALOG.md). Run with --check to fail when either file
 // is stale; that is the guarantee the pre-commit and CI gates enforce.
 //
 // Run `npm run catalog` to regenerate and `npm run catalog:check` in the gates.
-// Never hand-edit .forge/registry — annotate the code and regenerate.
+// Never hand-edit .bob/registry — annotate the code and regenerate.
 
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
@@ -15,13 +15,13 @@ import { fileURLToPath } from 'node:url';
 import { parseAnnotations, type CapabilityEntry } from './parse.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const REGISTRY = join(ROOT, '.forge', 'registry');
+const REGISTRY = join(ROOT, '.bob', 'registry');
 // Scan the application code only. Build tooling under tools/ is not a "reusable
 // unit" a feature-agent discovers and reuses, so it stays out of the catalog.
 const SCAN_DIRS = ['frontend', 'services', 'apps'];
 const SCAN_EXT = ['.ts', '.tsx', '.rs', '.cs'];
 const EXCLUDE = new Set([
-  'node_modules', 'dist', 'target', 'bin', 'obj', '.git', '.angular', '.forge',
+  'node_modules', 'dist', 'target', 'bin', 'obj', '.git', '.angular', '.bob',
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -112,7 +112,7 @@ function main() {
   mkdirSync(REGISTRY, { recursive: true });
   writeFileSync(jsonPath, json);
   writeFileSync(mdPath, md);
-  console.log(`Wrote catalog: ${entries.length} capabilities → .forge/registry/`);
+  console.log(`Wrote catalog: ${entries.length} capabilities → .bob/registry/`);
 }
 
 // Only run the CLI when invoked directly, not when imported by a test.

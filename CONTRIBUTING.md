@@ -58,7 +58,7 @@ Rust (rustdoc): `/// @capability`, `/// @intent`, `/// @reuse`. C# (XML doc): `<
 
 ## The catalog is generated, never written
 
-`.forge/registry/catalog.json` and `.forge/registry/CATALOG.md` are output of `tools/catalog`. Never hand-edit them.
+`.bob/registry/catalog.json` and `.bob/registry/CATALOG.md` are output of `tools/catalog`. Never hand-edit them.
 
 - Regenerate: `npm run catalog`
 - Verify freshness: `npm run catalog:check` (this is what the pre-commit hook and CI run; a stale catalog fails the build)
@@ -103,4 +103,4 @@ This is the inner loop, not the gate. HMR being green means the code compiles, n
 
 ## Adding a feature
 
-Follow `.forge/prompts/new-feature.md` and copy the `users` slice end to end. Discover first (the prime directive in `CLAUDE.md`), annotate what you build, regenerate the catalog, commit at green.
+Follow `.bob/prompts/new-feature.md` and copy the `users` slice end to end. Discover first (the prime directive in `CLAUDE.md`), annotate what you build, regenerate the catalog, commit at green.

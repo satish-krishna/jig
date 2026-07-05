@@ -17,7 +17,7 @@ Tier the documentation so each agent reads only what its task needs.
   - `CONTRIBUTING.md` — coding standards, smell tests, TDD per language, commit conventions, gate commands, annotation and catalog workflow.
   - `docs/architecture/conduit.md` — the transport seam rules, read before touching transport, contracts, or repositories.
   - `docs/architecture/forms.md` — schema-driven form rules, read before building a form.
-  - `.forge/prompts/new-feature.md` — the feature recipe.
+  - `.bob/prompts/new-feature.md` — the feature recipe.
 
 The load-bearing element is the routing table in `CLAUDE.md`: a "when you are about to X, read Y" trigger for each tier-2 doc. Disclosed docs with no trigger are just hidden docs.
 

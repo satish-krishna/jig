@@ -131,19 +131,19 @@ A "reusable unit" is anything meant to be used from more than one place: a trans
 
 Build a small generator in `tools/catalog/` (TypeScript is fine; it must run cross-language by scanning source text for the tags above). It produces:
 
-- `.forge/registry/catalog.json` — the machine index: capability id, intent, reuse note, file path, language, symbol name.
-- `.forge/registry/CATALOG.md` — the human/agent-readable view, grouped by area.
+- `.bob/registry/catalog.json` — the machine index: capability id, intent, reuse note, file path, language, symbol name.
+- `.bob/registry/CATALOG.md` — the human/agent-readable view, grouped by area.
 
 Wire it so it runs on a `pre-commit` hook and in CI, and **fails the build if the catalog is stale** (regenerate and diff). This makes "100% embedded documentation" a mechanical guarantee: a reusable unit without a capability block is either annotated or it is not reusable, and a catalog that drifts breaks the build.
 
 ### 5.3 The discovery gate (goes into CLAUDE.md, section 10)
 
 Before authoring any reusable unit, an agent MUST:
-1. Read `.forge/registry/CATALOG.md` for the relevant area.
+1. Read `.bob/registry/CATALOG.md` for the relevant area.
 2. Run an LSP `workspace/symbol` search for the concept.
 3. If a match exists: reuse or extend it. Editing the existing unit to generalise it is preferred over adding a parallel one.
 4. Only if nothing fits: create it, annotate it (5.1), and regenerate the catalog.
-5. If you create something that overlaps an existing capability, that is a defect. Record why in an ADR under `.forge/adr/`.
+5. If you create something that overlaps an existing capability, that is a defect. Record why in an ADR under `.bob/adr/`.
 
 ## 6. LSP + agent tooling (AI-native code intelligence)
 
@@ -181,7 +181,7 @@ The `users` slice must ship with tests at all three levels as the reference patt
 ├─ README.md                 # human onboarding + one-command setup
 ├─ .mcp.json                 # MCP servers (LSP orchestrator, etc.)
 ├─ .lsp.json                 # custom LSP config (C#)
-├─ .forge/                   # AI workflow artifacts
+├─ .bob/                   # AI workflow artifacts
 │  ├─ registry/              # GENERATED catalog.json + CATALOG.md (do not hand-edit)
 │  ├─ adr/                   # architecture decision records
 │  └─ prompts/               # reusable sub-prompts / feature recipes
@@ -207,7 +207,7 @@ The `users` slice must ship with tests at all three levels as the reference patt
 
 ## 9. Execution phases (do these in order; each ends at a green gate + a conventional commit)
 
-**Phase 0 — Ground rules.** Generate `CLAUDE.md` (section 10), `.forge/` layout, the empty catalog + generator, the setup script, LSP wiring, and commit-message enforcement (`commitlint` config + `commit-msg` hook). Gate: setup script runs clean, catalog generator produces an empty-but-valid catalog, `version` checks pass for all three language servers, and the commit hook rejects a malformed message while accepting a conventional one.
+**Phase 0 — Ground rules.** Generate `CLAUDE.md` (section 10), `.bob/` layout, the empty catalog + generator, the setup script, LSP wiring, and commit-message enforcement (`commitlint` config + `commit-msg` hook). Gate: setup script runs clean, catalog generator produces an empty-but-valid catalog, `version` checks pass for all three language servers, and the commit hook rejects a malformed message while accepting a conventional one.
 
 **Phase 1 — Contracts spine.** Define the `users` operations in the operation registry. Stand up the .NET API project with FastEndpoints, emit OpenAPI, generate TS DTOs, and confirm the registry's `res` types resolve to generated DTOs. Gate: codegen runs, types compile, no hand-written DTOs.
 
@@ -219,7 +219,7 @@ The `users` slice must ship with tests at all three levels as the reference patt
 
 **Phase 5 — Frontend slice (TDD).** `UserListViewModel` (signals) + repository + view, tested with a fake `Transport`. the form built from a zod schema through the shared renderer (section 4.1), with spartan-ng controls and zod-driven validation. Gate: Vitest green (including a renderer test that a schema produces the right controls and that a `safeParse` failure surfaces on the right field), Playwright smoke passes, the same build runs under Tauri (IPC) and in the browser (HTTP) unchanged.
 
-**Phase 6 — Seal it as a template.** Regenerate the catalog (now populated by the `users` slice). Write the README onboarding (titled **Jig**, opening with the "build the fixture once, every app comes out identical" framing) and a `.forge/prompts/new-feature.md` recipe that walks an agent through adding a feature the same way. Gate: full build + all tests + catalog freshness check green in one command; fresh clone reaches green from the setup script alone.
+**Phase 6 — Seal it as a template.** Regenerate the catalog (now populated by the `users` slice). Write the README onboarding (titled **Jig**, opening with the "build the fixture once, every app comes out identical" framing) and a `.bob/prompts/new-feature.md` recipe that walks an agent through adding a feature the same way. Gate: full build + all tests + catalog freshness check green in one command; fresh clone reaches green from the setup script alone.
 
 ## 10. Governance file to generate (`CLAUDE.md`)
 
@@ -233,7 +233,7 @@ Author `CLAUDE.md` so every future agent inherits the rules. It must contain, in
 - **TDD is mandatory**; the order is red-green-refactor; commits happen at green.
 - **Conventional Commits are enforced** by the `commit-msg` hook; use `type(scope): summary` with scopes mirroring the repo areas; a malformed message is rejected, and commits land only at green.
 - **LSP-first navigation:** prefer `workspace/symbol`, `find-references`, and hover over grep and file reads; when to reach for the MCP LSP orchestrator.
-- **Catalog is generated:** never hand-edit `.forge/registry/`; annotate the code and regenerate.
+- **Catalog is generated:** never hand-edit `.bob/registry/`; annotate the code and regenerate.
 - **When creating overlaps an existing capability, that is a defect;** record an ADR.
 - A short **map of the repo** pointing at the reference `users` slice as the pattern to copy.
 
