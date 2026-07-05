@@ -9,7 +9,6 @@ import type { FormFieldMeta } from './form-field-meta';
  * @capability forms.zod-meta
  * @intent Field presentation stays on the zod schema; components read it, never duplicate it.
  * @reuse Call formMeta(schema) in a form component; pair with validateStandardSchema for validation.
- * @since 0.1.0
  */
 export function formMeta(schema: z.ZodObject<z.ZodRawShape>): Record<string, FormFieldMeta> {
   const meta: Record<string, FormFieldMeta> = {};

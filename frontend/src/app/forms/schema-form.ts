@@ -24,7 +24,6 @@ function defaultFor(meta: FormFieldMeta): unknown {
  * @capability forms.dynamic-renderer
  * @intent Render any zod schema at runtime; the schema stays the source of truth for shape and validation.
  * @reuse Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.
- * @since 0.2.0
  */
 @Component({
   selector: 'app-schema-form',

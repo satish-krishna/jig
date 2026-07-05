@@ -12,7 +12,6 @@ import { toAppError } from './app-error';
  * @capability transport.normalizing
  * @intent One error seam; every failure above it is already an AppError.
  * @reuse Wrap the selected Transport at bootstrap. Never add error branching above this.
- * @since 0.1.0
  */
 @Injectable()
 export class NormalizingTransport extends Transport {

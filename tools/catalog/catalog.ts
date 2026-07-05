@@ -79,7 +79,7 @@ export function renderMarkdown(entries: CapabilityEntry[]): string {
       lines.push(`### \`${e.capability}\` — ${e.symbol} (${e.language})`);
       lines.push(`- **Intent:** ${e.intent}`);
       lines.push(`- **Reuse:** ${e.reuse}`);
-      lines.push(`- **Where:** \`${e.file}\`${e.since ? ` · since ${e.since}` : ''}`);
+      lines.push(`- **Where:** \`${e.file}\``);
       lines.push('');
     }
   }

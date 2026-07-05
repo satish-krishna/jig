@@ -17,7 +17,6 @@ export const INVOKE = new InjectionToken<InvokeFn>('INVOKE', { factory: () => in
  * @capability transport.ipc
  * @intent The thick-client wire; command knowledge lives in the registry, not in callers.
  * @reuse Selected by provideTransport under Tauri. Do not call directly.
- * @since 0.1.0
  */
 @Injectable()
 export class IpcTransport extends Transport {

@@ -17,7 +17,6 @@ export type SaveUserInput = Schemas['SaveUserRequest'];
  * @capability contracts.operation-registry
  * @intent One typed map of operations so HTTP and IPC cannot disagree about a shape.
  * @reuse Add an operation here first; response types must resolve to generated DTOs.
- * @since 0.1.0
  */
 export interface Operations {
   'users.list': { req: Record<string, never>; res: UserDto[] };

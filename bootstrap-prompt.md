@@ -107,7 +107,6 @@ A "reusable unit" is anything meant to be used from more than one place: a trans
  * @capability transport.normalizing
  * @intent One place to shape errors, retry, and log; nothing above branches on wire.
  * @reuse Wrap the selected Transport at bootstrap. Never add error branching above this.
- * @since 0.1.0
  */
 ```
 

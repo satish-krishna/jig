@@ -8,7 +8,6 @@ test('extracts a TSDoc capability block and its symbol', () => {
  * @capability transport.normalizing
  * @intent One place to shape errors; nothing above branches on wire.
  * @reuse Wrap the selected Transport at bootstrap.
- * @since 0.1.0
  */
 export class NormalizingTransport {}
 `;
@@ -17,7 +16,6 @@ export class NormalizingTransport {}
   assert.equal(entry.capability, 'transport.normalizing');
   assert.equal(entry.intent, 'One place to shape errors; nothing above branches on wire.');
   assert.equal(entry.reuse, 'Wrap the selected Transport at bootstrap.');
-  assert.equal(entry.since, '0.1.0');
   assert.equal(entry.language, 'typescript');
   assert.equal(entry.symbol, 'NormalizingTransport');
 });

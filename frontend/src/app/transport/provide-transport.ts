@@ -15,7 +15,6 @@ export const WIRE = new InjectionToken<'ipc' | 'http'>('transport wire');
  * @capability transport.provide
  * @intent Collapse the whole "which world" decision to one factory at startup.
  * @reuse Call provideTransport(apiBaseUrl) in the app config. Nothing else selects a wire.
- * @since 0.1.0
  */
 export function provideTransport(apiBaseUrl: string): EnvironmentProviders {
   return makeEnvironmentProviders([

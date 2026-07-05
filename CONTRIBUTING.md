@@ -12,6 +12,8 @@ Each gate below comes with the smell that means you are breaking it. When you ca
   - Smell: an abstraction with exactly one implementer and no second one imminent. Inline it.
 - **DRY, docs included.** No fact is stated twice by hand. The catalog is generated, form models are `z.infer`, DTOs are generated from OpenAPI.
   - Smell: a shape copied between two files; a validation rule written in both a zod schema and a hand-written validator.
+- **KISS, the plainest thing that works.** The code you write is the simplest version that passes — straight-line over clever, obvious over compact. A tired reader should trace it at 3AM without a comment explaining *how* it works. This is a cousin of YAGNI, not a duplicate: YAGNI decides whether a thing gets built; KISS decides that the thing you do build stays simple.
+  - Smell: a clever one-liner that needs a comment to decode; a metaprogramming trick where a plain loop would do; a layer of indirection with one caller and no second one coming.
 - **TDD, strict red-green-refactor.** No production line exists before a failing test that demands it.
   - Smell: production code in a diff with no test that would have failed without it.
 - **AI-native throughout.** LSP navigation over grep; generated catalogs over tribal knowledge; machine-checked gates over "please remember".
@@ -50,7 +52,6 @@ TypeScript (TSDoc):
  * @capability transport.normalizing
  * @intent One place to shape errors; nothing above branches on wire.
  * @reuse Wrap the selected Transport at bootstrap.
- * @since 0.1.0
  */
 ```
 
