@@ -27,7 +27,7 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
     internal static readonly DiagnosticDescriptor LayerViolation = new(
         id: "DR0001",
         title: "Layer dependency violation",
-        messageFormat: "'{0}' must not depend on '{1}': the type '{2}' lives there.",
+        messageFormat: "'{0}' must not depend on '{1}': the type '{2}' lives there",
         category: "Architecture",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
@@ -37,7 +37,7 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
     internal static readonly DiagnosticDescriptor EmptyRuleset = new(
         id: "DR0002",
         title: "Architecture ruleset is empty",
-        messageFormat: "The architecture ruleset '{0}' is empty or missing; DR0001 enforced nothing.",
+        messageFormat: "The architecture ruleset '{0}' is empty or missing; DR0001 enforced nothing",
         category: "Architecture",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,

@@ -30,7 +30,7 @@ public class LayerDependencyAnalyzerTests
         var violation = diagnostics.ShouldHaveSingleItem();
         violation.Id.ShouldBe("DR0001");
         violation.GetMessage().ShouldBe(
-            "'*.Api' must not depend on '*.Infrastructure': the type 'JigDbContext' lives there.");
+            "'*.Api' must not depend on '*.Infrastructure': the type 'JigDbContext' lives there");
         violation.Severity.ShouldBe(Microsoft.CodeAnalysis.DiagnosticSeverity.Error);
     }
 
@@ -179,7 +179,7 @@ public class LayerDependencyAnalyzerTests
         var violation = diagnostics.ShouldHaveSingleItem();
         violation.Id.ShouldBe("DR0001");
         violation.GetMessage().ShouldBe(
-            "'*.Api' must not depend on '*.Infrastructure': the type 'Inner' lives there.");
+            "'*.Api' must not depend on '*.Infrastructure': the type 'Inner' lives there");
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class LayerDependencyAnalyzerTests
         empty.Id.ShouldBe("DR0002");
         empty.Severity.ShouldBe(Microsoft.CodeAnalysis.DiagnosticSeverity.Error);
         empty.GetMessage().ShouldBe(
-            "The architecture ruleset 'ArchLayers.txt' is empty or missing; DR0001 enforced nothing.");
+            "The architecture ruleset 'ArchLayers.txt' is empty or missing; DR0001 enforced nothing");
     }
 
     [Fact]
