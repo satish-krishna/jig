@@ -36,13 +36,28 @@ public class LayerRuleTests
     [InlineData("Jig.Api", "Jig.Infrastructure", true)]          // the layer root itself
     [InlineData("Jig.Api.Users", "Jig.Infrastructure", true)]    // a feature slice under it
     [InlineData("Acme.Api.Users", "Acme.Infrastructure", true)]  // renamed clone, same rule
+    // Covers both spellings of the global namespace as per Roslyn behavior:
+    // <global namespace> is the theoretical case; empty string is what ToDisplayString() may return.
+    // Both must fail to match, allowing Program.cs to legitimately touch Infrastructure.
     [InlineData("<global namespace>", "Jig.Infrastructure", false)] // Program.cs, top-level statements
+    [InlineData("", "Jig.Infrastructure", false)]                // global namespace, empty display string
     [InlineData("Jig.Application", "Jig.Infrastructure", false)] // a different rule's business
     [InlineData("Jig.ApiClient", "Jig.Infrastructure", false)]   // segment-anchored, not substring
+    [InlineData("Api", "Infrastructure", true)]                  // bare layer names, no product prefix
+    [InlineData("Api.Users", "Infrastructure", true)]            // bare layer with a slice under it
     public void Covers_matches_on_segment_boundaries(string from, string to, bool expected)
     {
         var rule = LayerRule.Parse("*.Api -> *.Infrastructure")[0];
 
         rule.Covers(from, to).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void Covers_supports_a_pattern_without_a_wildcard()
+    {
+        var rule = LayerRule.Parse("Jig.Domain -> Jig.Infrastructure")[0];
+
+        rule.Covers("Jig.Domain", "Jig.Infrastructure").ShouldBe(true);
+        rule.Covers("Acme.Domain", "Acme.Infrastructure").ShouldBe(false);
     }
 }
