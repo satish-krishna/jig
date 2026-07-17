@@ -210,6 +210,28 @@ public class LayerDependencyAnalyzerTests
     }
 
     [Fact]
+    public async Task Reports_DR0003_when_a_valid_ruleset_also_contains_a_malformed_line()
+    {
+        // The load-bearing case: three valid rules parse fine, so DR0002's rules.Length > 0
+        // check would stay silent. A typo on line 4 must still fail the build on its own.
+        const string source = "namespace Jig.Api.Users { public class GetUserEndpoint { } }";
+        const string ruleset = """
+            *.Domain      -> *.Application
+            *.Domain      -> *.Infrastructure
+            *.Application -> *.Infrastructure
+            *.Api => *.Infrastructure
+            """;
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, ruleset);
+
+        var malformed = diagnostics.ShouldHaveSingleItem();
+        malformed.Id.ShouldBe("DR0003");
+        malformed.Severity.ShouldBe(Microsoft.CodeAnalysis.DiagnosticSeverity.Error);
+        malformed.GetMessage().ShouldBe(
+            "ArchLayers.txt line 4 is not a rule: '*.Api => *.Infrastructure'. Expected '<from> -> <to>'.");
+    }
+
+    [Fact]
     public async Task Cannot_be_suppressed_by_pragma()
     {
         // NotConfigurable means the severity lives in compiled code and takes no questions.

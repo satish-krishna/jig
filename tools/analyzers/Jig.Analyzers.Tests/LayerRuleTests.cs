@@ -74,4 +74,37 @@ public class LayerRuleTests
         rule.Covers("Jig.Application", "Microsoft.EntityFrameworkCore.Infrastructure").ShouldBeFalse();
         rule.Covers("Jig.Application", "Jig.Infrastructure").ShouldBeTrue();
     }
+
+    [Fact]
+    public void Parse_surfaces_a_malformed_line_instead_of_dropping_it()
+    {
+        var rules = LayerRule.Parse(
+            "*.Domain -> *.Application\n*.Api => *.Infrastructure\n*.Application -> *.Infrastructure",
+            out var malformed);
+
+        rules.Length.ShouldBe(2);
+        rules[0].To.ShouldBe("*.Application");
+        rules[1].From.ShouldBe("*.Application");
+
+        var line = malformed.ShouldHaveSingleItem();
+        line.LineNumber.ShouldBe(2);
+        line.Text.ShouldBe("*.Api => *.Infrastructure");
+    }
+
+    [Fact]
+    public void Parse_does_not_treat_blank_lines_or_comments_as_malformed()
+    {
+        var rules = LayerRule.Parse("# from -> forbidden\n\n*.Domain -> *.Infrastructure   # the important one\n", out var malformed);
+
+        rules.Length.ShouldBe(1);
+        malformed.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Parse_one_arg_overload_still_works_when_a_line_is_malformed()
+    {
+        var rules = LayerRule.Parse("*.Domain -> *.Infrastructure\n*.Api - *.Infrastructure");
+
+        rules.Length.ShouldBe(1);
+    }
 }

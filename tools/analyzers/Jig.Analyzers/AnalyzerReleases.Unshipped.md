@@ -7,3 +7,4 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 DR0001 | Architecture | Error | Layer dependency violation, see LayerDependencyAnalyzer
 DR0002 | Architecture | Error | Architecture ruleset is empty, see LayerDependencyAnalyzer
+DR0003 | Architecture | Error | Architecture ruleset line is malformed, see LayerDependencyAnalyzer

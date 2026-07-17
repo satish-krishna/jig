@@ -22,28 +22,51 @@ public readonly struct LayerRule
         To = to;
     }
 
-    /// <summary>Parse the layer map. Blank lines and "#" comments are ignored; a malformed line is skipped.</summary>
-    public static ImmutableArray<LayerRule> Parse(string? text)
+    /// <summary>Parse the layer map, discarding malformed-line detail. Prefer the two-argument overload
+    /// wherever a malformed line must not vanish silently — see ADR 0009 / DR0003.</summary>
+    public static ImmutableArray<LayerRule> Parse(string? text) => Parse(text, out _);
+
+    /// <summary>
+    /// Parse the layer map. Blank lines and "#" comments are ignored. Every other non-blank
+    /// line must parse as "&lt;from&gt; -> &lt;to&gt;"; a line that does not is reported via
+    /// <paramref name="malformedLines"/> instead of being dropped, so a typo cannot silently
+    /// delete a rule (DR0003).
+    /// </summary>
+    public static ImmutableArray<LayerRule> Parse(string? text, out ImmutableArray<MalformedLine> malformedLines)
     {
-        if (string.IsNullOrWhiteSpace(text)) return ImmutableArray<LayerRule>.Empty;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            malformedLines = ImmutableArray<MalformedLine>.Empty;
+            return ImmutableArray<LayerRule>.Empty;
+        }
 
         var rules = ImmutableArray.CreateBuilder<LayerRule>();
-        foreach (var rawLine in text!.Split('\n'))
+        var malformed = ImmutableArray.CreateBuilder<MalformedLine>();
+        var lines = text!.Split('\n');
+
+        for (var i = 0; i < lines.Length; i++)
         {
+            var rawLine = lines[i];
             var line = rawLine;
             var comment = line.IndexOf('#');
             if (comment >= 0) line = line.Substring(0, comment);
 
-            var parts = line.Split(new[] { "->" }, StringSplitOptions.None);
-            if (parts.Length != 2) continue;
+            if (line.Trim().Length == 0) continue; // blank line or comment-only line: not malformed
 
-            var from = parts[0].Trim();
-            var to = parts[1].Trim();
-            if (from.Length == 0 || to.Length == 0) continue;
+            var parts = line.Split(new[] { "->" }, StringSplitOptions.None);
+            var from = parts.Length == 2 ? parts[0].Trim() : string.Empty;
+            var to = parts.Length == 2 ? parts[1].Trim() : string.Empty;
+
+            if (parts.Length != 2 || from.Length == 0 || to.Length == 0)
+            {
+                malformed.Add(new MalformedLine(i + 1, rawLine.Trim()));
+                continue;
+            }
 
             rules.Add(new LayerRule(from, to));
         }
 
+        malformedLines = malformed.ToImmutable();
         return rules.ToImmutable();
     }
 
@@ -88,5 +111,18 @@ public readonly struct LayerRule
         }
 
         return true;
+    }
+}
+
+/// <summary>A line of ArchLayers.txt that is non-blank, non-comment, and did not parse as a rule.</summary>
+public readonly struct MalformedLine
+{
+    public int LineNumber { get; }
+    public string Text { get; }
+
+    internal MalformedLine(int lineNumber, string text)
+    {
+        LineNumber = lineNumber;
+        Text = text;
     }
 }
