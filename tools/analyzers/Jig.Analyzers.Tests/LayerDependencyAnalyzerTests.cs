@@ -37,8 +37,11 @@ public class LayerDependencyAnalyzerTests
     [Fact]
     public async Task Reports_a_dependency_that_arrives_through_a_third_namespace()
     {
-        // The case a .csproj grep cannot see: Application never names Infrastructure,
-        // it names Common, and Common hands the infrastructure type straight through.
+        // The case a .csproj grep cannot see: the dependency arrives through Common, which
+        // hands the infrastructure type straight through, rather than being declared in
+        // Application's own project references. The genuine "never names it at all" case —
+        // where Application does not even write the word "Infrastructure" — is covered
+        // separately by Reports_a_dependency_that_arrives_only_by_type_inference.
         const string source = """
             namespace Jig.Infrastructure { public class JigDbContext { } }
             namespace Jig.Common { public static class Bridge { public static Jig.Infrastructure.JigDbContext Get() => new(); } }

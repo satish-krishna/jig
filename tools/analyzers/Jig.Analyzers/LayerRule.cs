@@ -54,7 +54,9 @@ public readonly struct LayerRule
     /// <summary>
     /// Match a namespace against a pattern on segment boundaries, so "*.Api" covers
     /// "Jig.Api" and "Jig.Api.Users" but not "Jig.ApiClient" and not the global namespace
-    /// (where top-level statements put Program).
+    /// (where top-level statements put Program). Padding both strings with a leading and
+    /// trailing "." turns every boundary — start, end, and mid-string — into an interior
+    /// ".layer." match, so one substring search covers all four cases at once.
     /// </summary>
     private static bool Matches(string pattern, string ns)
     {
@@ -62,9 +64,6 @@ public readonly struct LayerRule
             ? pattern.Substring(Wildcard.Length)
             : pattern;
 
-        return ns == layer
-            || ns.EndsWith("." + layer, StringComparison.Ordinal)
-            || ns.StartsWith(layer + ".", StringComparison.Ordinal)
-            || ns.IndexOf("." + layer + ".", StringComparison.Ordinal) >= 0;
+        return ("." + ns + ".").IndexOf("." + layer + ".", StringComparison.Ordinal) >= 0;
     }
 }
