@@ -5,14 +5,22 @@
 // Exit 2 denies the tool call outright and hands the message back, rather than
 // complaining after the write has landed.
 //
-// This closes one door and is honest about the rest: deletion is neither Write nor
-// Edit, so `rm` walks straight past this. DR0002 covers a deleted ruleset from inside
-// the compiler; CI and the diff cover the rest. See ADR 0009.
+// The scope is the RULE, not the engine that enforces it. ArchLayers.txt decides what
+// is legal; LayerDependencyAnalyzer.cs merely computes it, and it is ordinary code that
+// has to stay editable — the first attempt at this guard covered the whole analyzer tree
+// and immediately blocked its own bugfix. The engine is held by its own tests, which turn
+// red the moment someone guts it, and by the diff. The rule has no such backstop, because
+// weakening a rule leaves every test green. That asymmetry is the whole reason this file
+// draws the line where it does.
+//
+// This closes one door and is honest about the rest: deletion is neither Write nor Edit,
+// so `rm` walks straight past this. DR0002 covers a deleted ruleset from inside the
+// compiler; CI and the diff cover the rest. See ADR 0009.
 
 import { readFileSync } from 'node:fs';
 
 const GUARDED = [
-  /tools[\\/]analyzers[\\/]/i,
+  /ArchLayers\.txt$/i,
   /tools[\\/]hooks[\\/]guard-ruleset\.mjs$/i,
   /services[\\/]api[\\/]src[\\/]Directory\.Build\.props$/i,
   /\.claude[\\/]settings\.json$/i,
