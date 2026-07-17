@@ -107,8 +107,31 @@ public class LayerDependencyAnalyzerTests
 
         var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
 
-        var violation = diagnostics.ShouldHaveSingleItem();
-        violation.Id.ShouldBe("DR0001");
+        // Each link in a member-access chain is inspected independently, so this fixture can
+        // report the violation more than once ("JigDbContext" and "Cleanup" both name a type
+        // in the forbidden namespace). We accept the duplicate rather than risk a miss.
+        diagnostics.ShouldContain(d => d.Id == "DR0001");
+    }
+
+    [Fact]
+    public async Task Reports_a_violation_named_mid_chain()
+    {
+        // The outermost link is String.ToString(); only a mid-chain link names the
+        // forbidden type. Inspecting just the outermost node would miss this entirely.
+        const string source = """
+            namespace Jig.Infrastructure { public class JigDbContext { public static string Label = "x"; } }
+            namespace Jig.Api.Users
+            {
+                public class GetUserEndpoint
+                {
+                    public string Name() => Jig.Infrastructure.JigDbContext.Label.ToString();
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
+
+        diagnostics.ShouldContain(d => d.Id == "DR0001");
     }
 
     [Fact]

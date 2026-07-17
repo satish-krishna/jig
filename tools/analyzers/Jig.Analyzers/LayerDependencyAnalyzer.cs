@@ -71,8 +71,7 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
             node => Inspect(node, rules),
             SyntaxKind.IdentifierName,
             SyntaxKind.GenericName,
-            SyntaxKind.QualifiedName,
-            SyntaxKind.SimpleMemberAccessExpression);
+            SyntaxKind.QualifiedName);
     }
 
     private static string? ReadRuleset(AnalyzerOptions options) =>
@@ -82,13 +81,21 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
 
     private static void Inspect(SyntaxNodeAnalysisContext context, ImmutableArray<LayerRule> rules)
     {
-        // A qualified name or a member-access chain produces one node per segment (each
-        // dotted piece is itself a QualifiedNameSyntax or MemberAccessExpressionSyntax whose
-        // child is the next segment down). Only the outermost node names the thing actually
-        // referenced, so analyze that one and let the inner segments fall out — otherwise a
-        // nested type, or a chain like "Jig.Infrastructure.JigDbContext.Cleanup()", would
-        // report the same violation once per segment instead of once.
-        if (context.Node.Parent is QualifiedNameSyntax or MemberAccessExpressionSyntax) return;
+        // A QualifiedNameSyntax chain (type position, e.g. "Jig.Infrastructure.Outer.Inner")
+        // produces one node per segment, but every segment resolves within the same
+        // namespace — so skip inner segments and analyze only the outermost node, which
+        // names the type actually referenced. That avoids reporting a nested type once per
+        // segment instead of once.
+        //
+        // A MemberAccessExpressionSyntax chain (expression position, e.g.
+        // "Jig.Infrastructure.JigDbContext.Label.ToString()") is different: each link
+        // resolves to a DIFFERENT type in a DIFFERENT namespace. "ToString" resolves to
+        // System.String; only "JigDbContext" resolves to the forbidden type. Skipping inner
+        // links here would silently miss exactly the link that matters, so every link in a
+        // member-access chain is inspected on its own — even though that means a single
+        // violation can report more than once when several links in the same chain each
+        // name a forbidden type. Noise beats silence.
+        if (context.Node.Parent is QualifiedNameSyntax) return;
 
         var from = context.ContainingSymbol?.ContainingNamespace?.ToDisplayString();
         if (from is null) return;
