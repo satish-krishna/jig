@@ -1,7 +1,7 @@
 # Roslyn architecture analyzers: layer rules as compiler errors
 
 - Date: 2026-07-17
-- Status: approved, not yet implemented
+- Status: implemented
 - Scope: services/api, tools/analyzers, .claude
 
 ## Problem
@@ -28,13 +28,13 @@ An architecture-test library (NetArchTest, ArchUnitNET) also works, and is the m
 graph TD
     ArchLayers["ArchLayers.txt<br/>the layer map"] -->|AdditionalFiles| Analyzer
     Analyzer["Jig.Analyzers<br/>LayerDependencyAnalyzer"] -->|OutputItemType=Analyzer| Props
-    Props["services/api/Directory.Build.props<br/>the inherited floor"] --> Domain[Jig.Domain]
+    Props["services/api/src/Directory.Build.props<br/>the inherited floor"] --> Domain[Jig.Domain]
     Props --> App[Jig.Application]
     Props --> Api[Jig.Api]
     Props --> Infra[Jig.Infrastructure]
     Analyzer -.->|DR0001, DR0002<br/>NotConfigurable| Build[dotnet build]
     Tests["Jig.Analyzers.Tests<br/>in Jig.sln"] -->|proves the rules can fail| Analyzer
-    Hook[".claude/hooks/guard-ruleset.mjs<br/>PreToolUse"] -.->|exit 2 on ruleset writes| Analyzer
+    Hook["tools/hooks/guard-ruleset.mjs<br/>PreToolUse via .claude/settings.json"] -.->|exit 2 on ruleset writes| Analyzer
 ```
 
 ### Components
@@ -44,8 +44,8 @@ graph TD
 | `tools/analyzers/Jig.Analyzers/LayerDependencyAnalyzer.cs` | DR0001, DR0002. The only place that reports layer violations. | Roslyn only |
 | `tools/analyzers/Jig.Analyzers/ArchLayers.txt` | The layer map, as data. Adding a layer is a line, not a recompile. | nothing |
 | `tools/analyzers/Jig.Analyzers.Tests/` | Proves DR0001 and DR0002 can fail, and that legal code does not trip them. | the analyzer |
-| `services/api/Directory.Build.props` | Wires the analyzer into every project under `services/api`. | the analyzer |
-| `.claude/hooks/guard-ruleset.mjs` | Denies agent writes to the ruleset. | nothing |
+| `services/api/src/Directory.Build.props` | Wires the analyzer into every production project under `services/api/src`. | the analyzer |
+| `tools/hooks/guard-ruleset.mjs`, registered in `.claude/settings.json` | Denies agent writes to the ruleset. | nothing |
 
 The analyzer targets `netstandard2.0` (Roslyn requires it) while the API targets .NET 10. It lives under `tools/` alongside jig's other machinery, and — importantly — *outside* `services/api/`, so `Directory.Build.props` does not wire the analyzer into itself.
 
@@ -58,27 +58,27 @@ Rules are wildcarded on the product prefix. Layer names are structural; the prod
 *.Domain           -> *.Application
 *.Domain           -> *.Infrastructure
 *.Application      -> *.Infrastructure
-*.Api.Endpoints    -> *.Infrastructure
+*.Api              -> *.Infrastructure
 ```
 
 `tools/init/init.mjs` rewrites content across every tracked text file (`git ls-files`), so a hardcoded `Jig.Domain` would in fact be renamed correctly on clone. The wildcard is not a bugfix — it removes the *coupling*. The ruleset stays correct with no rename step at all, and does not silently unbind if `init`'s file selection ever changes or the file stops being tracked.
 
 ### The composition-root problem
 
-`Program.cs` must touch `Jig.Infrastructure`; it is the composition root and that is its job. Rather than build an exemption mechanism, the rule is scoped to the namespace that must never touch it: `*.Api.Endpoints`, not `*.Api`. `Program.cs` sits in `Jig.Api` and is simply not matched.
+`Program.cs` must touch `Jig.Infrastructure`; it is the composition root and that is its job. Rather than build an exemption mechanism, the rule relies on a structural fact: `Program.cs` uses top-level statements, so its generated class sits in the global namespace, which no `*.Api` pattern matches. `Program.cs` is simply not matched — not by a skip-list, not by an attribute, by the shape of top-level statements.
 
-This is deliberate: an exemption is a switch, and a switch gets thrown. There is no `[CompositionRoot]` attribute and no skip-list, so there is no dial to turn. The accepted cost is that a type placed directly in `Jig.Api`, outside `Jig.Api.Endpoints`, escapes the rule. A namespace convention holds that line and nothing else does.
+This is deliberate: an exemption is a switch, and a switch gets thrown. There is no `[CompositionRoot]` attribute and no skip-list, so there is no dial to turn. Segment-prefix matching means `*.Api` covers `Jig.Api` and every feature slice under it (`Jig.Api.Users`, and whatever comes next) with no per-slice maintenance, so there is no accepted hole for a type placed directly in `Jig.Api`. The one accepted tripwire is that wrapping `Program.cs` in a namespace (`namespace Jig.Api;`) would fail the build on legitimate composition-root wiring — the fix is to keep top-level statements, and the failure is loud rather than silent.
 
 ### Wiring
 
-`services/api/Directory.Build.props` — the floor every project under it inherits, so there is nothing in any `.csproj` to delete:
+`services/api/src/Directory.Build.props` — the floor every production project inherits, so there is nothing in any `.csproj` to delete. MSBuild walks up from each project directory to the first `Directory.Build.props`; placed at `services/api/src/`, it covers exactly the four production projects, and the test projects under `services/api/tests/` find nothing and are unanalyzed. That is deliberate: `ApiFixture.cs` legitimately touches `JigDbContext` to swap in an in-memory SQLite connection, and a test fixture wiring a fake is not a layering violation.
 
 ```xml
 <Project>
   <ItemGroup>
-    <ProjectReference Include="..\..\tools\analyzers\Jig.Analyzers\Jig.Analyzers.csproj"
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\tools\analyzers\Jig.Analyzers\Jig.Analyzers.csproj"
                       OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <AdditionalFiles Include="..\..\tools\analyzers\Jig.Analyzers\ArchLayers.txt" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\..\..\tools\analyzers\Jig.Analyzers\ArchLayers.txt" />
   </ItemGroup>
 </Project>
 ```
@@ -89,13 +89,13 @@ Both are `defaultSeverity: Error` with `customTags: WellKnownDiagnosticTags.NotC
 
 **DR0001 — layer violation.** Reported at the node's location:
 
-> `'Jig.Api.Endpoints' must not depend on 'Jig.Infrastructure': the type 'JigDbContext' lives there.`
+> `'*.Api' must not depend on '*.Infrastructure': the type 'JigDbContext' lives there.`
 
 The message is written to be read by a model: it names the rule, the offending type, and where it lives.
 
 **DR0002 — empty ruleset.** Reported at compilation level with `Location.None` when zero rules parse:
 
-> `The architecture ruleset is empty or missing; DR0001 enforced nothing.`
+> `The architecture ruleset 'ArchLayers.txt' is empty or missing; DR0001 enforced nothing.`
 
 This is the load-bearing one. Delete `ArchLayers.txt`, empty it, or comment out every line and the *build fails*. A `PreToolUse` hook cannot catch `rm ArchLayers.txt` because deletion is neither `Write` nor `Edit`; DR0002 does not care how the file left. The analyzer counts what it enforced and refuses to pass on zero.
 
@@ -103,18 +103,27 @@ This is the load-bearing one. Delete `ArchLayers.txt`, empty it, or comment out 
 
 `Jig.Analyzers.Tests` is added to `services/api/Jig.sln`. This is not cosmetic. `verify.mjs` runs the tests in that solution; a test project outside it would never run in `verify`, never run in CI, and never run at `init` — the fixtures proving DR0001 can fail would sit there proving nothing. That is the same class of bug the analyzer exists to prevent, one level up.
 
-Test framework and runner match `Jig.Api.Tests` (read it; do not guess), plus `Microsoft.CodeAnalysis.CSharp.Analyzer.Testing`.
+Test framework and runner match `Jig.Api.Tests` (read it; do not guess). The tests do not use `Microsoft.CodeAnalysis.CSharp.Analyzer.Testing`: that package binds to xunit v2 and this repo is on xunit.v3. Instead, a hand-rolled `AnalyzerHarness` compiles a source string against `CSharpCompilation.WithAnalyzers`, which needs only `Microsoft.CodeAnalysis.CSharp` — fewer packages, no version gamble, and the test reads as what it is.
 
 ## Build order (TDD, red first)
 
-1. **Red.** Fixture: `namespace Jig.Api.Endpoints` holding a `JigDbContext` field. Assert DR0001 at that line and column. Fails — no analyzer exists.
-2. **Green.** `LayerDependencyAnalyzer`: bind the node's symbol via the semantic model, walk to its containing namespace, match against the parsed rules, report.
-3. **Red.** Transitive fixture: `Jig.Application` reaching `Jig.Infrastructure` through an intermediate namespace. Proves we read a graph, not a file. This is the case a `.csproj` grep cannot see.
-4. **Red.** Empty `ArchLayers.txt` → assert DR0002.
-5. **Red.** Legal fixture: `Program` in `namespace Jig.Api` touching Infrastructure → assert *no* diagnostic. A rule that cannot decline to fire is a build break, not a rule.
-6. `Directory.Build.props`, `Jig.Analyzers.Tests` into `Jig.sln`, confirm `npm run verify` is green on real jig (it will be — endpoints are clean today).
-7. `.claude/hooks/guard-ruleset.mjs` + `.claude/settings.json`: `PreToolUse` matching `Write`/`Edit`, exit 2 on paths under `tools/analyzers/` or `services/api/Directory.Build.props`.
-8. Annotate the new units, run `npm run catalog`.
+**DR0001, in one red/green cycle:**
+
+1. **Red.** Fixtures: an endpoint in `Jig.Api.Users` reaching into `Jig.Infrastructure` (assert DR0001), a transitive fixture reaching `Jig.Infrastructure` through an intermediate namespace (proves we read a graph, not a file — the case a `.csproj` grep cannot see), the composition-root fixture in the global namespace (assert *no* diagnostic — a rule that cannot decline to fire is a build break, not a rule), and the legal direction, `Jig.Infrastructure` implementing a `Jig.Application` port (assert *no* diagnostic). All fail — no analyzer exists.
+2. **Green.** `LayerDependencyAnalyzer`: bind the node's symbol via the semantic model, walk to its containing namespace, match against the parsed rules, report DR0001.
+3. Commit.
+
+**DR0002, in its own cycle, starting red precisely because the DR0001-only analyzer returns silently on an empty ruleset:**
+
+4. **Red.** Empty or missing `ArchLayers.txt` → assert DR0002. Fails — Step 2's analyzer returns silently on zero rules.
+5. **Green.** Add the `EmptyRuleset` descriptor, widen `SupportedDiagnostics`, and report it from a `CompilationEndAction` instead of returning.
+6. Commit.
+
+**Wiring:**
+
+7. `services/api/src/Directory.Build.props`, `Jig.Analyzers.Tests` into `Jig.sln`, confirm `npm run verify` is green on real jig (it will be — endpoints are clean today).
+8. `tools/hooks/guard-ruleset.mjs` + `.claude/settings.json`: `PreToolUse` matching `Write`/`Edit`, exit 2 on paths under `tools/analyzers/` or `services/api/src/Directory.Build.props`.
+9. Annotate the new units, run `npm run catalog`.
 
 Steps 1 and 4 are non-negotiable. Everything else is plumbing.
 
@@ -122,7 +131,7 @@ Steps 1 and 4 are non-negotiable. Everything else is plumbing.
 
 - **No generic `IRepository<T>` or `IUnitOfWork`.** The one client-specific port stays.
 - **No banned-EF-symbol rule.** The layer rule already catches EF, which only enters through `Jig.Infrastructure`. A second rule would be belt-and-braces on a graph that has one entrance.
-- **No "endpoints must derive from `ResultEndpoint`" rule.** It would close the `Jig.Api`-proper hole, but it is a separate rule with a separate justification. If that hole is ever exercised, it earns its own change.
+- **No "endpoints must derive from `ResultEndpoint`" rule.** That is a property of endpoint shape, not of which namespace may reference which — a different kind of rule with its own justification. If it is ever needed, it earns its own change.
 - **No `Jig.Host` project.** Moving the wiring out of `Jig.Api` would make the rule structurally true rather than convention-held, at the cost of a fifth project for one call site.
 
 ## The doors left open, stated on purpose
@@ -137,7 +146,6 @@ Every guard in the repo has an off switch in the repo. All we choose is how loud
 | Agent edits the ruleset | `PreToolUse` exit 2 | deletion is not `Write`/`Edit` |
 | **Delete `Directory.Build.props`** | — | analyzer never loads, DR0002 never fires, build green |
 | **Delete `tools/analyzers/`** | — | same |
-| A type in `Jig.Api` proper, not `Jig.Api.Endpoints` | — | namespace convention only |
 | `Jig.Api.csproj` still references `Jig.Infrastructure` | — | we ban the use, not the reachability |
 
 The last doors are not closeable from inside the repo, and pretending otherwise is how the previous check became paperwork. They are caught by the diff, read by someone who treats ruleset changes as law changes, and by CI running the same rules from a clean checkout where the agent's hooks do not exist. The hooks are for speed. The review is for trust.

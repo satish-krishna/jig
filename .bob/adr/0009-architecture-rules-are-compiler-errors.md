@@ -30,17 +30,17 @@ The mechanics live in the design spec at `docs/superpowers/specs/2026-07-17-rosl
 
 - **`Jig.Analyzers.Tests` belongs to `services/api/Jig.sln`.** `verify` runs the tests in that solution. A test project outside it would never run in `verify`, in CI, or at `init`, and the fixtures proving DR0001 can fail would prove nothing. The tests that demonstrate a rule can fire are part of the rule.
 
-- **The rule is scoped to `*.Api.Endpoints`, not `*.Api`, and there is no exemption mechanism.** `Program.cs` is the composition root and must touch Infrastructure. Rather than a skip-list or a `[CompositionRoot]` attribute — an exemption is a switch, and a switch gets thrown — the rule simply does not name the namespace `Program.cs` lives in.
+- **The rule is `*.Api -> *.Infrastructure`, and there is no exemption mechanism.** `Program.cs` is the composition root and must touch Infrastructure. It uses top-level statements, so its generated class sits in the global namespace, which no `*.Api` pattern matches — the composition root exempts itself structurally rather than by a skip-list or a `[CompositionRoot]` attribute. An exemption is a switch, and a switch gets thrown; there is no switch here to find. Segment-prefix matching means `*.Api` covers `Jig.Api` and every feature slice under it (`Jig.Api.Users`, and whatever comes next) with no per-slice maintenance.
 
 ## Consequences
 
-- The rule that was prose is now a compile error with a line, a column, and a message written to be read by a model: `'Jig.Api.Endpoints' must not depend on 'Jig.Infrastructure': the type 'JigDbContext' lives there.` It costs nothing worth measuring, because it rides a build we already pay for.
+- The rule that was prose is now a compile error with a line, a column, and a message written to be read by a model: `'*.Api' must not depend on '*.Infrastructure': the type 'JigDbContext' lives there.` It costs nothing worth measuring, because it rides a build we already pay for.
 
 - Every clone inherits enforcement, not a setup step. `tools/analyzers/`, `Directory.Build.props`, and `.claude/settings.json` all survive `init`; `docs/superpowers` does not. This ADR is the artifact that reaches the clone.
 
 - **`NotConfigurable` has no escape hatch, by design.** A legitimate exception cannot be suppressed — it must be resolved by changing the code or by changing `ArchLayers.txt` in a diff someone reads. If a rule here starts generating exceptions that are actually legitimate, that is evidence the rule is wrong, and it should be removed rather than dialed down.
 
-- **Known holes, accepted and recorded rather than discovered later.** Deleting `Directory.Build.props` or `tools/analyzers/` unloads the analyzer, and DR0002 cannot fire from a compilation it never joined — the build goes green. A type placed directly in `Jig.Api` rather than `Jig.Api.Endpoints` is outside the rule; a namespace convention holds that line and nothing else does. `Jig.Api.csproj` still references `Jig.Infrastructure`, so we ban the use and not the reachability.
+- **Known holes, accepted and recorded rather than discovered later.** Deleting `Directory.Build.props` or `tools/analyzers/` unloads the analyzer, and DR0002 cannot fire from a compilation it never joined — the build goes green. `Program.cs` escapes the rule by living in the global namespace, which is a property of top-level statements rather than a decision anyone re-affirms: wrapping `Program.cs` in `namespace Jig.Api;` would fail the build on legitimate composition-root wiring. That tripwire is accepted — the fix is to keep top-level statements, and the failure is loud rather than silent. `Jig.Api.csproj` still references `Jig.Infrastructure`, so we ban the use and not the reachability.
 
 - **Those last doors are not closeable from inside the repo, and the design does not pretend otherwise.** Every guard here has an off switch here; all we choose is how loud the switch is. What catches the rest is the diff, read by someone who treats a ruleset change as a law change, and CI running the same rules from a clean checkout where the agent's hooks do not exist. The hooks are for speed. The review is for trust.
 
