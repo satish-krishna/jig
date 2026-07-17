@@ -28,6 +28,22 @@ This is a template, not a product. It ships one worked vertical slice, `users`, 
 Everything below this line is the app's own documentation and survives the rename.
 <!-- template:end -->
 
+<!-- template:start -->
+## Web-only: Angular + .NET without the desktop shell
+
+If you only want the web pairing — the Angular SPA against the .NET API over HTTP — you do not touch the application code. The transport already decides the wire at bootstrap: `provideTransport()` calls `isTauri()`, which is `false` in a browser, so a web build runs HTTP-only on its own. Point `API_BASE_URL` in `frontend/src/app/app.config.ts` at your API and the running app is done. There is no registration to flip.
+
+What actually assumes Rust is the **toolchain**, and it fails hard without it: `npm run setup` lists `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer` as required, `npm run verify` runs `cargo test`, and CI installs the Rust toolchain. Do this rip-out **before** `node tools/init/init.mjs`, because init ends by running `npm run verify` — leave the Rust step in and init will demand a toolchain you are removing.
+
+1. **Delete the desktop shell:** remove `apps/desktop/`.
+2. **`tools/setup/setup.mjs`** — drop the `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer (LSP)` entries from the toolchain-check list, and the `cargo fetch` step.
+3. **`tools/verify/verify.mjs`** — remove the `['rust tests', 'cargo test', SRC_TAURI]` entry from the `steps` array (and the now-unused `SRC_TAURI` constant).
+4. **`.github/workflows/verify.yml`** — remove the `dtolnay/rust-toolchain`, `Swatinem/rust-cache`, and `cargo test` steps.
+5. **Prerequisites** — drop the Rust toolchain, Tauri CLI, and `rust-analyzer` from the list below.
+
+The frontend still carries `@tauri-apps/api` (used by `provideTransport` and `IpcTransport`). Leaving it is harmless — `isTauri()` is a cheap runtime check and the IPC branch is never taken in a browser. Removing it is the one part that is a code change rather than configuration: drop the dependency from `frontend/package.json`, delete `frontend/src/app/transport/ipc.transport.ts`, and simplify `provide-transport.ts` to register `HttpTransport` unconditionally. Everything else — the architecture analyzer, the forms, the contracts registry, the `users` slice — is wire-agnostic and unaffected.
+<!-- template:end -->
+
 ## One-command setup
 
 From a fresh clone:

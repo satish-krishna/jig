@@ -23,6 +23,10 @@ test('deriveNames accepts an explicit bundle id', () => {
   assert.equal(deriveNames('AcmePortal', 'io.acme.desktop').bundleId, 'io.acme.desktop');
 });
 
+test('deriveNames rejects a dotted app name instead of silently disabling the architecture analyzer', () => {
+  assert.throws(() => deriveNames('Acme.Portal'), /must not contain a dot/);
+});
+
 test('renameContent maps .NET namespaces via Pascal', () => {
   const n = deriveNames('AcmePortal');
   assert.equal(renameContent('namespace Jig.Api;', n), 'namespace AcmePortal.Api;');

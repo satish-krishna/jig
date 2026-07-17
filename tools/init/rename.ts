@@ -25,6 +25,12 @@ function words(raw: string): string[] {
 }
 
 export function deriveNames(rawName: string, bundleId?: string): Names {
+  if (rawName.includes('.')) {
+    throw new Error(
+      `App name must not contain a dot: "${rawName}". Namespaces are <Product>.<Layer>, ` +
+        'and a dotted product name silently disables the architecture analyzer.',
+    );
+  }
   const parts = words(rawName);
   if (parts.length === 0) throw new Error('App name must contain at least one word.');
   const lowerParts = parts.map((w) => w.toLowerCase());
