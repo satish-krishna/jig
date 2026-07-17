@@ -1,6 +1,17 @@
 <Project>
 
   <!--
+    MSBuild stops at the first Directory.Build.props it finds walking up from a project,
+    and does not chain them. Nothing sits above this file today, so this import is a no-op
+    — but without it, a props file added later at the repo root or at services/api/ would be
+    silently ignored by exactly these four projects. Silent misconfiguration is the failure
+    this directory exists to prevent, so the door is closed here rather than in a comment
+    asking someone to remember.
+  -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"
+          Condition="'$([MSBuild]::GetPathOfFileAbove(&quot;Directory.Build.props&quot;, &quot;$(MSBuildThisFileDirectory)../&quot;))' != ''" />
+
+  <!--
     The floor every production project inherits. The analyzer is wired here and not in
     any .csproj on purpose: a ProjectReference in a project file is five lines of XML
     anyone can delete to switch off every rule at once, and a guard that blocks .csproj
