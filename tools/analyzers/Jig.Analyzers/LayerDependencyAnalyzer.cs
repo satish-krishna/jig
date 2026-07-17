@@ -16,8 +16,10 @@ namespace Jig.Analyzers;
 /// intermediate project while every file a text search reads is innocent. Roslyn has
 /// already resolved that graph — this reads it rather than rebuilding it.
 ///
-/// Both diagnostics are NotConfigurable: the severity lives in compiled code, so
-/// .editorconfig, NoWarn, and #pragma cannot switch them off. See ADR 0009.
+/// All three diagnostics are NotConfigurable: the severity lives in compiled code, so
+/// .editorconfig, NoWarn, and #pragma cannot switch them off. DR0001 reports a layer
+/// violation; DR0002 and DR0003 guard the ruleset itself, which would otherwise be the
+/// one thing a green build could not tell you about. See ADR 0009.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer

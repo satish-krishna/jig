@@ -32,7 +32,7 @@ graph TD
     Props --> App[Jig.Application]
     Props --> Api[Jig.Api]
     Props --> Infra[Jig.Infrastructure]
-    Analyzer -.->|DR0001, DR0002<br/>NotConfigurable| Build[dotnet build]
+    Analyzer -.->|DR0001, DR0002, DR0003<br/>NotConfigurable| Build[dotnet build]
     Tests["Jig.Analyzers.Tests<br/>in Jig.sln"] -->|proves the rules can fail| Analyzer
     Hook["tools/hooks/guard-ruleset.mjs<br/>PreToolUse via .claude/settings.json"] -.->|exit 2 on ruleset writes| Analyzer
 ```
@@ -41,9 +41,9 @@ graph TD
 
 | Unit | Purpose | Depends on |
 |---|---|---|
-| `tools/analyzers/Jig.Analyzers/LayerDependencyAnalyzer.cs` | DR0001, DR0002. The only place that reports layer violations. | Roslyn only |
+| `tools/analyzers/Jig.Analyzers/LayerDependencyAnalyzer.cs` | DR0001, DR0002, DR0003. The only place that reports layer violations. | Roslyn only |
 | `tools/analyzers/Jig.Analyzers/ArchLayers.txt` | The layer map, as data. Adding a layer is a line, not a recompile. | nothing |
-| `tools/analyzers/Jig.Analyzers.Tests/` | Proves DR0001 and DR0002 can fail, and that legal code does not trip them. | the analyzer |
+| `tools/analyzers/Jig.Analyzers.Tests/` | Proves DR0001, DR0002, and DR0003 can fail, and that legal code does not trip them. | the analyzer |
 | `services/api/src/Directory.Build.props` | Wires the analyzer into every production project under `services/api/src`. | the analyzer |
 | `tools/hooks/guard-ruleset.mjs`, registered in `.claude/settings.json` | Denies agent writes to the ruleset. | nothing |
 
@@ -85,7 +85,7 @@ This is deliberate: an exemption is a switch, and a switch gets thrown. There is
 
 ### Diagnostics
 
-Both are `defaultSeverity: Error` with `customTags: WellKnownDiagnosticTags.NotConfigurable`. The severity lives in compiled code and takes no questions: `.editorconfig` severity, `<NoWarn>`, and `#pragma warning disable` all fail to suppress it. The cost is real and accepted — no dial, no per-case suppression, no gradual adoption in a legacy folder. These are rules we would rather fail the build than argue about.
+All three — DR0001, DR0002, and DR0003 — are `defaultSeverity: Error` with `customTags: WellKnownDiagnosticTags.NotConfigurable`. The severity lives in compiled code and takes no questions: `.editorconfig` severity, `<NoWarn>`, and `#pragma warning disable` all fail to suppress it. The cost is real and accepted — no dial, no per-case suppression, no gradual adoption in a legacy folder. These are rules we would rather fail the build than argue about.
 
 **DR0001 — layer violation.** Reported at the node's location:
 
