@@ -92,6 +92,52 @@ public class LayerDependencyAnalyzerTests
     }
 
     [Fact]
+    public async Task Reports_a_violation_that_arrives_through_a_member_access_chain()
+    {
+        const string source = """
+            namespace Jig.Infrastructure { public class JigDbContext { public static void Cleanup() { } } }
+            namespace Jig.Api.Users
+            {
+                public class GetUserEndpoint
+                {
+                    public void Purge() => Jig.Infrastructure.JigDbContext.Cleanup();
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
+
+        var violation = diagnostics.ShouldHaveSingleItem();
+        violation.Id.ShouldBe("DR0001");
+    }
+
+    [Fact]
+    public async Task Reports_a_dependency_that_arrives_only_by_type_inference()
+    {
+        // Application never writes the word "Infrastructure" anywhere. The type arrives
+        // through Common, and only the semantic model knows what "var" resolved to.
+        // This is the case a text search cannot see at all.
+        const string source = """
+            namespace Jig.Infrastructure { public class JigDbContext { } }
+            namespace Jig.Common { public static class Bridge { public static Jig.Infrastructure.JigDbContext Get() => new(); } }
+            namespace Jig.Application
+            {
+                public class UserService
+                {
+                    public void Work()
+                    {
+                        var db = Jig.Common.Bridge.Get();
+                    }
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
+
+        diagnostics.ShouldContain(d => d.Id == "DR0001");
+    }
+
+    [Fact]
     public async Task Reports_a_nested_type_violation_once()
     {
         const string source = """

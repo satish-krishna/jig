@@ -53,7 +53,8 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
             node => Inspect(node, rules),
             SyntaxKind.IdentifierName,
             SyntaxKind.GenericName,
-            SyntaxKind.QualifiedName);
+            SyntaxKind.QualifiedName,
+            SyntaxKind.SimpleMemberAccessExpression);
     }
 
     private static string? ReadRuleset(AnalyzerOptions options) =>
@@ -63,9 +64,12 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
 
     private static void Inspect(SyntaxNodeAnalysisContext context, ImmutableArray<LayerRule> rules)
     {
-        // A qualified name produces one node per segment. Only the outermost node names the
-        // type actually being referenced, so analyze that one and let the segments fall out —
-        // otherwise a nested type reports one violation twice.
+        // A qualified name or a member-access chain produces one node per segment (each
+        // dotted piece is itself a QualifiedNameSyntax or MemberAccessExpressionSyntax whose
+        // child is the next segment down). Only the outermost node names the thing actually
+        // referenced, so analyze that one and let the inner segments fall out — otherwise a
+        // nested type, or a chain like "Jig.Infrastructure.JigDbContext.Cleanup()", would
+        // report the same violation once per segment instead of once.
         if (context.Node.Parent is QualifiedNameSyntax or MemberAccessExpressionSyntax) return;
 
         var from = context.ContainingSymbol?.ContainingNamespace?.ToDisplayString();
