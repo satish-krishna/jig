@@ -34,8 +34,18 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
         description: "The layer map in ArchLayers.txt forbids this dependency. Fix the dependency, not the map.",
         customTags: WellKnownDiagnosticTags.NotConfigurable);
 
+    internal static readonly DiagnosticDescriptor EmptyRuleset = new(
+        id: "DR0002",
+        title: "Architecture ruleset is empty",
+        messageFormat: "The architecture ruleset '{0}' is empty or missing; DR0001 enforced nothing.",
+        category: "Architecture",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "A check that reports success because it found nothing to check is paperwork. Restore ArchLayers.txt.",
+        customTags: new[] { WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.CompilationEnd });
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
-        ImmutableArray.Create(LayerViolation);
+        ImmutableArray.Create(LayerViolation, EmptyRuleset);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -47,7 +57,15 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         var rules = LayerRule.Parse(ReadRuleset(context.Options));
-        if (rules.Length == 0) return;
+        if (rules.Length == 0)
+        {
+            // A check that goes green because its ruleset vanished is paperwork. Deletion is
+            // neither Write nor Edit, so no PreToolUse hook can catch `rm ArchLayers.txt` —
+            // this is the only guard that sees it. See ADR 0009.
+            context.RegisterCompilationEndAction(end => end.ReportDiagnostic(
+                Diagnostic.Create(EmptyRuleset, Location.None, RulesetFileName)));
+            return;
+        }
 
         context.RegisterSyntaxNodeAction(
             node => Inspect(node, rules),

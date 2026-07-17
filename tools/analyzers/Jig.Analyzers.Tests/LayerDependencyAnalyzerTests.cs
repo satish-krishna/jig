@@ -158,4 +158,50 @@ public class LayerDependencyAnalyzerTests
         violation.GetMessage().ShouldBe(
             "'*.Api' must not depend on '*.Infrastructure': the type 'Inner' lives there.");
     }
+
+    [Fact]
+    public async Task Fails_the_build_when_the_ruleset_file_is_missing()
+    {
+        const string source = "namespace Jig.Api.Users { public class GetUserEndpoint { } }";
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, ruleset: null);
+
+        var empty = diagnostics.ShouldHaveSingleItem();
+        empty.Id.ShouldBe("DR0002");
+        empty.Severity.ShouldBe(Microsoft.CodeAnalysis.DiagnosticSeverity.Error);
+        empty.GetMessage().ShouldBe(
+            "The architecture ruleset 'ArchLayers.txt' is empty or missing; DR0001 enforced nothing.");
+    }
+
+    [Fact]
+    public async Task Fails_the_build_when_every_rule_is_commented_out()
+    {
+        const string source = "namespace Jig.Api.Users { public class GetUserEndpoint { } }";
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, "# *.Api -> *.Infrastructure\n");
+
+        diagnostics.ShouldContain(d => d.Id == "DR0002");
+    }
+
+    [Fact]
+    public async Task Cannot_be_suppressed_by_pragma()
+    {
+        // NotConfigurable means the severity lives in compiled code and takes no questions.
+        const string source = """
+            namespace Jig.Infrastructure { public class JigDbContext { } }
+            #pragma warning disable DR0001
+            namespace Jig.Api.Users
+            {
+                public class GetUserEndpoint
+                {
+                    private readonly Jig.Infrastructure.JigDbContext _db = new();
+                }
+            }
+            #pragma warning restore DR0001
+            """;
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
+
+        diagnostics.ShouldContain(d => d.Id == "DR0001");
+    }
 }
