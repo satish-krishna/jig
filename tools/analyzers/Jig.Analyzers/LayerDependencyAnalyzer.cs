@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Jig.Analyzers;
@@ -51,7 +52,8 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(
             node => Inspect(node, rules),
             SyntaxKind.IdentifierName,
-            SyntaxKind.GenericName);
+            SyntaxKind.GenericName,
+            SyntaxKind.QualifiedName);
     }
 
     private static string? ReadRuleset(AnalyzerOptions options) =>
@@ -61,6 +63,11 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
 
     private static void Inspect(SyntaxNodeAnalysisContext context, ImmutableArray<LayerRule> rules)
     {
+        // A qualified name produces one node per segment. Only the outermost node names the
+        // type actually being referenced, so analyze that one and let the segments fall out —
+        // otherwise a nested type reports one violation twice.
+        if (context.Node.Parent is QualifiedNameSyntax or MemberAccessExpressionSyntax) return;
+
         var from = context.ContainingSymbol?.ContainingNamespace?.ToDisplayString();
         if (from is null) return;
 

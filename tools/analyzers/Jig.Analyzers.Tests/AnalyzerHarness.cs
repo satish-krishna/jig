@@ -19,13 +19,31 @@ internal static class AnalyzerHarness
             .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))
             .ToImmutableArray();
 
-    public static async Task<ImmutableArray<Diagnostic>> RunAsync(string source, string? ruleset)
+    public static async Task<ImmutableArray<Diagnostic>> RunAsync(
+        string source,
+        string? ruleset,
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
         var compilation = CSharpCompilation.Create(
             assemblyName: "Fixture",
             syntaxTrees: new[] { CSharpSyntaxTree.ParseText(source) },
             references: References,
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            options: new CSharpCompilationOptions(outputKind));
+
+        // A fixture that fails to compile produces no analyzer diagnostics at all, which is
+        // indistinguishable from "the analyzer correctly found nothing wrong." Assert the
+        // fixture is actually valid C# before trusting what the analyzer says about it —
+        // otherwise a typo in a fixture silently turns an assertion into a tautology.
+        var errors = compilation.GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .ToArray();
+        if (errors.Length > 0)
+        {
+            throw new InvalidOperationException(
+                "Fixture does not compile, so any analyzer result would be meaningless:"
+                + Environment.NewLine
+                + string.Join(Environment.NewLine, errors.Select(e => e.ToString())));
+        }
 
         var options = new AnalyzerOptions(ruleset is null
             ? ImmutableArray<AdditionalText>.Empty

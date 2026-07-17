@@ -66,7 +66,10 @@ public class LayerDependencyAnalyzerTests
             namespace Jig.Infrastructure { public class JigDbContext { } }
             """;
 
-        var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
+        // Top-level statements require an executable output kind to compile at all
+        // (CS8805 otherwise) — this is the one fixture that legitimately needs it.
+        var diagnostics = await AnalyzerHarness.RunAsync(
+            source, Ruleset, Microsoft.CodeAnalysis.OutputKind.ConsoleApplication);
 
         diagnostics.ShouldBeEmpty();
     }
@@ -86,5 +89,27 @@ public class LayerDependencyAnalyzerTests
         var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
 
         diagnostics.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Reports_a_nested_type_violation_once()
+    {
+        const string source = """
+            namespace Jig.Infrastructure { public class Outer { public class Inner { } } }
+            namespace Jig.Api.Users
+            {
+                public class GetUserEndpoint
+                {
+                    private readonly Jig.Infrastructure.Outer.Inner _nested = new();
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerHarness.RunAsync(source, Ruleset);
+
+        var violation = diagnostics.ShouldHaveSingleItem();
+        violation.Id.ShouldBe("DR0001");
+        violation.GetMessage().ShouldBe(
+            "'*.Api' must not depend on '*.Infrastructure': the type 'Inner' lives there.");
     }
 }
