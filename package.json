@@ -2,6 +2,7 @@
   "name": "jig",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Jig — AI-native desktop template (Tauri + Angular SPA + .NET FastEndpoints). Build the fixture once; every app comes out identical.",
   "type": "module",
   "engines": {
