@@ -52,18 +52,41 @@ public readonly struct LayerRule
         Matches(From, fromNamespace) && Matches(To, toNamespace);
 
     /// <summary>
-    /// Match a namespace against a pattern on segment boundaries, so "*.Api" covers
-    /// "Jig.Api" and "Jig.Api.Users" but not "Jig.ApiClient" and not the global namespace
-    /// (where top-level statements put Program). Padding both strings with a leading and
-    /// trailing "." turns every boundary — start, end, and mid-string — into an interior
-    /// ".layer." match, so one substring search covers all four cases at once.
+    /// Match a namespace against a pattern. "*" stands for exactly one segment — the
+    /// product prefix that `tools/init/init.mjs` derives once per clone — never "any prefix".
+    /// So "*.Infrastructure" matches "Jig.Infrastructure" and "Jig.Infrastructure.Sub" but
+    /// not "Microsoft.EntityFrameworkCore.Infrastructure": that namespace has two segments
+    /// before "Infrastructure", so it belongs to a third party, not to our Infrastructure
+    /// layer. A pattern without "*." is matched as a fixed, literal prefix instead (segment
+    /// boundaries still apply), so "Jig.Domain" matches "Jig.Domain.Sub" but not "Acme.Domain".
     /// </summary>
     private static bool Matches(string pattern, string ns)
     {
-        var layer = pattern.StartsWith(Wildcard, StringComparison.Ordinal)
-            ? pattern.Substring(Wildcard.Length)
-            : pattern;
+        var segments = ns.Split('.');
 
-        return ("." + ns + ".").IndexOf("." + layer + ".", StringComparison.Ordinal) >= 0;
+        if (pattern.StartsWith(Wildcard, StringComparison.Ordinal))
+        {
+            // "*.Layer[.Rest]" needs at least a product segment plus the layer segment.
+            var layerSegments = pattern.Substring(Wildcard.Length).Split('.');
+            if (segments.Length < 1 + layerSegments.Length) return false;
+
+            for (var i = 0; i < layerSegments.Length; i++)
+            {
+                if (segments[1 + i] != layerSegments[i]) return false;
+            }
+
+            return true;
+        }
+
+        // No wildcard: the pattern itself must match a prefix of whole segments.
+        var patternSegments = pattern.Split('.');
+        if (segments.Length < patternSegments.Length) return false;
+
+        for (var i = 0; i < patternSegments.Length; i++)
+        {
+            if (segments[i] != patternSegments[i]) return false;
+        }
+
+        return true;
     }
 }

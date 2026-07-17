@@ -43,8 +43,10 @@ public class LayerRuleTests
     [InlineData("", "Jig.Infrastructure", false)]                // global namespace, empty display string
     [InlineData("Jig.Application", "Jig.Infrastructure", false)] // a different rule's business
     [InlineData("Jig.ApiClient", "Jig.Infrastructure", false)]   // segment-anchored, not substring
-    [InlineData("Api", "Infrastructure", true)]                  // bare layer names, no product prefix
-    [InlineData("Api.Users", "Infrastructure", true)]            // bare layer with a slice under it
+    [InlineData("Api", "Infrastructure", false)]                 // "*" requires exactly one product segment
+    [InlineData("Api.Users", "Infrastructure", false)]           // ditto, no bare-layer match either
+    [InlineData("Jig.Api", "Microsoft.EntityFrameworkCore.Infrastructure", false)] // third-party, not our layer
+    [InlineData("Jig.Api", "Some.Vendor.Api", false)]                              // ditto, on the "to" side
     public void Covers_matches_on_segment_boundaries(string from, string to, bool expected)
     {
         var rule = LayerRule.Parse("*.Api -> *.Infrastructure")[0];
@@ -59,5 +61,17 @@ public class LayerRuleTests
 
         rule.Covers("Jig.Domain", "Jig.Infrastructure").ShouldBe(true);
         rule.Covers("Acme.Domain", "Acme.Infrastructure").ShouldBe(false);
+    }
+
+    [Fact]
+    public void Covers_does_not_match_a_third_party_namespace_that_merely_ends_in_a_layer_name()
+    {
+        // "*" is the product prefix — exactly one segment. Microsoft.EntityFrameworkCore.Infrastructure
+        // is not our Infrastructure layer, and DR0001 is NotConfigurable, so a false positive here
+        // would fail a clone's build with no way to suppress it.
+        var rule = LayerRule.Parse("*.Application -> *.Infrastructure")[0];
+
+        rule.Covers("Jig.Application", "Microsoft.EntityFrameworkCore.Infrastructure").ShouldBeFalse();
+        rule.Covers("Jig.Application", "Jig.Infrastructure").ShouldBeTrue();
     }
 }
