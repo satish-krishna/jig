@@ -39,8 +39,21 @@ export function guardedPath(path) {
 }
 
 function main() {
-  const input = JSON.parse(readFileSync(0, 'utf8'));
-  const path = input?.tool_input?.file_path ?? '';
+  let path = '';
+  try {
+    const input = JSON.parse(readFileSync(0, 'utf8'));
+    path = input?.tool_input?.file_path ?? '';
+  } catch {
+    // A guard that cannot read its input cannot vouch for the write, so it fails CLOSED:
+    // deny with a clear message rather than throwing an exit-1 stack trace, which Claude
+    // Code treats as non-blocking and would let the write through. This is the opposite of
+    // the angular-service-guide nudge, which fails open (silent) because it protects
+    // nothing — a guard and a nudge fail in opposite directions on purpose.
+    console.error(
+      'guard-ruleset: could not parse the hook payload from stdin; denying the tool call to fail closed.',
+    );
+    process.exit(2);
+  }
 
   if (!guardedPath(path)) process.exit(0);
 

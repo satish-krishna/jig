@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { guardedPath } from './guard-ruleset.mjs';
+
+const HOOK = fileURLToPath(new URL('./guard-ruleset.mjs', import.meta.url));
+const run = (stdin: string) =>
+  spawnSync(process.execPath, [HOOK], { input: stdin, encoding: 'utf8' });
 
 test('guards the layer map', () => {
   assert.equal(guardedPath('D:\\Repos\\jig\\tools\\analyzers\\Jig.Analyzers\\ArchLayers.txt'), true);
@@ -35,4 +41,18 @@ test('leaves ordinary source alone', () => {
   assert.equal(guardedPath('/repos/jig/services/api/src/Jig.Api/Users/GetUserEndpoint.cs'), false);
   assert.equal(guardedPath('/repos/jig/frontend/src/app/repositories/user.repository.ts'), false);
   assert.equal(guardedPath(''), false);
+});
+
+test('end to end: denies a guarded path, allows an ordinary one', () => {
+  assert.equal(run(JSON.stringify({ tool_input: { file_path: 'x/ArchLayers.txt' } })).status, 2);
+  assert.equal(run(JSON.stringify({ tool_input: { file_path: 'x/user.repository.ts' } })).status, 0);
+});
+
+test('fails closed on malformed or empty stdin', () => {
+  // A guard that cannot read its input denies rather than throwing an exit-1 stack trace,
+  // which Claude Code treats as non-blocking and would let the write through.
+  const malformed = run('not json');
+  assert.equal(malformed.status, 2);
+  assert.match(malformed.stderr, /could not parse/i);
+  assert.equal(run('').status, 2);
 });
