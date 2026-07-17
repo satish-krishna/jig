@@ -13,6 +13,13 @@
 // weakening a rule leaves every test green. That asymmetry is the whole reason this file
 // draws the line where it does.
 //
+// .claude/settings.json is deliberately NOT guarded, for the same reason the engine is not:
+// it holds every hook, so guarding it taxed every legitimate hook change and blocked two in
+// practice. An agent unregistering this guard from settings.json still shows in the diff and
+// CI — the final guard, the one the whole design leans on for everything it cannot lock from
+// inside the repo. This file still guards itself, because changing WHAT the guard protects is
+// a policy change and should pass through a human, not an agent editing its own leash.
+//
 // This closes one door and is honest about the rest: deletion is neither Write nor Edit,
 // so `rm` walks straight past this. DR0002 covers a deleted ruleset from inside the
 // compiler; CI and the diff cover the rest. See ADR 0009.
@@ -23,7 +30,6 @@ const GUARDED = [
   /ArchLayers\.txt$/i,
   /tools[\\/]hooks[\\/]guard-ruleset\.mjs$/i,
   /services[\\/]api[\\/]src[\\/]Directory\.Build\.props$/i,
-  /\.claude[\\/]settings\.json$/i,
 ];
 
 /** True when a write to this path must be denied. */

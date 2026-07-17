@@ -19,7 +19,16 @@ test('leaves the analyzer engine editable', () => {
 test('guards the wiring and the guard itself', () => {
   assert.equal(guardedPath('/repos/jig/services/api/src/Directory.Build.props'), true);
   assert.equal(guardedPath('/repos/jig/tools/hooks/guard-ruleset.mjs'), true);
-  assert.equal(guardedPath('/repos/jig/.claude/settings.json'), true);
+});
+
+test('leaves .claude/settings.json editable', () => {
+  // settings.json holds every hook, so guarding it taxed every legitimate hook change
+  // and blocked two of them in practice. Unregistering the guard from settings.json
+  // still shows in the diff and CI — the same backstop that protects the analyzer engine
+  // and everything else that cannot be locked from inside the repo. Guarding it bought
+  // little and cost a hand-apply on every hook edit forever.
+  assert.equal(guardedPath('/repos/jig/.claude/settings.json'), false);
+  assert.equal(guardedPath('D:\\Repos\\jig\\.claude\\settings.json'), false);
 });
 
 test('leaves ordinary source alone', () => {

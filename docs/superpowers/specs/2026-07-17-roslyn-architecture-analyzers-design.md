@@ -122,7 +122,7 @@ Test framework and runner match `Jig.Api.Tests` (read it; do not guess). The tes
 **Wiring:**
 
 7. `services/api/src/Directory.Build.props`, `Jig.Analyzers.Tests` into `Jig.sln`, confirm `npm run verify` is green on real jig (it will be — endpoints are clean today).
-8. `tools/hooks/guard-ruleset.mjs` + `.claude/settings.json`: `PreToolUse` matching `Write`/`Edit`, exit 2 on paths under `tools/analyzers/` or `services/api/src/Directory.Build.props`.
+8. `tools/hooks/guard-ruleset.mjs` + `.claude/settings.json`: `PreToolUse` matching `Write`/`Edit`, exit 2 on `ArchLayers.txt`, the props wiring, and the guard itself — not the analyzer sources and not `settings.json`. See ADR 0009 for why the line sits there.
 9. Annotate the new units, run `npm run catalog`.
 
 Steps 1 and 4 are non-negotiable. Everything else is plumbing.
