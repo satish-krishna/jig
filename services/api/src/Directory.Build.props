@@ -1,0 +1,21 @@
+<Project>
+
+  <!--
+    The floor every production project inherits. The analyzer is wired here and not in
+    any .csproj on purpose: a ProjectReference in a project file is five lines of XML
+    anyone can delete to switch off every rule at once, and a guard that blocks .csproj
+    edits is a guard that gets disabled by lunchtime. There is nothing here to delete
+    that does not show up in a diff as what it is. See ADR 0009.
+
+    Test projects under services/api/tests/ sit outside this directory and are not
+    analyzed: a fixture swapping a real DbContext for an in-memory one is not a
+    layering violation.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\tools\analyzers\Jig.Analyzers\Jig.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\..\..\tools\analyzers\Jig.Analyzers\ArchLayers.txt" />
+  </ItemGroup>
+
+</Project>
