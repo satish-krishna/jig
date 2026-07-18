@@ -73,7 +73,7 @@ frontend/src/app/
   transport/           port, http/ipc/normalizing transports, provide-transport
   repositories/        speak operations only
   forms/               FormFieldMeta, zod-meta, dynamic SchemaForm renderer (signal-forms for authored forms)
-  capabilities/        native-only services (pattern; add when first needed, absent from web bootstrap)
+  capabilities/        native-only services (PATTERN, not yet created; add when first needed, absent from web bootstrap)
   features/users/       the reference slice. Copy this shape.
 frontend/libs/ui/       spartan-ng helm components (generated; @spartan-ng/helm/* alias)
 frontend/src/styles.css theme tokens: source of truth for UI (OKLCH neutral scale, light + dark)
