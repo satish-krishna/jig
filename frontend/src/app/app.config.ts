@@ -2,7 +2,14 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChang
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideIcons } from '@ng-icons/core';
-import { lucideUsers, lucidePlus, lucidePanelLeft, lucideComponent } from '@ng-icons/lucide';
+import {
+  lucideUsers,
+  lucidePlus,
+  lucidePanelLeft,
+  lucideComponent,
+  lucideSun,
+  lucideMoon,
+} from '@ng-icons/lucide';
 import { provideSpartanHlm } from '@spartan-ng/helm/utils';
 
 import { routes } from './app.routes';
@@ -22,7 +29,14 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withXhr()),
     provideSpartanHlm(),
     provideTransport(API_BASE_URL),
-    provideIcons({ lucideUsers, lucidePlus, lucidePanelLeft, lucideComponent }),
+    provideIcons({
+      lucideUsers,
+      lucidePlus,
+      lucidePanelLeft,
+      lucideComponent,
+      lucideSun,
+      lucideMoon,
+    }),
     provideUsersMenu(),
     provideShowcaseMenu(),
   ]

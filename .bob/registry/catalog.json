@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 21,
+  "count": 22,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -169,6 +169,14 @@
       "file": "frontend/src/app/showcase/showcase.view.ts",
       "language": "typescript",
       "symbol": "selector"
+    },
+    {
+      "capability": "ui.theme-mode",
+      "intent": "Switch the app between light and dark, remembering the choice.",
+      "reuse": "Inject it and call toggle(), or bind to mode(). Applied globally from the shell header.",
+      "file": "frontend/src/app/theme/theme.service.ts",
+      "language": "typescript",
+      "symbol": "ThemeService"
     }
   ]
 }
