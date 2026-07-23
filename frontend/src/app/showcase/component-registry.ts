@@ -65,15 +65,15 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   { slug: 'calendar', name: 'Calendar', category: 'Forms', blurb: 'Inline month grid.' },
 
   // Data display
-  { slug: 'table', name: 'Table', category: 'Data display', blurb: 'Semantic table primitives.' },
-  { slug: 'card', name: 'Card', category: 'Data display', blurb: 'Header, content, footer and action.' },
-  { slug: 'badge', name: 'Badge', category: 'Data display', blurb: 'Short status labels.' },
-  { slug: 'avatar', name: 'Avatar', category: 'Data display', blurb: 'Image with fallback, badge and groups.' },
-  { slug: 'kbd', name: 'Kbd', category: 'Data display', blurb: 'Keyboard shortcut display.' },
-  { slug: 'item', name: 'Item', category: 'Data display', blurb: 'Row with media, content and actions.' },
-  { slug: 'empty', name: 'Empty', category: 'Data display', blurb: 'Empty-state block.' },
-  { slug: 'typography', name: 'Typography', category: 'Data display', blurb: 'Headings, prose, code and lists.' },
-  { slug: 'aspect-ratio', name: 'Aspect ratio', category: 'Data display', blurb: 'Constrain a box to a ratio.' },
+  { slug: 'table', name: 'Table', category: 'Data display', blurb: 'Semantic table primitives.', documented: true },
+  { slug: 'card', name: 'Card', category: 'Data display', blurb: 'Header, content, footer and action.', documented: true },
+  { slug: 'badge', name: 'Badge', category: 'Data display', blurb: 'Short status labels.', documented: true },
+  { slug: 'avatar', name: 'Avatar', category: 'Data display', blurb: 'Image with fallback, badge and groups.', documented: true },
+  { slug: 'kbd', name: 'Kbd', category: 'Data display', blurb: 'Keyboard shortcut display.', documented: true },
+  { slug: 'item', name: 'Item', category: 'Data display', blurb: 'Row with media, content and actions.', documented: true },
+  { slug: 'empty', name: 'Empty', category: 'Data display', blurb: 'Empty-state block.', documented: true },
+  { slug: 'typography', name: 'Typography', category: 'Data display', blurb: 'Headings, prose, code and lists.', documented: true },
+  { slug: 'aspect-ratio', name: 'Aspect ratio', category: 'Data display', blurb: 'Constrain a box to a ratio.', documented: true },
 
   // Navigation
   { slug: 'sidebar', name: 'Sidebar', category: 'Navigation', blurb: 'Full sidebar system with rail and submenus.' },

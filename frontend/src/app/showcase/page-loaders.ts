@@ -28,6 +28,23 @@ export const PAGE_ROUTES: Routes = [
     loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
   },
 
+  // Data display
+  { path: 'table', loadComponent: () => import('./pages/table.page').then((m) => m.TablePage) },
+  { path: 'card', loadComponent: () => import('./pages/card.page').then((m) => m.CardPage) },
+  { path: 'badge', loadComponent: () => import('./pages/badge.page').then((m) => m.BadgePage) },
+  { path: 'avatar', loadComponent: () => import('./pages/avatar.page').then((m) => m.AvatarPage) },
+  { path: 'kbd', loadComponent: () => import('./pages/kbd.page').then((m) => m.KbdPage) },
+  { path: 'item', loadComponent: () => import('./pages/item.page').then((m) => m.ItemPage) },
+  { path: 'empty', loadComponent: () => import('./pages/empty.page').then((m) => m.EmptyPage) },
+  {
+    path: 'typography',
+    loadComponent: () => import('./pages/typography.page').then((m) => m.TypographyPage),
+  },
+  {
+    path: 'aspect-ratio',
+    loadComponent: () => import('./pages/aspect-ratio.page').then((m) => m.AspectRatioPage),
+  },
+
   // Feedback
   { path: 'alert', loadComponent: () => import('./pages/alert.page').then((m) => m.AlertPage) },
   {
