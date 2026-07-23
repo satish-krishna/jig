@@ -5,7 +5,7 @@ export const routes: Routes = [
   { path: 'users', component: UserListView },
   {
     path: 'showcase',
-    loadComponent: () => import('./showcase/showcase.view').then((m) => m.ShowcaseView),
+    loadChildren: () => import('./showcase/showcase.routes').then((m) => m.SHOWCASE_ROUTES),
   },
   { path: '', pathMatch: 'full', redirectTo: 'users' },
 ];

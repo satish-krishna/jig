@@ -119,9 +119,9 @@
 ## ui
 
 ### `ui.component-showcase` — selector (typescript)
-- **Intent:** Show the working anatomy of each vendored spartan component in one place.
-- **Reuse:** Route to /showcase and copy the markup. Add an example when you first use a component that has none.
-- **Where:** `frontend/src/app/showcase/showcase.view.ts`
+- **Intent:** Browse every vendored spartan component, one page each, with verified usages.
+- **Reuse:** Route to /showcase. Add a component page under showcase/pages and register it in component-registry.ts.
+- **Where:** `frontend/src/app/showcase/showcase-layout.ts`
 
 ### `ui.theme-mode` — ThemeService (typescript)
 - **Intent:** Switch the app between light and dark, remembering the choice.

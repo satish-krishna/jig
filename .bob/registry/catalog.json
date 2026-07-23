@@ -164,9 +164,9 @@
     },
     {
       "capability": "ui.component-showcase",
-      "intent": "Show the working anatomy of each vendored spartan component in one place.",
-      "reuse": "Route to /showcase and copy the markup. Add an example when you first use a component that has none.",
-      "file": "frontend/src/app/showcase/showcase.view.ts",
+      "intent": "Browse every vendored spartan component, one page each, with verified usages.",
+      "reuse": "Route to /showcase. Add a component page under showcase/pages and register it in component-registry.ts.",
+      "file": "frontend/src/app/showcase/showcase-layout.ts",
       "language": "typescript",
       "symbol": "selector"
     },
