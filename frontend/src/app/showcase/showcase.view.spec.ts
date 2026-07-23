@@ -34,6 +34,23 @@ describe('ShowcaseView', () => {
     expect(host.querySelector(selector)).toBeTruthy();
   });
 
+  it('projects a visible indicator into every radio', () => {
+    // hlm-radio renders <ng-content select="...hlm-radio-indicator" indicator />:
+    // the visible control is projected, not built in. Omit it and the radio
+    // renders as bare text with no button — which is exactly what shipped.
+    const radios = [...host.querySelectorAll('hlm-radio')];
+    expect(radios.length).toBeGreaterThan(0);
+    expect(radios.every((r) => r.querySelector('hlm-radio-indicator') !== null)).toBe(true);
+  });
+
+  it('pairs every radio with a label via inputId', () => {
+    for (const radio of host.querySelectorAll('hlm-radio')) {
+      const id = radio.getAttribute('inputid') ?? radio.getAttribute('inputId');
+      expect(id, 'radio has no inputId to hang a label off').toBeTruthy();
+      expect(host.querySelector(`label[for="${id}"]`)).toBeTruthy();
+    }
+  });
+
   it('gives every example a caption so the page is scannable', () => {
     const captions = [...host.querySelectorAll('figcaption')];
     expect(captions.length).toBeGreaterThan(30);

@@ -94,11 +94,26 @@ import { ShowcaseExample } from '../showcase-example';
     </app-showcase-example>
 
     <app-showcase-example name="radio-group">
-      <!-- value/valueChange come from BrnRadioGroup; it is also a CVA, so
-           [formControlName] works just as well inside a real form -->
+      <!-- The visible control is PROJECTED: hlm-radio renders
+           <ng-content select="...hlm-radio-indicator" indicator />, so omitting
+           hlm-radio-indicator leaves you with bare text and no radio button.
+           The label is a sibling, tied to the radio by inputId — not content
+           inside hlm-radio.
+           value/valueChange come from BrnRadioGroup; it is also a CVA, so
+           [formControlName] or [formField] work just as well in a real form. -->
       <hlm-radio-group name="showcase-plan" [value]="plan()" (valueChange)="plan.set($event)">
-        <hlm-radio value="free">Free</hlm-radio>
-        <hlm-radio value="pro">Pro</hlm-radio>
+        <div class="flex items-center gap-3">
+          <hlm-radio value="free" inputId="showcase-plan-free">
+            <hlm-radio-indicator indicator />
+          </hlm-radio>
+          <label hlmLabel for="showcase-plan-free">Free</label>
+        </div>
+        <div class="flex items-center gap-3">
+          <hlm-radio value="pro" inputId="showcase-plan-pro">
+            <hlm-radio-indicator indicator />
+          </hlm-radio>
+          <label hlmLabel for="showcase-plan-pro">Pro</label>
+        </div>
       </hlm-radio-group>
     </app-showcase-example>
 
