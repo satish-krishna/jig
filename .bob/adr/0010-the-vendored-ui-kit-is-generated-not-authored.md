@@ -1,0 +1,45 @@
+# ADR 0010 — The vendored UI kit is generated code, and YAGNI does not govern it
+
+- Status: accepted
+- Date: 2026-07-23
+- Scope: frontend/libs/ui, frontend/components.json
+
+## Context
+
+`frontend/libs/ui` now holds all 57 spartan/ui components, up from six. Fifty-one of them have no consumer in this repo and may never get one. CLAUDE.md lists YAGNI as a non-negotiable gate — "build only the `users` slice and the machinery it proves" — and says in the same breath that this is a template, not a product, and to add no speculative features. Read literally, the previous commit is the most speculative act available in this codebase, and the gate says do not do it.
+
+The gate is not wrong. It is scoped to a thing this is not.
+
+The distinction the gate is reaching for is design cost, not file count. YAGNI exists because an abstraction you invent before you need it encodes a guess about a requirement you have not met yet, and you pay for that guess every time the real requirement arrives shaped differently. `libs/ui/dialog` encodes no guess of ours. It is `@spartan-ng/cli` output, byte-identical to what the generator emits, and this was verified rather than assumed: reconstructing the CLI's own pipeline — parsing `style-nova.css` with postcss, harvesting each `.spartan-* { @apply ... }` rule into a style map, substituting it into the `.template` files — reproduced 21 of 23 originally-present files exactly, and the two mismatches were artifacts of the reconstruction (TypeScript quote-escaping the real generator performs, and unmapped marker classes such as `spartan-field-orientation-*` that nova never defines and the generator strips). Nobody on this project made a design decision that these files record. Deleting them and regenerating them tomorrow produces the same bytes.
+
+That investigation started from the opposite hypothesis, and the record matters more than the conclusion. The inlined Tailwind utilities in `hlm-button.ts` look exactly like someone expanded a theme by hand because the CLI wanted interactive input. They are not. `style-nova.css` says so in its own header: *"the CLI does not copy this file; `createStyleMap` harvests each `.spartan-* { @apply ... }` rule and inlines the utilities directly into the generated components."* The suspicious-looking artifact was the designed distribution model. This ADR exists partly so the next reader does not re-run that investigation.
+
+What is genuinely ours, and therefore genuinely governed by YAGNI, is every line in `frontend/src/app`. That boundary is the decision.
+
+The competing option was a curated subset — the three controls the `users` slice actually needs, plus whatever the shell wants — with clones running `:ui` for the rest. It was rejected on the template's own thesis. A jig is the fixture built once so every part after it comes out identical; if each clone picks its own component subset, clones diverge at exactly the layer users see, `components.json` drifts per clone, and "arrives pre-wired" becomes "arrives pre-wired except for the UI." One CLI command per clone is a small tax that compounds into inconsistency, which is the thing the fixture exists to prevent.
+
+## Decision
+
+- **YAGNI governs authored code. `libs/ui` is generated, so it is out of scope.** The test is not "does this have a consumer" but "did we make a design decision here that we will have to defend later." Regenerable upstream output carries no such decision, in the same way nobody invokes YAGNI about the parts of Angular they do not import. This is the exemption; everything below is the fence that keeps it from being abused.
+
+- **`libs/ui` is never hand-edited.** This is the load-bearing rule and the exemption is void without it. The moment a file there is edited by hand it stops being regenerable output and becomes authored code with a maintenance cost — at which point YAGNI applies to it retroactively and 57 components is indefensible. Customisation goes through the theme tokens in `frontend/src/styles.css` or through the wrapping component, never into the vendored file. There is no lint rule enforcing this today; it is a review rule, and this ADR is what a reviewer points at.
+
+- **A component is added with `ng g @spartan-ng/cli:ui --name=<component>`, never by hand.** The generator rewrites `tsconfig.json` and `tsconfig.app.json` path mappings and resolves the component's own dependency graph — adding `combobox` pulled in `popover` unasked. Hand-writing a component file skips both and produces exactly the authored-code problem the previous rule forbids.
+
+- **`components.json` records the style, and the style is a build-time snapshot.** `"style": "nova"` is not decoration: it tells the CLI which `@apply` bodies to inline on the *next* generation. The utilities already sitting in `libs/ui` are frozen at the moment they were generated. Changing the visual style therefore means regenerating the component set, not editing CSS. Recolouring still works from `styles.css`, because nova's utilities reference the semantic tokens (`--primary`, `--border`, `--ring`); shape does not, because `h-8`, `rounded-lg` and `px-2.5` are baked into the component files. CLAUDE.md's repo map calls `styles.css` the source of truth for UI, which is true of colour and false of shape.
+
+- **Every component gets a showcase example the first time it is used in anger.** `/showcase` is the discovery surface, and it is compiled by the same build as the app, so an example cannot drift from the real selectors the way a markdown snippet can. This is not decoration either: writing the showcase caught three API facts that reading the class names would have got wrong — `hlmAspectRatio` aliases its ratio input to the selector itself, `hlm-radio-group` exposes `value`/`valueChange` rather than `ngModel`, and `hlm-slider` takes an array because it supports range thumbs.
+
+- **Component usage is verified against the rendered DOM, not against the source.** The forms in this repo used helm components while hand-wiring the logic those components already own, and that survived review because the tests asserted model state and never asked what the user saw. Reading the Brain sources to work out what *should* happen produced two confidently wrong conclusions in a row; probing the actual DOM settled it in one pass. A test that pins `data-matches-spartan-invalid` and `aria-describedby` is worth more than any amount of reasoning about `ErrorStateMatcher`.
+
+## Consequences
+
+- **Unused components cost nothing in JavaScript and something real in CSS.** Measured, not assumed: the production bundle contains zero occurrences of `accordion-trigger`, `carousel`, `embla`, `sidebar-menu-button` or `hlm-toaster`, so tree-shaking excludes what nothing imports. Tailwind is a different story — it scans source files for class strings regardless of imports, so `accordion` and `combobox` utilities appear in `styles.css` despite neither component being used anywhere. Tailwind's deduplication keeps this modest, but it is a genuine tax that scales with the number of distinct components present, and it is not removable without removing the files.
+
+- **The initial-bundle budgets were raised from 500kB/1MB to 1MB/2MB.** Raising a budget to silence a failure is a smell and it is recorded here rather than buried in `angular.json`. Two facts in mitigation: the 500 kB raw warning was already breached by 417 kB on `main` before any of this work, and 1.01 MB raw is 208 kB over the wire, which is what a user actually downloads. If initial load ever becomes a real constraint, the lever is making the showcase a development-only route, not deleting components.
+
+- **The generated catalog is unaffected, which was the main worry and turned out to be void.** `tools/catalog/catalog.ts` scans `frontend`, but the catalog is annotation-driven and no generated helm file carries a `@capability` tag. Fifty-seven components do not flood the discover-first surface that agents read.
+
+- **Upgrading spartan means regenerating, and the diff will be large.** `ng g @spartan-ng/cli:healthcheck --autoFix` handles deprecated APIs and import moves, but a style-level change upstream lands as a rewrite across every component file. This is the price of the copy-in model and it is paid on spartan's schedule, not ours. It is survivable only while the never-hand-edit rule holds; a single local edit turns every future upgrade into a manual merge.
+
+- **The exemption is narrow and does not generalise.** "It is generated" is a defence for output of a tool we run on demand and could re-run at any time to identical effect. It is not a defence for scaffolded code we then edit, for a vendored dependency we patch, or for anything in `frontend/src/app`. If someone cites this ADR to justify speculative authored code, they are citing it wrongly.
