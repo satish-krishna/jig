@@ -28,6 +28,32 @@ export const PAGE_ROUTES: Routes = [
     loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
   },
 
+  // Layout
+  {
+    path: 'separator',
+    loadComponent: () => import('./pages/separator.page').then((m) => m.SeparatorPage),
+  },
+  {
+    path: 'accordion',
+    loadComponent: () => import('./pages/accordion.page').then((m) => m.AccordionPage),
+  },
+  {
+    path: 'collapsible',
+    loadComponent: () => import('./pages/collapsible.page').then((m) => m.CollapsiblePage),
+  },
+  {
+    path: 'carousel',
+    loadComponent: () => import('./pages/carousel.page').then((m) => m.CarouselPage),
+  },
+  {
+    path: 'resizable',
+    loadComponent: () => import('./pages/resizable.page').then((m) => m.ResizablePage),
+  },
+  {
+    path: 'scroll-area',
+    loadComponent: () => import('./pages/scroll-area.page').then((m) => m.ScrollAreaPage),
+  },
+
   // Data display
   { path: 'table', loadComponent: () => import('./pages/table.page').then((m) => m.TablePage) },
   { path: 'card', loadComponent: () => import('./pages/card.page').then((m) => m.CardPage) },

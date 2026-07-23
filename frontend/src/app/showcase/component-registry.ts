@@ -105,12 +105,12 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   { slug: 'spinner', name: 'Spinner', category: 'Feedback', blurb: 'Indeterminate activity.', documented: true },
 
   // Layout
-  { slug: 'separator', name: 'Separator', category: 'Layout', blurb: 'Horizontal or vertical rule.' },
-  { slug: 'accordion', name: 'Accordion', category: 'Layout', blurb: 'Collapsible sections.' },
-  { slug: 'collapsible', name: 'Collapsible', category: 'Layout', blurb: 'One show/hide region.' },
-  { slug: 'carousel', name: 'Carousel', category: 'Layout', blurb: 'Horizontal slides with controls.' },
-  { slug: 'resizable', name: 'Resizable', category: 'Layout', blurb: 'Draggable split panels.' },
-  { slug: 'scroll-area', name: 'Scroll area', category: 'Layout', blurb: 'Styled custom scrollbars.' },
+  { slug: 'separator', name: 'Separator', category: 'Layout', blurb: 'Horizontal or vertical rule.', documented: true },
+  { slug: 'accordion', name: 'Accordion', category: 'Layout', blurb: 'Collapsible sections.', documented: true },
+  { slug: 'collapsible', name: 'Collapsible', category: 'Layout', blurb: 'One show/hide region.', documented: true },
+  { slug: 'carousel', name: 'Carousel', category: 'Layout', blurb: 'Horizontal slides with controls.', documented: true },
+  { slug: 'resizable', name: 'Resizable', category: 'Layout', blurb: 'Draggable split panels.', documented: true },
+  { slug: 'scroll-area', name: 'Scroll area', category: 'Layout', blurb: 'Styled custom scrollbars.', documented: true },
 ];
 
 /** The route /showcase redirects here. */
