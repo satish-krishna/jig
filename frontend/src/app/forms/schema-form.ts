@@ -2,8 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import type { z } from 'zod';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import type { FormFieldMeta } from './form-field-meta';
 import { applyZodIssues, clearZodIssues, fieldsFromSchema } from './schema-form.util';
 
@@ -28,8 +31,16 @@ function defaultFor(meta: FormFieldMeta): unknown {
 @Component({
   selector: 'app-schema-form',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, HlmFieldImports, HlmInputImports, HlmButtonImports],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    HlmFieldImports,
+    HlmInputImports,
+    HlmTextareaImports,
+    HlmNativeSelectImports,
+    HlmCheckboxImports,
+    HlmButtonImports,
+  ],
   template: `
     <form [formGroup]="form()" (ngSubmit)="onSubmit()">
       @for (field of fields(); track field.name) {
@@ -37,27 +48,31 @@ function defaultFor(meta: FormFieldMeta): unknown {
           <label hlmFieldLabel [attr.for]="field.name">{{ field.meta.label }}</label>
           @switch (field.meta.control) {
             @case ('textarea') {
-              <textarea hlmInput [id]="field.name" [formControlName]="field.name"
+              <textarea hlmTextarea [id]="field.name" [formControlName]="field.name"
                         [attr.placeholder]="field.meta.placeholder ?? null"></textarea>
             }
             @case ('select') {
-              <select hlmInput [id]="field.name" [formControlName]="field.name">
+              <hlm-native-select [selectId]="field.name" [formControlName]="field.name">
                 @for (opt of field.meta.options ?? []; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
+                  <option hlmNativeSelectOption [value]="opt.value">{{ opt.label }}</option>
                 }
-              </select>
+              </hlm-native-select>
             }
             @case ('checkbox') {
-              <input type="checkbox" [id]="field.name" [formControlName]="field.name" />
+              <hlm-checkbox [inputId]="field.name" [formControlName]="field.name" />
             }
             @default {
               <input hlmInput [type]="field.meta.control" [id]="field.name" [formControlName]="field.name"
                      [attr.placeholder]="field.meta.placeholder ?? null" />
             }
           }
-          @if (control(field.name)?.errors?.['zod']; as message) {
-            <hlm-field-error [attr.data-error-for]="field.name" forceShow>{{ message }}</hlm-field-error>
-          }
+          <!-- Always rendered: hlm-field-error hides itself until the field's error
+               state matches, and only registers itself with the control's
+               aria-describedby while it is showing. Wrapping it in @if or forcing it
+               visible with forceShow bypasses both. -->
+          <hlm-field-error [attr.data-error-for]="field.name">
+            {{ control(field.name)?.errors?.['zod'] }}
+          </hlm-field-error>
         </hlm-field>
       }
       <button hlmBtn type="submit">{{ submitLabel() }}</button>
@@ -91,6 +106,12 @@ export class SchemaForm {
       this.submitted.emit(result.data as Record<string, unknown>);
     } else {
       applyZodIssues(form, result.error);
+      // The default spartan ErrorStateMatcher only reports a control as invalid
+      // once it is touched (or its parent form is submitted), and that flag is
+      // what drives data-matches-spartan-invalid — the attribute the generated
+      // helm classes key off for the destructive ring. Without this the control
+      // stays styled as pristine while the message below it says otherwise.
+      form.markAllAsTouched();
     }
   }
 }

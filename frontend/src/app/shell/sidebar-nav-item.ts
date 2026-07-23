@@ -9,7 +9,7 @@ import type { Command } from '../menu';
 @Component({
   selector: 'app-sidebar-nav-item',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgIcon],
   template: `
     <button

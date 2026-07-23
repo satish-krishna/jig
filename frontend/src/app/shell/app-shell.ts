@@ -9,7 +9,7 @@ import { SidebarNavItem } from './sidebar-nav-item';
 @Component({
   selector: 'app-shell',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None, // uses the global .hlm-shell* classes
   imports: [RouterOutlet, NgIcon, HlmButtonImports, SidebarNavItem],
   template: `

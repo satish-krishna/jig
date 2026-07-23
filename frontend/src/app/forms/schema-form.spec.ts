@@ -43,6 +43,28 @@ describe('SchemaForm (dynamic renderer)', () => {
     expect(err.textContent).toContain('Title is required');
   });
 
+  it('drives the field into spartan-invalid so the control renders as invalid', () => {
+    const fixture = render();
+    fixture.componentInstance.onSubmit();
+    fixture.detectChanges();
+
+    // data-matches-spartan-invalid is what the generated helm classes key off for
+    // the destructive ring and border; without it the control looks untouched
+    // while the error text below it says otherwise.
+    const field = fixture.nativeElement.querySelector('hlm-field');
+    expect(field.getAttribute('data-matches-spartan-invalid')).toBe('true');
+  });
+
+  it('links the control to its error message for assistive tech', () => {
+    const fixture = render();
+    fixture.componentInstance.onSubmit();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('#title');
+    const error = fixture.nativeElement.querySelector('[data-error-for="title"]');
+    expect(input.getAttribute('aria-describedby')).toBe(error.id);
+  });
+
   it('emits the parsed value when the schema passes', () => {
     const fixture = render();
     let emitted: Record<string, unknown> | undefined;

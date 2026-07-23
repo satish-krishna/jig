@@ -25,6 +25,28 @@ describe('UserForm', () => {
     expect(nameErrors.some((e: { message: string }) => /required/i.test(e.message))).toBe(true);
   });
 
+  it('keeps the validation message hidden until the field is touched', () => {
+    const fixture = render();
+
+    // The empty model is already invalid, so the message exists in the DOM from
+    // the start; hlm-field-error is what decides it is not shown yet.
+    const error = fixture.nativeElement.querySelector('hlm-field-error[data-error-for="name"]');
+    expect(error.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('shows the validation message to the user once the field is touched', () => {
+    const fixture = render();
+    const inst = fixture.componentInstance as unknown as { form: any };
+
+    inst.form.name().markAsTouched();
+    fixture.detectChanges();
+
+    const error = fixture.nativeElement.querySelector('hlm-field-error[data-error-for="name"]');
+    expect(error, 'no hlm-field-error rendered for name').toBeTruthy();
+    expect(error.hasAttribute('hidden'), 'error is rendered but hidden').toBe(false);
+    expect(error.textContent.trim().length).toBeGreaterThan(0);
+  });
+
   it('emits saved with the model when the form is valid', async () => {
     const fixture = render();
     const inst = fixture.componentInstance as unknown as {

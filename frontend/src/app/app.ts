@@ -5,7 +5,7 @@ import { AppShell } from './shell/app-shell';
   selector: 'app-root',
   imports: [AppShell],
   templateUrl: './app.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.css'
 })
 export class App {
