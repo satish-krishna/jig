@@ -98,11 +98,11 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   { slug: 'command', name: 'Command', category: 'Menus', blurb: 'Command palette with search.' },
 
   // Feedback
-  { slug: 'alert', name: 'Alert', category: 'Feedback', blurb: 'Inline message with title and body.' },
-  { slug: 'sonner', name: 'Sonner', category: 'Feedback', blurb: 'Stacked toasts.' },
-  { slug: 'progress', name: 'Progress', category: 'Feedback', blurb: 'Determinate progress bar.' },
-  { slug: 'skeleton', name: 'Skeleton', category: 'Feedback', blurb: 'Loading placeholder.' },
-  { slug: 'spinner', name: 'Spinner', category: 'Feedback', blurb: 'Indeterminate activity.' },
+  { slug: 'alert', name: 'Alert', category: 'Feedback', blurb: 'Inline message with title and body.', documented: true },
+  { slug: 'sonner', name: 'Sonner', category: 'Feedback', blurb: 'Stacked toasts.', documented: true },
+  { slug: 'progress', name: 'Progress', category: 'Feedback', blurb: 'Determinate progress bar.', documented: true },
+  { slug: 'skeleton', name: 'Skeleton', category: 'Feedback', blurb: 'Loading placeholder.', documented: true },
+  { slug: 'spinner', name: 'Spinner', category: 'Feedback', blurb: 'Indeterminate activity.', documented: true },
 
   // Layout
   { slug: 'separator', name: 'Separator', category: 'Layout', blurb: 'Horizontal or vertical rule.' },

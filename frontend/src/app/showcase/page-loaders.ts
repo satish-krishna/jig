@@ -27,4 +27,17 @@ export const PAGE_ROUTES: Routes = [
     path: 'checkbox',
     loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
   },
+
+  // Feedback
+  { path: 'alert', loadComponent: () => import('./pages/alert.page').then((m) => m.AlertPage) },
+  {
+    path: 'progress',
+    loadComponent: () => import('./pages/progress.page').then((m) => m.ProgressPage),
+  },
+  {
+    path: 'skeleton',
+    loadComponent: () => import('./pages/skeleton.page').then((m) => m.SkeletonPage),
+  },
+  { path: 'spinner', loadComponent: () => import('./pages/spinner.page').then((m) => m.SpinnerPage) },
+  { path: 'sonner', loadComponent: () => import('./pages/sonner.page').then((m) => m.SonnerPage) },
 ];
