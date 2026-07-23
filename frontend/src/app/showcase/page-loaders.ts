@@ -10,5 +10,21 @@ import type { Routes } from '@angular/router';
  * so the nav can list all 56 from day one without linking into a void.
  */
 export const PAGE_ROUTES: Routes = [
-  { path: 'checkbox', loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage) },
+  // Actions
+  { path: 'button', loadComponent: () => import('./pages/button.page').then((m) => m.ButtonPage) },
+  {
+    path: 'button-group',
+    loadComponent: () => import('./pages/button-group.page').then((m) => m.ButtonGroupPage),
+  },
+  { path: 'toggle', loadComponent: () => import('./pages/toggle.page').then((m) => m.TogglePage) },
+  {
+    path: 'toggle-group',
+    loadComponent: () => import('./pages/toggle-group.page').then((m) => m.ToggleGroupPage),
+  },
+
+  // Forms
+  {
+    path: 'checkbox',
+    loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
+  },
 ];

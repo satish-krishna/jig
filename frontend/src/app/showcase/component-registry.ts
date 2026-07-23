@@ -41,10 +41,10 @@ export const CATEGORY_ORDER: readonly Category[] = [
 
 export const COMPONENTS: readonly ComponentEntry[] = [
   // Actions
-  { slug: 'button', name: 'Button', category: 'Actions', blurb: 'Variants, sizes and icon buttons.' },
-  { slug: 'button-group', name: 'Button group', category: 'Actions', blurb: 'Segmented row of related actions.' },
-  { slug: 'toggle', name: 'Toggle', category: 'Actions', blurb: 'A button with a pressed state.' },
-  { slug: 'toggle-group', name: 'Toggle group', category: 'Actions', blurb: 'Two to seven mutually exclusive options.' },
+  { slug: 'button', name: 'Button', category: 'Actions', blurb: 'Variants, sizes and icon buttons.', documented: true },
+  { slug: 'button-group', name: 'Button group', category: 'Actions', blurb: 'Segmented row of related actions.', documented: true },
+  { slug: 'toggle', name: 'Toggle', category: 'Actions', blurb: 'A button with a pressed state.', documented: true },
+  { slug: 'toggle-group', name: 'Toggle group', category: 'Actions', blurb: 'Two to seven mutually exclusive options.', documented: true },
 
   // Forms
   { slug: 'field', name: 'Field', category: 'Forms', blurb: 'Label, control, description and error anatomy.' },
