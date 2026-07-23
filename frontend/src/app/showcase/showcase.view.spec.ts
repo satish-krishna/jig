@@ -51,6 +51,27 @@ describe('ShowcaseView', () => {
     }
   });
 
+  it('demonstrates the invalid state with real validation, not hand-set attributes', () => {
+    // A showcase is copied from. Faking data-invalid/aria-invalid in markup and
+    // forcing the message visible produces a field that LOOKS right and is broken
+    // in the two ways that matter: the control never gets the destructive ring,
+    // and the error is never announced.
+    const caption = [...host.querySelectorAll('figcaption')].find(
+      (c) => c.textContent?.trim() === 'field (invalid)',
+    );
+    const stage = caption?.parentElement?.querySelector('div');
+    const field = stage?.querySelector('hlm-field, [hlmfield]') as HTMLElement;
+    const input = field.querySelector('input') as HTMLElement;
+    const error = field.querySelector('hlm-field-error') as HTMLElement;
+
+    expect(field.getAttribute('data-matches-spartan-invalid')).toBe('true');
+    expect(input.getAttribute('aria-describedby')).toBe(error.id);
+  });
+
+  it('never reaches for forceShow, which bypasses the error a11y registration', () => {
+    expect(host.querySelector('hlm-field-error[forceShow], hlm-field-error[forceshow]')).toBeNull();
+  });
+
   it('gives every example a caption so the page is scannable', () => {
     const captions = [...host.querySelectorAll('figcaption')];
     expect(captions.length).toBeGreaterThan(30);

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
@@ -23,6 +24,7 @@ import { ShowcaseExample } from '../showcase-example';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    ReactiveFormsModule,
     ShowcaseExample,
     HlmButtonImports,
     HlmCheckboxImports,
@@ -48,10 +50,14 @@ import { ShowcaseExample } from '../showcase-example';
     </app-showcase-example>
 
     <app-showcase-example name="field (invalid)">
-      <div hlmField class="w-64" data-invalid="true">
+      <!-- A real FormControl, not hand-set data-invalid/aria-invalid. Type a valid
+           address and the ring and message clear on their own. hlm-field-error is
+           rendered unconditionally and hides itself: no @if, no forceShow. That is
+           what wires aria-describedby and lights data-matches-spartan-invalid. -->
+      <div hlmField class="w-64">
         <label hlmFieldLabel for="showcase-invalid">Email</label>
-        <input hlmInput id="showcase-invalid" aria-invalid="true" value="not-an-email" />
-        <hlm-field-error forceShow>Enter a valid email address.</hlm-field-error>
+        <input hlmInput id="showcase-invalid" type="email" [formControl]="email" />
+        <hlm-field-error>Enter a valid email address.</hlm-field-error>
       </div>
     </app-showcase-example>
 
@@ -144,4 +150,19 @@ import { ShowcaseExample } from '../showcase-example';
 })
 export class ShowcaseForms {
   protected readonly plan = signal('free');
+
+  /**
+   * Seeded with a bad value and pre-touched so the example lands on the invalid
+   * state without the reader having to interact. Touched is the trigger: the
+   * default spartan ErrorStateMatcher reports a control as invalid only once it
+   * is touched or its form is submitted.
+   */
+  protected readonly email = new FormControl('not-an-email', {
+    nonNullable: true,
+    validators: [Validators.email],
+  });
+
+  constructor() {
+    this.email.markAsTouched();
+  }
 }
