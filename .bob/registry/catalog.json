@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 20,
+  "count": 21,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -161,6 +161,14 @@
       "file": "frontend/src/app/transport/provide-transport.ts",
       "language": "typescript",
       "symbol": "provideTransport"
+    },
+    {
+      "capability": "ui.component-showcase",
+      "intent": "Show the working anatomy of each vendored spartan component in one place.",
+      "reuse": "Route to /showcase and copy the markup. Add an example when you first use a component that has none.",
+      "file": "frontend/src/app/showcase/showcase.view.ts",
+      "language": "typescript",
+      "symbol": "selector"
     }
   ]
 }
