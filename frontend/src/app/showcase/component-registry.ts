@@ -76,11 +76,11 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   { slug: 'aspect-ratio', name: 'Aspect ratio', category: 'Data display', blurb: 'Constrain a box to a ratio.', documented: true },
 
   // Navigation
-  { slug: 'sidebar', name: 'Sidebar', category: 'Navigation', blurb: 'Full sidebar system with rail and submenus.' },
-  { slug: 'navigation-menu', name: 'Navigation menu', category: 'Navigation', blurb: 'Horizontal nav with panels.' },
-  { slug: 'breadcrumb', name: 'Breadcrumb', category: 'Navigation', blurb: 'Trail to the current page.' },
-  { slug: 'tabs', name: 'Tabs', category: 'Navigation', blurb: 'Switch between panels.' },
-  { slug: 'pagination', name: 'Pagination', category: 'Navigation', blurb: 'Page controls, plain or numbered.' },
+  { slug: 'sidebar', name: 'Sidebar', category: 'Navigation', blurb: 'Full sidebar system with rail and submenus.', documented: true },
+  { slug: 'navigation-menu', name: 'Navigation menu', category: 'Navigation', blurb: 'Horizontal nav with panels.', documented: true },
+  { slug: 'breadcrumb', name: 'Breadcrumb', category: 'Navigation', blurb: 'Trail to the current page.', documented: true },
+  { slug: 'tabs', name: 'Tabs', category: 'Navigation', blurb: 'Switch between panels.', documented: true },
+  { slug: 'pagination', name: 'Pagination', category: 'Navigation', blurb: 'Page controls, plain or numbered.', documented: true },
 
   // Overlays
   { slug: 'dialog', name: 'Dialog', category: 'Overlays', blurb: 'Modal with header, body and footer.' },

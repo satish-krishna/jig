@@ -28,6 +28,22 @@ export const PAGE_ROUTES: Routes = [
     loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
   },
 
+  // Navigation
+  { path: 'tabs', loadComponent: () => import('./pages/tabs.page').then((m) => m.TabsPage) },
+  {
+    path: 'breadcrumb',
+    loadComponent: () => import('./pages/breadcrumb.page').then((m) => m.BreadcrumbPage),
+  },
+  {
+    path: 'pagination',
+    loadComponent: () => import('./pages/pagination.page').then((m) => m.PaginationPage),
+  },
+  {
+    path: 'navigation-menu',
+    loadComponent: () => import('./pages/navigation-menu.page').then((m) => m.NavigationMenuPage),
+  },
+  { path: 'sidebar', loadComponent: () => import('./pages/sidebar.page').then((m) => m.SidebarPage) },
+
   // Layout
   {
     path: 'separator',
