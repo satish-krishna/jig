@@ -14,6 +14,8 @@ Both render the same visual language. They are not two design systems — the `j
 ## Production UI
 
 - **Controls are spartan helm.** Compose from `frontend/libs/ui/*` behind the `@spartan-ng/helm/*` alias; add one with `ng g @spartan-ng/cli:ui <name>`. Never hand-roll a styled control that spartan already provides. The `spartan` skill and MCP carry the component APIs.
+- **Layout is Grid. Flex is for inline runs.** Anything that arranges a component's *regions* — a page, a view, a card's internal structure, a form's rows, a two-pane split — is `grid`, declared in one place with `grid-template-columns` / `grid-template-areas`. Flex is for a single inline run of content: an icon beside a label, a row of buttons, a list of chips. One axis, content-sized, order-driven.
+  **The test:** if you are nesting a flex container inside another flex container to place things in two dimensions, that is a grid you have not written yet. Nested flex hides the layout in three files; a grid states it in one line you can read. The app shell in `frontend/src/app/shell/shell.layout.css` is the worked example — its whole structure is four lines of `grid-template-areas`.
 - **Never hardcode a token.** Colors, radius, spacing, and shadow come from the CSS custom properties in `styles.css` (`--primary`, `--muted-foreground`, `--border`, `--radius`, `--sidebar`, …). A literal hex or px in a component is the smell.
 - **Do not copy the skill's CSS into production.** The skill's `css/*` is a mirror for offline rendering; forking it into the app creates a second source of truth for the theme. Change the theme in `styles.css`; the skill is downstream.
 
@@ -38,6 +40,7 @@ These traits define jig and are not yours to loosen. Their canonical statement (
 ## Smells that mean the pattern is breaking
 
 - A literal hex or px in a component instead of a `styles.css` token.
+- Nested flex containers doing a job one `grid-template-columns` or `grid-template-areas` would state in a single readable line.
 - A hand-rolled control that duplicates a spartan helm component.
 - Editing the `jig-design` skill's `css/*` to change how the *app* looks (edit `styles.css` — the skill is downstream).
 - A prototype's React bundle wired into a production path.
