@@ -1,6 +1,28 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildApi, render } from './showcase-api.ts';
+import { buildApi, parseFile, render } from './showcase-api.ts';
+
+/**
+ * One fixture per shape a member's type can take, because the parser is a regex
+ * and every defect so far has been a shape it could not express. These run
+ * against parseFile rather than libs/ui on purpose: pinning them to a real
+ * spartan component would make a spartan upgrade fail a test about our parser.
+ *
+ * Reverting the regex to its `[^>]*?` version fails four of them — nested,
+ * arrow-function, inferred, and the swallow guard. The other four (plain, union,
+ * multi-argument, multi-line) pass under BOTH versions, so they catch no
+ * bug that has happened. They are here as a shape inventory for whoever rewrites
+ * this regex next, which is a different job from catching the last regression,
+ * and worth keeping only as long as they stay this cheap.
+ */
+const source = (members: string) => `
+@Component({ selector: 'app-thing' })
+export class Thing {
+${members}
+}`;
+
+const typeOf = (members: string, name: string) =>
+  parseFile(source(members))[0].members.find((m) => m.name === name)?.type;
 
 // The parser is two regexes over generated TypeScript, and its first run shipped
 // a real defect: the alias lookahead ran past its own statement and duplicated
@@ -98,6 +120,65 @@ test('reads outputs off an app component', () => {
   const submitted = cls.members.find((m) => m.name === 'submitted');
 
   assert.equal(submitted?.kind, 'output');
+});
+
+test('shape: a plain generic', () => {
+  assert.equal(typeOf(`  readonly label = input<string>('x');`, 'label'), 'string');
+});
+
+test('shape: a nested generic closes on its own bracket, not the inner one', () => {
+  const members = `  readonly lookup = input<Map<string, ReadonlyArray<number>>>();`;
+
+  assert.equal(typeOf(members, 'lookup'), 'Map<string, ReadonlyArray<number>>');
+});
+
+test('shape: an arrow-function type, whose => used to end the match early', () => {
+  const members = `  readonly format = input<(value: Date) => string>();`;
+
+  assert.equal(typeOf(members, 'format'), '(value: Date) => string');
+});
+
+test('shape: a union is kept whole rather than cut at the first member', () => {
+  const members = `  readonly size = input<'sm' | 'md' | 'lg'>('md');`;
+
+  assert.equal(typeOf(members, 'size'), "'sm' | 'md' | 'lg'");
+});
+
+test('shape: a multi-argument generic, as the transform inputs use', () => {
+  const members = `  readonly disabled = input<boolean, BooleanInput>(false, { transform: booleanAttribute });`;
+
+  assert.equal(typeOf(members, 'disabled'), 'boolean, BooleanInput');
+});
+
+test('shape: an inferred type reports unknown instead of dropping the member', () => {
+  assert.equal(typeOf(`  readonly submitLabel = input('Save');`, 'submitLabel'), 'unknown');
+});
+
+test('shape: a generic broken across lines', () => {
+  const members = `  readonly config = input<{
+    retries: number;
+  }>();`;
+
+  assert.match(typeOf(members, 'config') ?? '', /retries: number/);
+});
+
+test('one member never swallows the next, whatever their shapes', () => {
+  const members = [
+    `  readonly plain = input('Save');`,
+    `  readonly generic = input<string>('x');`,
+    `  readonly nested = input<Partial<Record<string, number>>>();`,
+    `  readonly changed = output<void>();`,
+  ].join('\n');
+  const parsed = parseFile(source(members))[0].members;
+
+  assert.deepEqual(
+    parsed.map((m) => m.name),
+    ['plain', 'generic', 'nested', 'changed'],
+  );
+  assert.deepEqual(
+    parsed.map((m) => m.type),
+    ['unknown', 'string', 'Partial<Record<string, number>>', 'void'],
+  );
 });
 
 test('renders a file that declares its own generated-ness', () => {

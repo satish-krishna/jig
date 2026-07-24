@@ -57,7 +57,8 @@ const MEMBER = /readonly\s+(\w+)\s*=\s*(input|output|model)(\.required)?\s*(?:<\
 /** the alias wins when present: it is what a consumer actually binds */
 const ALIAS = /alias:\s*'([^']+)'/;
 
-function parseFile(src: string): ApiClass[] {
+/** Exported so the shape tests can pin the parser without going through libs/ui. */
+export function parseFile(src: string): ApiClass[] {
   const out: ApiClass[] = [];
   // Split on decorators so each chunk holds one class and its metadata.
   const chunks = src.split(/@(?=Component\(|Directive\()/).slice(1);
