@@ -83,13 +83,13 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   { slug: 'pagination', name: 'Pagination', category: 'Navigation', blurb: 'Page controls, plain or numbered.', documented: true },
 
   // Overlays
-  { slug: 'dialog', name: 'Dialog', category: 'Overlays', blurb: 'Modal with header, body and footer.' },
-  { slug: 'alert-dialog', name: 'Alert dialog', category: 'Overlays', blurb: 'Confirm or cancel a destructive act.' },
-  { slug: 'sheet', name: 'Sheet', category: 'Overlays', blurb: 'Edge-anchored panel.' },
-  { slug: 'drawer', name: 'Drawer', category: 'Overlays', blurb: 'Draggable bottom panel.' },
-  { slug: 'popover', name: 'Popover', category: 'Overlays', blurb: 'Anchored floating content.' },
-  { slug: 'hover-card', name: 'Hover card', category: 'Overlays', blurb: 'Preview on hover.' },
-  { slug: 'tooltip', name: 'Tooltip', category: 'Overlays', blurb: 'Short hint on hover or focus.' },
+  { slug: 'dialog', name: 'Dialog', category: 'Overlays', blurb: 'Modal with header, body and footer.', documented: true },
+  { slug: 'alert-dialog', name: 'Alert dialog', category: 'Overlays', blurb: 'Confirm or cancel a destructive act.', documented: true },
+  { slug: 'sheet', name: 'Sheet', category: 'Overlays', blurb: 'Edge-anchored panel.', documented: true },
+  { slug: 'drawer', name: 'Drawer', category: 'Overlays', blurb: 'Draggable bottom panel.', documented: true },
+  { slug: 'popover', name: 'Popover', category: 'Overlays', blurb: 'Anchored floating content.', documented: true },
+  { slug: 'hover-card', name: 'Hover card', category: 'Overlays', blurb: 'Preview on hover.', documented: true },
+  { slug: 'tooltip', name: 'Tooltip', category: 'Overlays', blurb: 'Short hint on hover or focus.', documented: true },
 
   // Menus
   { slug: 'dropdown-menu', name: 'Dropdown menu', category: 'Menus', blurb: 'Menu from a trigger, with submenus.' },

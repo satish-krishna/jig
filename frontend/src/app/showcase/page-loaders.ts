@@ -28,6 +28,21 @@ export const PAGE_ROUTES: Routes = [
     loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
   },
 
+  // Overlays
+  { path: 'dialog', loadComponent: () => import('./pages/dialog.page').then((m) => m.DialogPage) },
+  {
+    path: 'alert-dialog',
+    loadComponent: () => import('./pages/alert-dialog.page').then((m) => m.AlertDialogPage),
+  },
+  { path: 'sheet', loadComponent: () => import('./pages/sheet.page').then((m) => m.SheetPage) },
+  { path: 'drawer', loadComponent: () => import('./pages/drawer.page').then((m) => m.DrawerPage) },
+  { path: 'popover', loadComponent: () => import('./pages/popover.page').then((m) => m.PopoverPage) },
+  {
+    path: 'hover-card',
+    loadComponent: () => import('./pages/hover-card.page').then((m) => m.HoverCardPage),
+  },
+  { path: 'tooltip', loadComponent: () => import('./pages/tooltip.page').then((m) => m.TooltipPage) },
+
   // Navigation
   { path: 'tabs', loadComponent: () => import('./pages/tabs.page').then((m) => m.TabsPage) },
   {
