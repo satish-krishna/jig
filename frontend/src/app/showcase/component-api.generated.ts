@@ -1015,13 +1015,13 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
         {
           "kind": "input",
           "name": "formatDate",
-          "type": "unknown",
+          "type": "(date: T) => string",
           "required": false
         },
         {
           "kind": "input",
           "name": "transformDate",
-          "type": "unknown",
+          "type": "(date: T) => T",
           "required": false
         },
         {
@@ -1050,6 +1050,18 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
       "members": [
         {
           "kind": "input",
+          "name": "inputId",
+          "type": "unknown",
+          "required": false
+        },
+        {
+          "kind": "input",
+          "name": "placeholder",
+          "type": "unknown",
+          "required": false
+        },
+        {
+          "kind": "input",
           "name": "inputValue",
           "type": "string",
           "required": false
@@ -1057,7 +1069,7 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
         {
           "kind": "input",
           "name": "parseDate",
-          "type": "unknown",
+          "type": "(value: string) => T | undefined",
           "required": false
         },
         {
@@ -1147,13 +1159,13 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
         {
           "kind": "input",
           "name": "formatDates",
-          "type": "unknown",
+          "type": "(date: T[]) => string",
           "required": false
         },
         {
           "kind": "input",
           "name": "transformDates",
-          "type": "unknown",
+          "type": "(date: T[]) => T[]",
           "required": false
         },
         {
@@ -1243,13 +1255,13 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
         {
           "kind": "input",
           "name": "formatDates",
-          "type": "unknown",
+          "type": "(dates: [T | undefined, T | undefined]) => string",
           "required": false
         },
         {
           "kind": "input",
           "name": "transformDates",
-          "type": "unknown",
+          "type": "(date: [T, T]) => [T, T]",
           "required": false
         },
         {
@@ -2384,6 +2396,12 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
           "name": "disabled",
           "type": "boolean, BooleanInput",
           "required": false
+        },
+        {
+          "kind": "output",
+          "name": "change",
+          "type": "BrnRadioChange<T>",
+          "required": false
         }
       ]
     },
@@ -2821,7 +2839,14 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
     {
       "className": "HlmSidebarTrigger",
       "selector": "button[hlmSidebarTrigger]",
-      "members": []
+      "members": [
+        {
+          "kind": "input",
+          "name": "srOnlyText",
+          "type": "unknown",
+          "required": false
+        }
+      ]
     },
     {
       "className": "HlmSidebarWrapper",
@@ -2931,6 +2956,12 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
           "kind": "input",
           "name": "class",
           "type": "ClassValue",
+          "required": false
+        },
+        {
+          "kind": "input",
+          "name": "style",
+          "type": "Record<string, string>",
           "required": false
         }
       ]
@@ -3287,6 +3318,32 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = {
       "className": "HlmUl",
       "selector": "[hlmUl]",
       "members": []
+    }
+  ],
+  "schema-form": [
+    {
+      "className": "SchemaForm",
+      "selector": "app-schema-form",
+      "members": [
+        {
+          "kind": "input",
+          "name": "schema",
+          "type": "z.ZodObject<z.ZodRawShape>",
+          "required": true
+        },
+        {
+          "kind": "input",
+          "name": "submitLabel",
+          "type": "unknown",
+          "required": false
+        },
+        {
+          "kind": "output",
+          "name": "submitted",
+          "type": "Record<string, unknown>",
+          "required": false
+        }
+      ]
     }
   ]
 } as const;

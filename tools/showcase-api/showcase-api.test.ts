@@ -65,6 +65,41 @@ test('covers the whole vendored set rather than a sample', () => {
   assert.ok(Object.keys(api).length > 50, `expected the full set, got ${Object.keys(api).length}`);
 });
 
+test('covers app-authored components too, not only the vendored set', () => {
+  const cls = buildApi()['schema-form']?.find((c) => c.className === 'SchemaForm');
+
+  assert.ok(cls, 'SchemaForm missing — the app source root is not being read');
+  assert.equal(cls.selector, 'app-schema-form');
+});
+
+test('parses a nested generic, which no generated helm source happens to use', () => {
+  const cls = buildApi()['schema-form'].find((c) => c.className === 'SchemaForm')!;
+  const schema = cls.members.find((m) => m.name === 'schema');
+
+  // input.required<z.ZodObject<z.ZodRawShape>>() — the inner `>` ended the match
+  // in the first version, silently dropping the component's only required input.
+  assert.ok(schema, 'the schema input was dropped');
+  assert.equal(schema.required, true);
+  assert.equal(schema.type, 'z.ZodObject<z.ZodRawShape>');
+});
+
+test('parses a member whose type is inferred rather than written', () => {
+  const cls = buildApi()['schema-form'].find((c) => c.className === 'SchemaForm')!;
+
+  // `input('Save')` carries no <T>; requiring one skipped the member entirely.
+  assert.ok(
+    cls.members.some((m) => m.name === 'submitLabel'),
+    'submitLabel was dropped for having no explicit generic',
+  );
+});
+
+test('reads outputs off an app component', () => {
+  const cls = buildApi()['schema-form'].find((c) => c.className === 'SchemaForm')!;
+  const submitted = cls.members.find((m) => m.name === 'submitted');
+
+  assert.equal(submitted?.kind, 'output');
+});
+
 test('renders a file that declares its own generated-ness', () => {
   const out = render({ button: [{ className: 'HlmButton', selector: 'button[hlmBtn]', members: [] }] });
 

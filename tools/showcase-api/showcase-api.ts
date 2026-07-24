@@ -13,6 +13,18 @@ import { join, dirname } from 'node:path';
 const UI_ROOT = join('frontend', 'libs', 'ui');
 const OUT = join('frontend', 'src', 'app', 'showcase', 'component-api.generated.ts');
 
+/**
+ * App-authored components the showcase documents alongside the vendored set.
+ *
+ * A slug -> file map rather than a second directory walk: libs/ui is uniform
+ * (`<slug>/src/lib/**`) but the app is not, so a scan would have to invent a
+ * slug from a filename. Naming the pair here is the honest version, and it
+ * stays one line per page.
+ */
+const APP_SOURCES: Readonly<Record<string, string>> = {
+  'schema-form': join('frontend', 'src', 'app', 'forms', 'schema-form.ts'),
+};
+
 export interface ApiMember {
   readonly kind: 'input' | 'output' | 'model';
   readonly name: string;
@@ -31,8 +43,17 @@ const walk = (dir: string): string[] =>
     e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)],
   );
 
-/** `public readonly foo = input<T>(...)` / `input.required<T>()` / `output<T>()` / `model<T>()` */
-const MEMBER = /readonly\s+(\w+)\s*=\s*(input|output|model)(\.required)?\s*<\s*([^>]*?)\s*>?\s*\(/g;
+/**
+ * `readonly foo = input<T>(...)` / `input.required<T>()` / `output<T>()` / `model<T>()`.
+ *
+ * The generic is optional because a hand-written component may let the type be
+ * inferred (`input('Save')`), and its body is lazy-then-backtracked rather than
+ * "anything but `>`" so a nested generic closes on its OWN bracket:
+ * `input.required<z.ZodObject<z.ZodRawShape>>()` used to stop at the inner `>`,
+ * fail to reach the `(`, and drop the member without a trace. libs/ui happens to
+ * use no nested generics, which is why only an app source exposed it.
+ */
+const MEMBER = /readonly\s+(\w+)\s*=\s*(input|output|model)(\.required)?\s*(?:<\s*([\s\S]*?)\s*>)?\s*\(/g;
 /** the alias wins when present: it is what a consumer actually binds */
 const ALIAS = /alias:\s*'([^']+)'/;
 
@@ -76,6 +97,11 @@ export function buildApi(uiRoot = UI_ROOT): Record<string, ApiClass[]> {
     const classes = walk(lib)
       .filter((f) => f.endsWith('.ts'))
       .flatMap((f) => parseFile(readFileSync(f, 'utf8')));
+    if (classes.length) api[slug] = classes.sort((a, b) => a.className.localeCompare(b.className));
+  }
+  for (const [slug, file] of Object.entries(APP_SOURCES)) {
+    if (!existsSync(file)) continue;
+    const classes = parseFile(readFileSync(file, 'utf8'));
     if (classes.length) api[slug] = classes.sort((a, b) => a.className.localeCompare(b.className));
   }
   return api;
