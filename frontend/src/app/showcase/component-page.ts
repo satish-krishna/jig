@@ -2,14 +2,15 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideExternalLink } from '@ng-icons/lucide';
 import { COMPONENT_API } from './component-api.generated';
-import { COMPONENTS, DOCS_URL } from './component-registry';
+import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
 
 /**
  * The frame every component page sits in. Supplies, in order: the heading, the
- * projected usages, the generated API table, and the link to the upstream docs.
+ * projected usages, the generated API table, and — for a vendored component —
+ * the link to the upstream docs.
  *
  * A page provides only its usages; everything else is derived from the slug, so
- * 56 pages cannot drift into 56 different layouts.
+ * the pages cannot drift into as many different layouts as there are pages.
  */
 @Component({
   selector: 'app-component-page',
@@ -74,19 +75,21 @@ import { COMPONENTS, DOCS_URL } from './component-registry';
         </p>
       </section>
 
-      <footer class="border-border border-t pt-4">
-        <a
-          class="text-primary text-sm underline underline-offset-4"
-          [href]="docsUrl()"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <!-- an icon, not a ↗ glyph: design.md sanctions exactly one glyph and
-               this is not it -->
-          Full reference on spartan.ng
-          <ng-icon name="lucideExternalLink" class="align-middle" />
-        </a>
-      </footer>
+      @if (docsUrl(); as href) {
+        <footer class="border-border border-t pt-4">
+          <a
+            class="text-primary text-sm underline underline-offset-4"
+            [href]="href"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <!-- an icon, not a ↗ glyph: design.md sanctions exactly one glyph and
+                 this is not it -->
+            Full reference on spartan.ng
+            <ng-icon name="lucideExternalLink" class="align-middle" />
+          </a>
+        </footer>
+      }
     </article>
   `,
 })
@@ -95,5 +98,8 @@ export class ComponentPage {
 
   protected readonly entry = computed(() => COMPONENTS.find((c) => c.slug === this.slug()));
   protected readonly api = computed(() => COMPONENT_API[this.slug()] ?? []);
-  protected readonly docsUrl = computed(() => DOCS_URL(this.slug()));
+  /** Null for a pattern page: spartan has no reference for a component we wrote. */
+  protected readonly docsUrl = computed(() =>
+    this.entry()?.category === PATTERN_CATEGORY ? null : DOCS_URL(this.slug()),
+  );
 }

@@ -1,13 +1,16 @@
 /**
- * The showcase's index of every component vendored into libs/ui.
+ * The showcase's index: every component vendored into libs/ui, plus the app's
+ * own form patterns.
  *
  * Hand-curated on purpose: `category` and `blurb` are editorial judgements that
  * cannot be derived from the source. Everything mechanical — selectors, inputs,
  * outputs — is generated instead (see component-api.generated.ts), so nothing
  * here restates a fact the code already carries.
  *
- * `slug` is both the route segment (/showcase/<slug>) and the libs/ui directory
- * name, which is what lets the API generator and the page find each other.
+ * `slug` is both the route segment (/showcase/<slug>) and the key the API
+ * generator emits, which is what lets the generator and the page find each
+ * other. For a vendored component that key is its libs/ui directory name; for a
+ * `Patterns` entry it is a slug the generator is told about explicitly.
  */
 export interface ComponentEntry {
   readonly slug: string;
@@ -24,7 +27,8 @@ export type Category =
   | 'Overlays'
   | 'Menus'
   | 'Feedback'
-  | 'Layout';
+  | 'Layout'
+  | 'Patterns';
 
 export const CATEGORY_ORDER: readonly Category[] = [
   'Actions',
@@ -35,7 +39,16 @@ export const CATEGORY_ORDER: readonly Category[] = [
   'Menus',
   'Feedback',
   'Layout',
+  'Patterns',
 ];
+
+/**
+ * Entries in this category are the app's own compositions, not spartan's, so
+ * there is no upstream page to link them to. Discriminating on the category
+ * rather than a per-entry flag means the 56 vendored entries stay silent and
+ * absence never comes to mean "spartan" by default.
+ */
+export const PATTERN_CATEGORY: Category = 'Patterns';
 
 export const COMPONENTS: readonly ComponentEntry[] = [
   // Actions
@@ -109,6 +122,20 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   { slug: 'carousel', name: 'Carousel', category: 'Layout', blurb: 'Horizontal slides with controls.' },
   { slug: 'resizable', name: 'Resizable', category: 'Layout', blurb: 'Draggable split panels.' },
   { slug: 'scroll-area', name: 'Scroll area', category: 'Layout', blurb: 'Styled custom scrollbars.' },
+
+  // Patterns — the app's own, assembled from the controls above
+  {
+    slug: 'schema-form',
+    name: 'Schema form',
+    category: 'Patterns',
+    blurb: 'Renders any zod schema known only at runtime.',
+  },
+  {
+    slug: 'signal-form',
+    name: 'Signal form',
+    category: 'Patterns',
+    blurb: 'A typed form you author, validated by its zod schema.',
+  },
 ];
 
 /** The route /showcase redirects here. */

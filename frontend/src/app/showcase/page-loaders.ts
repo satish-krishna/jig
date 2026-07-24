@@ -169,4 +169,14 @@ export const PAGE_ROUTES: Routes = [
   },
   { path: 'spinner', loadComponent: () => import('./pages/spinner.page').then((m) => m.SpinnerPage) },
   { path: 'sonner', loadComponent: () => import('./pages/sonner.page').then((m) => m.SonnerPage) },
+
+  // Patterns
+  {
+    path: 'schema-form',
+    loadComponent: () => import('./pages/schema-form.page').then((m) => m.SchemaFormPage),
+  },
+  {
+    path: 'signal-form',
+    loadComponent: () => import('./pages/signal-form.page').then((m) => m.SignalFormPage),
+  },
 ];
