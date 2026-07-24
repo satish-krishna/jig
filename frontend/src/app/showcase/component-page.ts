@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideExternalLink } from '@ng-icons/lucide';
 import { COMPONENT_API } from './component-api.generated';
 import { COMPONENTS, DOCS_URL } from './component-registry';
 
@@ -13,9 +15,12 @@ import { COMPONENTS, DOCS_URL } from './component-registry';
   selector: 'app-component-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgIcon],
+  providers: [provideIcons({ lucideExternalLink })],
   template: `
-    <article class="flex max-w-4xl flex-col gap-8">
-      <header class="flex flex-col gap-1">
+    <article class="grid max-w-4xl gap-8">
+      <header class="grid gap-1">
+        <!-- one inline run: title beside its slug -->
         <div class="flex items-baseline gap-3">
           <h1 class="text-2xl font-semibold">{{ entry()?.name ?? slug() }}</h1>
           <code class="text-muted-foreground font-mono text-xs">{{ slug() }}</code>
@@ -25,9 +30,9 @@ import { COMPONENTS, DOCS_URL } from './component-registry';
         }
       </header>
 
-      <div class="flex flex-col gap-6"><ng-content /></div>
+      <div class="grid gap-6"><ng-content /></div>
 
-      <section class="flex flex-col gap-3">
+      <section class="grid gap-3">
         <h2 class="text-lg font-medium">API</h2>
         @for (cls of api(); track cls.className) {
           <div class="border-border overflow-hidden rounded-lg border">
@@ -76,7 +81,10 @@ import { COMPONENTS, DOCS_URL } from './component-registry';
           target="_blank"
           rel="noreferrer"
         >
-          Full reference on spartan.ng ↗
+          <!-- an icon, not a ↗ glyph: design.md sanctions exactly one glyph and
+               this is not it -->
+          Full reference on spartan.ng
+          <ng-icon name="lucideExternalLink" class="align-middle" />
         </a>
       </footer>
     </article>

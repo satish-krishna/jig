@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // Layout has no unit test: jsdom has no layout engine, so geometry can only be
-// asserted in a real browser. These four assertions are the shell contract —
+// asserted in a real browser. These assertions are the shell contract —
 // header and footer span the viewport, the sidebar occupies only the row
 // between them, and the page itself never scrolls.
 test.describe('app shell layout', () => {

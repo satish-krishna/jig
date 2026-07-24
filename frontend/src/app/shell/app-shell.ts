@@ -38,24 +38,27 @@ import { SidebarNavItem } from './sidebar-nav-item';
           <span class="hlm-brand__mark">J</span>
           <span class="hlm-brand__name">jig</span>
         </span>
-        <span class="grow"></span>
-        <button
-          hlmBtn
-          variant="ghost"
-          size="icon"
-          (click)="theme.toggle()"
-          [attr.aria-label]="'Switch to ' + (theme.mode() === 'dark' ? 'light' : 'dark') + ' mode'"
-          data-testid="theme-toggle"
-        >
-          <ng-icon [name]="theme.mode() === 'dark' ? 'lucideSun' : 'lucideMoon'" />
-        </button>
-        <div data-region="header" style="display: contents">
-          @for (cmd of header(); track cmd.id) {
-            <button hlmBtn size="sm" [disabled]="!cmd.canExecute()" (click)="cmd.execute()">
-              @if (cmd.icon; as icon) { <ng-icon [name]="icon" /> }
-              {{ cmd.label }}
-            </button>
-          }
+        <!-- The header's second grid column. Its contents are a single inline
+             run of controls, which is what flex is for. -->
+        <div class="flex items-center gap-3">
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            (click)="theme.toggle()"
+            [attr.aria-label]="'Switch to ' + (theme.mode() === 'dark' ? 'light' : 'dark') + ' mode'"
+            data-testid="theme-toggle"
+          >
+            <ng-icon [name]="theme.mode() === 'dark' ? 'lucideSun' : 'lucideMoon'" />
+          </button>
+          <div data-region="header" style="display: contents">
+            @for (cmd of header(); track cmd.id) {
+              <button hlmBtn size="sm" [disabled]="!cmd.canExecute()" (click)="cmd.execute()">
+                @if (cmd.icon; as icon) { <ng-icon [name]="icon" /> }
+                {{ cmd.label }}
+              </button>
+            }
+          </div>
         </div>
       </header>
 

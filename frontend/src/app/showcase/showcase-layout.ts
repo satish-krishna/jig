@@ -40,10 +40,15 @@ import { groupedByCategory } from './component-registry';
               {{ group.category }}
             </span>
             @for (c of group.items; track c.slug) {
+              <!-- .hlm-nav__item is the app's one nav-row style, already global
+                   from the shell. A third hand-rolled variant here would be the
+                   duplicate control design.md forbids. -->
               <a
-                class="hover:bg-muted rounded-md px-2 py-1 text-sm"
+                class="hlm-nav__item"
                 [routerLink]="['/showcase', c.slug]"
-                routerLinkActive="bg-primary text-primary-foreground hover:bg-primary"
+                routerLinkActive
+                #rla="routerLinkActive"
+                [attr.data-active]="rla.isActive"
                 >{{ c.name }}</a
               >
             }

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
 
 /**
  * One usage of a component: a title, a live instance, and the source that
@@ -16,6 +17,7 @@ import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core
   selector: 'app-usage',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [HlmButtonImports],
   template: `
     <section class="border-border overflow-hidden rounded-lg border">
       <header class="border-border flex items-baseline gap-3 border-b px-4 py-2.5">
@@ -23,11 +25,11 @@ import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core
         @if (note(); as n) {
           <p class="text-muted-foreground text-xs">{{ n }}</p>
         }
-        <button
-          type="button"
-          class="text-muted-foreground hover:text-foreground ml-auto text-xs"
-          (click)="copy()"
-        >
+        <!-- hlmBtn rather than a hand-rolled button: design.md forbids
+             re-implementing a control spartan already provides, and a raw
+             button here would need its colors overridden by class, which the
+             styling rules also forbid. -->
+        <button hlmBtn variant="ghost" size="xs" class="ml-auto" (click)="copy()">
           {{ copied() ? 'copied' : 'copy' }}
         </button>
       </header>

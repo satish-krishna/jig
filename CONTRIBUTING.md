@@ -77,7 +77,7 @@ Start work with `git switch -c feat/<short-description>`. The one sanctioned com
 Format: `type(scope): summary`.
 
 - **Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`, `perf`, `style`, `revert`.
-- **Scopes (required):** `transport`, `forms`, `contracts`, `api`, `shell`, `catalog`, `tools`, `repo`.
+- **Scopes (required):** `transport`, `forms`, `contracts`, `api`, `shell`, `ui`, `catalog`, `tools`, `repo`. The list here mirrors `scope-enum` in `commitlint.config.mjs`, which is the one that actually rejects a commit — if you add a scope, add it in both.
 - Enforced by the `commit-msg` hook via `commitlint` (`commitlint.config.mjs`). A malformed message is rejected, not merely discouraged.
 - Commits land at green. The `pre-commit` hook blocks a commit if the catalog is stale or the tooling tests fail (the fast checks). The full `npm run verify` gate runs in CI on every push and PR (`.github/workflows/verify.yml`); run it yourself before pushing meaningful work.
 

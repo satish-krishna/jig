@@ -1,6 +1,10 @@
-/* This file is a verbatim port of the jig-design design-system layout.css (ADR
-   0007); some rules (e.g. .hlm-centered* layout, nested-nav tiers) are
-   intentionally present but not all are wired by the current shell yet. */
+/* This file and the jig-design skill's css/layout.css are the same layout in
+   two homes. This one is upstream (ADR 0007) — it started as a port of the
+   skill's, but the shell has since changed here first (full-width header and
+   footer, viewport-pinned grid, brand moved out of the rail) and the skill was
+   updated to match. Change this file, then mirror it there; never the reverse.
+   Some rules (.hlm-centered*, nested-nav tiers) are intentionally present but
+   not yet wired by the current shell. */
 /* ────────────────────────────────────────────────────────────
    Jig — Sidebar & app-shell layout
    The two default jig layouts:
@@ -35,12 +39,16 @@
   grid-template-columns: var(--sidebar-width-collapsed) 1fr;
 }
 
+/* Two regions — brand at the start, actions at the end — so it is a grid with
+   two columns, not a flex row padded apart by an empty spacer element. */
 .hlm-shell__header {
   grid-area: header;
   position: sticky;
   top: 0;
   z-index: 20;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
   height: var(--header-height);

@@ -5,9 +5,10 @@ import type { Routes } from '@angular/router';
  * import: the Angular builder resolves lazy chunks statically, so
  * `import('./pages/' + slug)` yields no chunk and fails at runtime.
  *
- * Adding a component page is one line here plus `documented: true` in
- * component-registry.ts. Anything absent falls through to the placeholder page,
- * so the nav can list all 56 from day one without linking into a void.
+ * Adding a component page is one line here and nothing else — this array is the
+ * only record of which pages exist. A parallel `documented` flag in the registry
+ * used to duplicate it; it was never read, and two hand-maintained statements of
+ * one fact is exactly the drift the catalog generator exists to prevent.
  */
 export const PAGE_ROUTES: Routes = [
   // Actions

@@ -2,6 +2,18 @@ import { describe, it, expect } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { UserForm } from './user-form';
 
+// Minimal shape of the signal-form under test. Narrower than 'any' so a rename
+// in the component fails here, without importing Angular's internal field types.
+interface TestField {
+  errors(): readonly { message: string }[];
+  markAsTouched(): void;
+  touched(): boolean;
+}
+interface TestForm {
+  name: () => TestField;
+  email: () => TestField;
+}
+
 describe('UserForm', () => {
   function render() {
     TestBed.resetTestingModule();
@@ -17,7 +29,7 @@ describe('UserForm', () => {
 
   it('surfaces the zod validation on the matching field (Standard Schema bridge)', () => {
     const fixture = render();
-    const form = (fixture.componentInstance as unknown as { form: any }).form;
+    const form = (fixture.componentInstance as unknown as { form: TestForm }).form;
 
     // The initial empty model violates the zod schema; validation runs natively.
     const nameErrors = form.name().errors();
@@ -36,7 +48,7 @@ describe('UserForm', () => {
 
   it('shows the validation message to the user once the field is touched', () => {
     const fixture = render();
-    const inst = fixture.componentInstance as unknown as { form: any };
+    const inst = fixture.componentInstance as unknown as { form: TestForm };
 
     inst.form.name().markAsTouched();
     fixture.detectChanges();

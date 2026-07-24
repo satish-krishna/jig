@@ -89,10 +89,25 @@ export const COMPONENT_API: Readonly<Record<string, readonly ApiClass[]>> = ${JS
 `;
 }
 
-if (process.argv[1]?.includes('showcase-api')) {
+// endsWith, not includes: `includes('showcase-api')` also matches
+// showcase-api.test.ts and would run the generator during the test suite.
+if (process.argv[1]?.endsWith('showcase-api.ts')) {
   const api = buildApi();
-  mkdirSync(dirname(OUT), { recursive: true });
-  writeFileSync(OUT, render(api), 'utf8');
+  const rendered = render(api);
   const classes = Object.values(api).reduce((n, cs) => n + cs.length, 0);
-  console.log(`Wrote showcase API: ${Object.keys(api).length} components, ${classes} classes → ${OUT}`);
+
+  // --check is what makes the "verify enforces this" claim true. Without it the
+  // generated file silently goes stale the first time a component is added.
+  if (process.argv.includes('--check')) {
+    const current = existsSync(OUT) ? readFileSync(OUT, 'utf8') : '';
+    if (current !== rendered) {
+      console.error('Showcase API is stale. Run `npm run showcase:api` and commit.');
+      process.exit(1);
+    }
+    console.log(`Showcase API fresh (${Object.keys(api).length} components, ${classes} classes).`);
+  } else {
+    mkdirSync(dirname(OUT), { recursive: true });
+    writeFileSync(OUT, rendered, 'utf8');
+    console.log(`Wrote showcase API: ${Object.keys(api).length} components, ${classes} classes → ${OUT}`);
+  }
 }
