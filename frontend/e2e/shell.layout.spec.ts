@@ -41,6 +41,40 @@ test.describe('app shell layout', () => {
     expect(scrollHeight).toBeLessThanOrEqual(clientHeight);
   });
 
+  test('the brand sits in the header, not the sidebar', async ({ page }) => {
+    const brand = page.locator('.hlm-shell__header .hlm-brand');
+    await expect(brand).toBeVisible();
+    await expect(page.locator('.hlm-sidebar .hlm-brand')).toHaveCount(0);
+
+    // and it survives collapsing, because it no longer lives in the rail
+    await page.locator('.hlm-sidebar__footer [aria-label="Toggle sidebar"]').click();
+    await expect(brand).toBeVisible();
+  });
+
+  test('the collapse toggle is anchored in the sidebar footer', async ({ page }) => {
+    const toggle = page.locator('.hlm-sidebar__footer [aria-label="Toggle sidebar"]');
+    await expect(toggle).toBeVisible();
+    await expect(page.locator('.hlm-shell__header [aria-label="Toggle sidebar"]')).toHaveCount(0);
+
+    const shell = page.locator('.hlm-shell');
+    await expect(shell).toHaveAttribute('data-collapsed', 'false');
+
+    const width = async () => (await page.locator('.hlm-sidebar').boundingBox())!.width;
+
+    const wide = await width();
+    await toggle.click();
+    await expect(shell).toHaveAttribute('data-collapsed', 'true');
+
+    // the toggle stays reachable in the collapsed rail — a control that
+    // collapses itself out of reach is a one-way door
+    await expect(toggle).toBeVisible();
+
+    // Polled, not sampled: the rail animates over .2s (grid-template-columns),
+    // so measuring straight after the click reads a mid-transition width and
+    // fails only under parallel load.
+    await expect.poll(width).toBeLessThan(wide);
+  });
+
   test('only the main content area scrolls', async ({ page }) => {
     // force overflow so there is something to scroll
     await page.evaluate(() => {

@@ -16,22 +16,28 @@ import { SidebarNavItem } from './sidebar-nav-item';
   template: `
     <div class="hlm-shell" [attr.data-collapsed]="collapsed()">
       <aside class="hlm-sidebar">
-        <div class="hlm-sidebar__header">
-          <span class="hlm-sidebar__brand-mark">J</span>
-          <span class="hlm-sidebar__brand-name">jig</span>
-        </div>
         <nav class="hlm-sidebar__body" data-region="sidebar">
           @for (cmd of sidebar(); track cmd.id) {
             <app-sidebar-nav-item [command]="cmd" />
           }
         </nav>
-        <div class="hlm-sidebar__footer"></div>
+        <!-- The collapse control lives with the thing it collapses. It stays
+             reachable in the rail: a toggle that collapses itself out of reach
+             would be a one-way door. -->
+        <div class="hlm-sidebar__footer">
+          <button hlmBtn variant="ghost" size="icon" (click)="toggle()" aria-label="Toggle sidebar">
+            <ng-icon name="lucidePanelLeft" />
+          </button>
+        </div>
       </aside>
 
       <header class="hlm-shell__header">
-        <button hlmBtn variant="ghost" size="icon" (click)="toggle()" aria-label="Toggle sidebar">
-          <ng-icon name="lucidePanelLeft" />
-        </button>
+        <!-- Brand belongs to the app, not to the nav — and in the header it no
+             longer disappears when the sidebar collapses to a rail. -->
+        <span class="hlm-brand">
+          <span class="hlm-brand__mark">J</span>
+          <span class="hlm-brand__name">jig</span>
+        </span>
         <span class="grow"></span>
         <button
           hlmBtn
