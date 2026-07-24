@@ -18,7 +18,8 @@
     "codegen": "node tools/codegen/generate.mjs",
     "test:tools": "node --test \"tools/**/*.test.ts\"",
     "commitlint": "commitlint",
-    "showcase:api": "node tools/showcase-api/showcase-api.ts"
+    "showcase:api": "node tools/showcase-api/showcase-api.ts",
+    "ui:style": "node tools/ui-style/ui-style.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
