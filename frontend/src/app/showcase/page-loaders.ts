@@ -28,6 +28,18 @@ export const PAGE_ROUTES: Routes = [
     loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
   },
 
+  // Menus
+  {
+    path: 'dropdown-menu',
+    loadComponent: () => import('./pages/dropdown-menu.page').then((m) => m.DropdownMenuPage),
+  },
+  {
+    path: 'context-menu',
+    loadComponent: () => import('./pages/context-menu.page').then((m) => m.ContextMenuPage),
+  },
+  { path: 'menubar', loadComponent: () => import('./pages/menubar.page').then((m) => m.MenubarPage) },
+  { path: 'command', loadComponent: () => import('./pages/command.page').then((m) => m.CommandPage) },
+
   // Overlays
   { path: 'dialog', loadComponent: () => import('./pages/dialog.page').then((m) => m.DialogPage) },
   {

@@ -92,10 +92,10 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   { slug: 'tooltip', name: 'Tooltip', category: 'Overlays', blurb: 'Short hint on hover or focus.', documented: true },
 
   // Menus
-  { slug: 'dropdown-menu', name: 'Dropdown menu', category: 'Menus', blurb: 'Menu from a trigger, with submenus.' },
-  { slug: 'context-menu', name: 'Context menu', category: 'Menus', blurb: 'Right-click menu.' },
-  { slug: 'menubar', name: 'Menubar', category: 'Menus', blurb: 'Desktop-style menu bar.' },
-  { slug: 'command', name: 'Command', category: 'Menus', blurb: 'Command palette with search.' },
+  { slug: 'dropdown-menu', name: 'Dropdown menu', category: 'Menus', blurb: 'Menu from a trigger, with submenus.', documented: true },
+  { slug: 'context-menu', name: 'Context menu', category: 'Menus', blurb: 'Right-click menu.', documented: true },
+  { slug: 'menubar', name: 'Menubar', category: 'Menus', blurb: 'Desktop-style menu bar.', documented: true },
+  { slug: 'command', name: 'Command', category: 'Menus', blurb: 'Command palette with search.', documented: true },
 
   // Feedback
   { slug: 'alert', name: 'Alert', category: 'Feedback', blurb: 'Inline message with title and body.', documented: true },
