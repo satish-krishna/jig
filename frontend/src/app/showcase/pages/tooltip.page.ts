@@ -31,7 +31,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Positions" note="position places the tooltip on a given side of the trigger." [code]="codePositions">
-        <div class="flex flex-col items-center gap-2">
+        <div class="grid grid-cols-2 items-center justify-items-center gap-2">
           <button
             type="button"
             hlmBtn
@@ -40,33 +40,32 @@ import { Usage } from '../usage';
             position="top"
             [showDelay]="0"
             [hideDelay]="0"
+            class="col-span-2"
           >
             Top
           </button>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              hlmBtn
-              variant="outline"
-              hlmTooltip="Tooltip content"
-              position="left"
-              [showDelay]="0"
-              [hideDelay]="0"
-            >
-              Left
-            </button>
-            <button
-              type="button"
-              hlmBtn
-              variant="outline"
-              hlmTooltip="Tooltip content"
-              position="right"
-              [showDelay]="0"
-              [hideDelay]="0"
-            >
-              Right
-            </button>
-          </div>
+          <button
+            type="button"
+            hlmBtn
+            variant="outline"
+            hlmTooltip="Tooltip content"
+            position="left"
+            [showDelay]="0"
+            [hideDelay]="0"
+          >
+            Left
+          </button>
+          <button
+            type="button"
+            hlmBtn
+            variant="outline"
+            hlmTooltip="Tooltip content"
+            position="right"
+            [showDelay]="0"
+            [hideDelay]="0"
+          >
+            Right
+          </button>
           <button
             type="button"
             hlmBtn
@@ -75,6 +74,7 @@ import { Usage } from '../usage';
             position="bottom"
             [showDelay]="0"
             [hideDelay]="0"
+            class="col-span-2"
           >
             Bottom
           </button>

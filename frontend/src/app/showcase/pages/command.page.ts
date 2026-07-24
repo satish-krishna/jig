@@ -94,7 +94,7 @@ import { Usage } from '../usage';
         [note]="'Query: ' + (query() || '(empty)')"
         [code]="codeControlled"
       >
-        <div class="flex w-full max-w-xs flex-col gap-2">
+        <div class="grid w-full max-w-xs gap-2">
           <div class="flex gap-2">
             <button hlmBtn size="sm" variant="outline" (click)="query.set('')">All</button>
             <button hlmBtn size="sm" variant="outline" (click)="query.set('play')">Playback</button>

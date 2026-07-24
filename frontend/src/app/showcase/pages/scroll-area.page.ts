@@ -81,7 +81,7 @@ import { Usage } from '../usage';
         [code]="codeComposition"
       >
         <ng-scrollbar hlm class="h-56 w-64 border">
-          <div class="flex flex-col p-2">
+          <div class="grid p-2">
             @for (member of members; track member; let i = $index) {
               <button
                 type="button"
@@ -150,7 +150,7 @@ export class ScrollAreaPage {
   protected readonly codeComposition = `selected = signal(0);
 
 <ng-scrollbar hlm class="h-56 w-64 border">
-  <div class="flex flex-col p-2">
+  <div class="grid p-2">
     @for (member of members; track member; let i = $index) {
       <button (click)="selected.set(i)">
         {{ member }}

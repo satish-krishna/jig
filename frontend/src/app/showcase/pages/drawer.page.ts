@@ -99,7 +99,7 @@ import { Usage } from '../usage';
               <h3 hlmDrawerTitle>Filter results</h3>
               <p hlmDrawerDescription>{{ visibleCount() }} of {{ allItems.length }} items match.</p>
             </hlm-drawer-header>
-            <div class="flex flex-col gap-2 px-4">
+            <div class="grid gap-2 px-4">
               @for (tag of tags; track tag) {
                 <label class="flex items-center gap-2 text-sm">
                   <input

@@ -94,7 +94,7 @@ import { Usage } from '../usage';
               <h3 hlmSheetTitle>Notifications</h3>
               <p hlmSheetDescription>{{ unreadCount() }} unread of {{ notifications().length }}.</p>
             </hlm-sheet-header>
-            <ul class="flex flex-col gap-2 px-4 text-sm">
+            <ul class="grid gap-2 px-4 text-sm">
               @for (n of notifications(); track n.id) {
                 <li class="flex items-center justify-between gap-2">
                   <span [class.font-medium]="!n.read">{{ n.text }}</span>

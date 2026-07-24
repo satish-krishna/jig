@@ -19,7 +19,7 @@ import { Usage } from '../usage';
   template: `
     <app-component-page slug="resizable">
       <app-usage title="Default, two panels" note="Drag the handle to resize either side." [code]="codeDefault">
-        <hlm-resizable-group class="h-[160px] w-full max-w-sm rounded-lg border">
+        <hlm-resizable-group class="h-40 w-full max-w-sm rounded-lg border">
           <hlm-resizable-panel defaultSize="50">
             <div class="flex h-full items-center justify-center p-6">
               <span class="font-semibold">One</span>
@@ -39,7 +39,7 @@ import { Usage } from '../usage';
         note="direction='vertical' stacks panels top to bottom instead of side by side."
         [code]="codeVertical"
       >
-        <hlm-resizable-group class="h-[220px] w-full max-w-sm rounded-lg border" direction="vertical">
+        <hlm-resizable-group class="h-56 w-full max-w-sm rounded-lg border" direction="vertical">
           <hlm-resizable-panel defaultSize="30">
             <div class="flex h-full items-center justify-center p-6">
               <span class="font-semibold">Header</span>
@@ -59,7 +59,7 @@ import { Usage } from '../usage';
         note="A vertical group sits inside one panel of a horizontal group — the composition every split-pane layout needs."
         [code]="codeNested"
       >
-        <hlm-resizable-group class="h-[220px] w-full max-w-sm rounded-lg border">
+        <hlm-resizable-group class="h-56 w-full max-w-sm rounded-lg border">
           <hlm-resizable-panel defaultSize="50">
             <div class="flex h-full items-center justify-center p-6">
               <span class="font-semibold">Sidebar</span>
@@ -93,7 +93,7 @@ import { Usage } from '../usage';
           <button hlmBtn variant="outline" size="sm" class="self-start" (click)="resetLayout()">
             Reset to 40 / 60
           </button>
-          <hlm-resizable-group class="h-[160px] rounded-lg border" [(layout)]="layout">
+          <hlm-resizable-group class="h-40 rounded-lg border" [(layout)]="layout">
             <hlm-resizable-panel defaultSize="40">
               <div class="flex h-full items-center justify-center p-6">
                 <span class="font-semibold">One</span>
@@ -119,7 +119,7 @@ export class ResizablePage {
     this.layout.set([40, 60]);
   }
 
-  protected readonly codeDefault = `<hlm-resizable-group class="h-[160px] rounded-lg border">
+  protected readonly codeDefault = `<hlm-resizable-group class="h-40 rounded-lg border">
   <hlm-resizable-panel defaultSize="50">
     <div class="flex h-full items-center justify-center p-6">One</div>
   </hlm-resizable-panel>
@@ -129,7 +129,7 @@ export class ResizablePage {
   </hlm-resizable-panel>
 </hlm-resizable-group>`;
 
-  protected readonly codeVertical = `<hlm-resizable-group class="h-[220px] rounded-lg border" direction="vertical">
+  protected readonly codeVertical = `<hlm-resizable-group class="h-56 rounded-lg border" direction="vertical">
   <hlm-resizable-panel defaultSize="30">
     <div class="flex h-full items-center justify-center p-6">Header</div>
   </hlm-resizable-panel>
@@ -139,7 +139,7 @@ export class ResizablePage {
   </hlm-resizable-panel>
 </hlm-resizable-group>`;
 
-  protected readonly codeNested = `<hlm-resizable-group class="h-[220px] rounded-lg border">
+  protected readonly codeNested = `<hlm-resizable-group class="h-56 rounded-lg border">
   <hlm-resizable-panel defaultSize="50">
     <div class="flex h-full items-center justify-center p-6">Sidebar</div>
   </hlm-resizable-panel>
@@ -161,7 +161,7 @@ export class ResizablePage {
 resetLayout() { this.layout.set([40, 60]); }
 
 <button hlmBtn variant="outline" size="sm" (click)="resetLayout()">Reset to 40 / 60</button>
-<hlm-resizable-group class="h-[160px] rounded-lg border" [(layout)]="layout">
+<hlm-resizable-group class="h-40 rounded-lg border" [(layout)]="layout">
   <hlm-resizable-panel defaultSize="40">
     <div class="flex h-full items-center justify-center p-6">One</div>
   </hlm-resizable-panel>

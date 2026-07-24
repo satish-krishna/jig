@@ -27,7 +27,7 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="The built-in trigger toggles the panel — no extra wiring needed."
         [code]="codeDefault"
       >
-        <hlm-collapsible class="flex w-[300px] flex-col gap-2">
+        <hlm-collapsible class="grid w-72 gap-2">
           <div class="flex items-center justify-between gap-4">
             <h4 class="text-sm font-semibold">Order #4189</h4>
             <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon" class="size-8">
@@ -53,7 +53,7 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="disabled makes the built-in trigger inert; the panel cannot be toggled."
         [code]="codeDisabled"
       >
-        <hlm-collapsible class="flex w-[300px] flex-col gap-2" disabled>
+        <hlm-collapsible class="grid w-72 gap-2" disabled>
           <div class="flex items-center justify-between gap-4">
             <h4 class="text-sm font-semibold">Locked section</h4>
             <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon" class="size-8">
@@ -72,7 +72,7 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="expanded/expandedChange are wired to a signal, driven here by an external button instead of the built-in trigger."
         [code]="codeControlled"
       >
-        <div class="flex w-[300px] flex-col gap-2">
+        <div class="grid w-72 gap-2">
           <button hlmBtn variant="outline" size="sm" class="self-start" (click)="detailsOpen.set(!detailsOpen())">
             {{ detailsOpen() ? 'Hide' : 'Show' }} shipping details
           </button>
@@ -92,7 +92,7 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="Adding or clearing members mutates a real signal, and the panel height animates to fit."
         [code]="codeComposition"
       >
-        <hlm-collapsible class="flex w-[300px] flex-col gap-2">
+        <hlm-collapsible class="grid w-72 gap-2">
           <div class="flex items-center justify-between gap-4">
             <h4 class="text-sm font-semibold">Team · {{ members().length }} members</h4>
             <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon" class="size-8">
@@ -131,7 +131,7 @@ export class CollapsiblePage {
     this.members.set([]);
   }
 
-  protected readonly codeDefault = `<hlm-collapsible class="flex w-[300px] flex-col gap-2">
+  protected readonly codeDefault = `<hlm-collapsible class="grid w-72 gap-2">
   <div class="flex items-center justify-between gap-4">
     <h4 class="text-sm font-semibold">Order #4189</h4>
     <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon">

@@ -31,7 +31,7 @@ import { Usage } from '../usage';
               <hlm-avatar size="sm">
                 <span hlmAvatarFallback>AN</span>
               </hlm-avatar>
-              <div class="space-y-1">
+              <div class="grid gap-1">
                 <h4 class="text-sm font-semibold">&#64;analogjs</h4>
                 <p class="text-sm">The Angular meta-framework.</p>
                 <div class="flex items-center pt-1">
@@ -75,7 +75,7 @@ import { Usage } from '../usage';
             &#64;spartan
           </button>
           <hlm-hover-card-content *hlmHoverCardPortal class="w-64">
-            <div class="space-y-2">
+            <div class="grid gap-2">
               <h4 class="text-sm font-semibold">&#64;spartan</h4>
               <p class="text-sm">Angular component libraries.</p>
               <button hlmBtn [variant]="following() ? 'outline' : 'default'" size="sm" (click)="toggleFollow()">
@@ -117,7 +117,7 @@ export class HoverCardPage {
   <hlm-hover-card-content *hlmHoverCardPortal class="w-72">
     <div class="flex justify-between gap-4">
       <hlm-avatar size="sm"><span hlmAvatarFallback>AN</span></hlm-avatar>
-      <div class="space-y-1">
+      <div class="grid gap-1">
         <h4 class="text-sm font-semibold">&#64;analogjs</h4>
         <p class="text-sm">The Angular meta-framework.</p>
       </div>

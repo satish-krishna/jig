@@ -91,7 +91,7 @@ import { Usage } from '../usage';
         note="[tab] and (tabActivated) are wired to a real signal — an external button can jump the active tab too."
         [code]="codeState"
       >
-        <div class="flex w-full max-w-sm flex-col gap-2">
+        <div class="grid w-full max-w-sm gap-2">
           <hlm-tabs [tab]="activeTab()" (tabActivated)="activeTab.set($event)" class="w-full">
             <hlm-tabs-list>
               <button hlmTabsTrigger="summary">Summary</button>
@@ -125,7 +125,7 @@ import { Usage } from '../usage';
                 <h3 hlmCardTitle>Account</h3>
                 <p hlmCardDescription>Make changes to your account here.</p>
               </div>
-              <div hlmCardContent class="flex flex-col gap-3">
+              <div hlmCardContent class="grid gap-3">
                 <label class="block" hlmLabel>
                   Name
                   <input class="mt-1.5 w-full" value="Pedro Duarte" hlmInput />
@@ -146,7 +146,7 @@ import { Usage } from '../usage';
                 <h3 hlmCardTitle>Password</h3>
                 <p hlmCardDescription>Change your password here.</p>
               </div>
-              <div hlmCardContent class="flex flex-col gap-3">
+              <div hlmCardContent class="grid gap-3">
                 <label class="block" hlmLabel>
                   Old password
                   <input class="mt-1.5 w-full" type="password" hlmInput />

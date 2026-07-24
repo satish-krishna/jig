@@ -60,7 +60,7 @@ import { Usage } from '../usage';
             <li hlmNavigationMenuItem>
               <button hlmNavigationMenuTrigger>Design system</button>
               <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                <ul class="grid w-[240px] gap-1 p-2">
+                <ul class="grid w-60 gap-1 p-2">
                   <li>
                     <a hlmNavigationMenuLink href="#"><ng-icon name="lucideBox" />Primitives</a>
                   </li>
@@ -88,13 +88,13 @@ import { Usage } from '../usage';
               <li hlmNavigationMenuItem id="getting-started">
                 <button hlmNavigationMenuTrigger>Getting started</button>
                 <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                  <p class="w-[200px] p-3 text-sm">Install the CLI and scaffold your first project.</p>
+                  <p class="w-48 p-3 text-sm">Install the CLI and scaffold your first project.</p>
                 </hlm-navigation-menu-content>
               </li>
               <li hlmNavigationMenuItem id="components">
                 <button hlmNavigationMenuTrigger>Components</button>
                 <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                  <p class="w-[200px] p-3 text-sm">Browse every component and its API.</p>
+                  <p class="w-48 p-3 text-sm">Browse every component and its API.</p>
                 </hlm-navigation-menu-content>
               </li>
             </ul>

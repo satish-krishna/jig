@@ -48,7 +48,7 @@ import { Usage } from '../usage';
         [code]="codeVertical"
       >
         <hlm-carousel class="w-full max-w-48" orientation="vertical">
-          <hlm-carousel-content class="h-[220px]">
+          <hlm-carousel-content class="h-56">
             @for (item of slides; track item) {
               <hlm-carousel-item>
                 <div class="p-1">
@@ -144,7 +144,7 @@ export class CarouselPage {
 </hlm-carousel>`;
 
   protected readonly codeVertical = `<hlm-carousel class="w-full max-w-48" orientation="vertical">
-  <hlm-carousel-content class="h-[220px]">
+  <hlm-carousel-content class="h-56">
     @for (item of slides; track item) {
       <hlm-carousel-item>{{ item }}</hlm-carousel-item>
     }

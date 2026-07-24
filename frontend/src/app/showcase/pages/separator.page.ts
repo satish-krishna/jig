@@ -21,7 +21,7 @@ import { Usage } from '../usage';
         note="No orientation attribute needed — horizontal is the default."
         [code]="codeHorizontal"
       >
-        <div class="flex max-w-sm flex-col gap-4 text-sm">
+        <div class="grid max-w-sm gap-4 text-sm">
           <div class="flex flex-col gap-1.5">
             <div class="font-medium leading-none">spartan/ui</div>
             <div class="text-muted-foreground">An open-source UI component library.</div>
@@ -50,18 +50,18 @@ import { Usage } from '../usage';
         note="Repeated horizontal separators, one per row boundary."
         [code]="codeList"
       >
-        <div class="flex w-full max-w-sm flex-col gap-2 text-sm">
-          <dl class="flex items-center justify-between">
+        <div class="grid w-full max-w-sm gap-2 text-sm">
+          <dl class="grid grid-cols-[1fr_auto] items-center">
             <dt>Plan</dt>
             <dd class="text-muted-foreground">Professional</dd>
           </dl>
           <hlm-separator />
-          <dl class="flex items-center justify-between">
+          <dl class="grid grid-cols-[1fr_auto] items-center">
             <dt>Seats</dt>
             <dd class="text-muted-foreground">12</dd>
           </dl>
           <hlm-separator />
-          <dl class="flex items-center justify-between">
+          <dl class="grid grid-cols-[1fr_auto] items-center">
             <dt>Renews</dt>
             <dd class="text-muted-foreground">Oct 4</dd>
           </dl>
@@ -73,7 +73,7 @@ import { Usage } from '../usage';
         note="Horizontal groups stacked, each pair of groups divided by a vertical separator — the layout a settings header would use."
         [code]="codeComposition"
       >
-        <div class="flex items-center gap-4 text-sm">
+        <div class="grid grid-flow-col auto-cols-auto items-center gap-4 text-sm">
           <div class="flex flex-col gap-1">
             <span class="font-medium">Settings</span>
             <span class="text-muted-foreground text-xs">Manage preferences</span>
@@ -109,17 +109,17 @@ export class SeparatorPage {
   <div>Source</div>
 </div>`;
 
-  protected readonly codeList = `<dl class="flex items-center justify-between">
+  protected readonly codeList = `<dl class="grid grid-cols-[1fr_auto] items-center">
   <dt>Plan</dt>
   <dd class="text-muted-foreground">Professional</dd>
 </dl>
 <hlm-separator />
-<dl class="flex items-center justify-between">
+<dl class="grid grid-cols-[1fr_auto] items-center">
   <dt>Seats</dt>
   <dd class="text-muted-foreground">12</dd>
 </dl>`;
 
-  protected readonly codeComposition = `<div class="flex items-center gap-4 text-sm">
+  protected readonly codeComposition = `<div class="grid grid-flow-col auto-cols-auto items-center gap-4 text-sm">
   <div class="flex flex-col gap-1">
     <span class="font-medium">Settings</span>
     <span class="text-muted-foreground text-xs">Manage preferences</span>

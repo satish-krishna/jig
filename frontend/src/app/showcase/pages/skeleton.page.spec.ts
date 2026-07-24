@@ -26,12 +26,9 @@ describe('SkeletonPage', () => {
   });
 
   it('renders three rows of skeleton cells for the table composition', () => {
-    const rows = host.querySelectorAll('[data-slot="usage-stage"]')[2];
-    const cellGroups = rows.querySelectorAll(':scope > div > div');
-    expect(cellGroups.length).toBe(3);
-    for (const group of cellGroups) {
-      expect(group.querySelectorAll('[data-slot="skeleton"]').length).toBe(3);
-    }
+    const stage = host.querySelectorAll('[data-slot="usage-stage"]')[2];
+    const grid = stage.querySelector(':scope > div');
+    expect(grid?.querySelectorAll('[data-slot="skeleton"]').length).toBe(9);
   });
 
   it('swaps the skeleton for real content from a real signal, not forceShow', () => {
