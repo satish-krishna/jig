@@ -13,7 +13,7 @@ import { newUserCommand } from './users.commands';
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserForm],
   providers: [UserListViewModel],
   template: `

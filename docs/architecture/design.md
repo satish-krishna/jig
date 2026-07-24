@@ -14,7 +14,10 @@ Both render the same visual language. They are not two design systems — the `j
 ## Production UI
 
 - **Controls are spartan helm.** Compose from `frontend/libs/ui/*` behind the `@spartan-ng/helm/*` alias; add one with `ng g @spartan-ng/cli:ui <name>`. Never hand-roll a styled control that spartan already provides. The `spartan` skill and MCP carry the component APIs.
-- **Never hardcode a token.** Colors, radius, spacing, and shadow come from the CSS custom properties in `styles.css` (`--primary`, `--muted-foreground`, `--border`, `--radius`, `--sidebar`, …). A literal hex or px in a component is the smell.
+- **Layout is Grid. Flex is for inline runs.** Anything that arranges a component's *regions* — a page, a view, a card's internal structure, a form's rows, a two-pane split — is `grid`, declared in one place with `grid-template-columns` / `grid-template-areas`. Flex is for a single inline run of content: an icon beside a label, a row of buttons, a list of chips. One axis, content-sized, order-driven.
+  **The test:** if you are nesting a flex container inside another flex container to place things in two dimensions, that is a grid you have not written yet. Nested flex hides the layout in three files; a grid states it in one line you can read. The app shell in `frontend/src/app/shell/shell.layout.css` is the worked example — its whole structure is four lines of `grid-template-areas`.
+- **Never hardcode a token.** Colors, radius, and shadow come from the CSS custom properties in `styles.css` (`--primary`, `--muted-foreground`, `--border`, `--radius`, `--sidebar`, …). A literal hex or px in a component is the smell.
+- **Know which half of the look is a token and which is generated.** Color and radius are token-driven — the generated components reference `bg-primary` and `rounded-lg`, so `styles.css` controls them and a change is one line. Control *size and spacing* is not: the spartan style inlines literals (`h-8`, `px-2.5`, `gap-1.5`) into `libs/ui` at generation time, so making controls taller or roomier means `npm run ui:style -- <style>` and a regeneration, never a token edit. Reaching for a token to change a height is the tell that you have the wrong lever. See ADR 0010.
 - **Do not copy the skill's CSS into production.** The skill's `css/*` is a mirror for offline rendering; forking it into the app creates a second source of truth for the theme. Change the theme in `styles.css`; the skill is downstream.
 
 ## Mocks, previews, and prototypes
@@ -28,7 +31,7 @@ These traits define jig and are not yours to loosen. Their canonical statement (
 
 - **Palette:** pure neutral OKLCH grayscale, zero chroma. `--destructive` (red) is the *only* chromatic token. This is a canvas, not a billboard.
 - **Density:** 4px base, compact 32px (`h-8`) controls, `px-2.5`. Do not roomy-fy it.
-- **Radius:** 0 — flat squared corners (the Spartan **Lyra** look). Only avatars round.
+- **Radius:** the spartan **nova** default — `--radius: 0.625rem` in `styles.css`, from which the preset derives the rest (`--radius-md` at 0.8×, `--radius-xl` at 1.4×). Corners are token-driven: the generated components carry `rounded-lg` / `rounded-t-xl`, which resolve through `--radius`, so one line in `styles.css` restyles every corner in the app. Avatars are the only fully round element (`--radius-full`).
 - **Borders over shadow:** 1px hairlines everywhere; `shadow-sm` at most. No glow, no colored borders, no accent stripes.
 - **Backgrounds:** flat solid fills. No gradients, no imagery, no texture.
 - **Motion:** quick and functional (120–150ms); a 1px press nudge; no bounces or loops.
@@ -38,6 +41,7 @@ These traits define jig and are not yours to loosen. Their canonical statement (
 ## Smells that mean the pattern is breaking
 
 - A literal hex or px in a component instead of a `styles.css` token.
+- Nested flex containers doing a job one `grid-template-columns` or `grid-template-areas` would state in a single readable line.
 - A hand-rolled control that duplicates a spartan helm component.
 - Editing the `jig-design` skill's `css/*` to change how the *app* looks (edit `styles.css` — the skill is downstream).
 - A prototype's React bundle wired into a production path.

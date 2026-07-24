@@ -42,9 +42,31 @@ Button sizes: `default | xs | sm | lg | icon | icon-xs | icon-sm | icon-lg`.
 
 ## `class` is for layout only
 
-Use the `class` attribute to position and space components (flex, grid, gap, margins, widths). Do
+Use the `class` attribute to position and space components (grid, flex, gap, margins, widths). Do
 not use it to override a component's own colors, typography, or internal padding - change the copied
 Helm file or a CSS variable instead.
+
+## Grid for layout, flex for inline runs
+
+Arranging a component's *regions* - a page, a view, a card's structure, a form's rows, a split pane -
+is `grid`. Flex is for a single inline run: an icon beside a label, a row of buttons, a chip list.
+
+If you are nesting a flex container inside another flex container to place things in two dimensions,
+write the grid instead. The canonical statement of this rule, with the rationale, is in
+`docs/architecture/design.md` - this is the reminder at the point of use, not a second source of
+truth.
+
+```html
+<!-- Good: two-dimensional structure stated once -->
+<div class="grid grid-cols-[13rem_1fr] gap-6">...</div>
+<!-- Good: one inline run -->
+<div class="flex items-center gap-2"><ng-icon name="lucideUser" /> <span>ada</span></div>
+
+<!-- Bad: nested flex doing a grid's job -->
+<div class="flex flex-col gap-4">
+	<div class="flex gap-4"><aside class="w-52">...</aside><main class="flex-1">...</main></div>
+</div>
+```
 
 ## Spacing: `gap-*`, not `space-*`
 

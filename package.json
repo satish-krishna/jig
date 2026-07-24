@@ -17,7 +17,9 @@
     "catalog:check": "node tools/catalog/catalog.ts --check",
     "codegen": "node tools/codegen/generate.mjs",
     "test:tools": "node --test \"tools/**/*.test.ts\"",
-    "commitlint": "commitlint"
+    "commitlint": "commitlint",
+    "showcase:api": "node tools/showcase-api/showcase-api.ts",
+    "ui:style": "node tools/ui-style/ui-style.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",

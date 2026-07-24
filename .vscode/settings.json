@@ -1,0 +1,7 @@
+{
+  // spartan/ui inlines every utility class into hlm(), cva() and classes() calls
+  // (the CLI resolves the style's @apply bodies at generation time), so Tailwind
+  // IntelliSense is dead inside libs/ui without this. See:
+  // https://www.spartan.ng/documentation/installation#editor-setup
+  "tailwindCSS.classFunctions": ["hlm", "cva", "classes"]
+}

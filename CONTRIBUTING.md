@@ -37,7 +37,7 @@ The `users` slice ships with tests at all three levels as the reference pattern 
 
 - **Error handling.** Backend expected failures travel as a `Result` envelope, never thrown exceptions. Frontend failures fold to one `AppError` at the `NormalizingTransport` seam; nothing above it branches on the wire. See `docs/architecture/conduit.md`.
 - **Types are generated, not hand-written.** Frontend DTOs come from the OpenAPI spec (`npm run codegen`); form model types are `z.infer<typeof schema>`. If you are typing a shape by hand that already exists at a boundary, stop and generate it.
-- **UI follows the design system, tokens are not hand-written.** Production UI composes spartan helm components (`frontend/libs/ui/*`) and reads every visual value from the `frontend/src/styles.css` custom properties (`--primary`, `--border`, `--radius`, …). A literal hex or px in a component is the smell — the same DRY-at-a-boundary rule as types. For mocks, previews, and prototypes, use the `jig-design` skill (portable, buildless). The skill is a downstream mirror of the app, not a second source of truth: change the theme in `styles.css`, never fork the skill's CSS into production. See `docs/architecture/design.md` and ADR 0007.
+- **UI follows the design system, tokens are not hand-written.** Production UI composes spartan helm components (`frontend/libs/ui/*`) and reads colour and radius from the `frontend/src/styles.css` custom properties (`--primary`, `--border`, `--radius`, …). Control size and spacing is not a token — the spartan style inlines `h-8`/`px-2.5` into `libs/ui` at generation time, so it changes with `npm run ui:style`, not with CSS. A literal hex or px in a component is the smell — the same DRY-at-a-boundary rule as types. For mocks, previews, and prototypes, use the `jig-design` skill (portable, buildless). The skill is a downstream mirror of the app, not a second source of truth: change the theme in `styles.css`, never fork the skill's CSS into production. See `docs/architecture/design.md` and ADR 0007.
 - **Naming mirrors the app.** The .NET projects are `Jig.Api`, `Jig.Application`, `Jig.Domain`, `Jig.Infrastructure`; the Rust crate and Tauri identifier are `jig`; spartan helm components sit under the `@spartan-ng/helm/*` alias. `tools/init` rewrites all of these when the template is renamed to a new app.
 - **Match the surrounding code.** Comment density, naming, and idiom follow the file you are editing, not your defaults.
 
@@ -77,7 +77,7 @@ Start work with `git switch -c feat/<short-description>`. The one sanctioned com
 Format: `type(scope): summary`.
 
 - **Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`, `perf`, `style`, `revert`.
-- **Scopes (required):** `transport`, `forms`, `contracts`, `api`, `shell`, `catalog`, `tools`, `repo`.
+- **Scopes (required):** `transport`, `forms`, `contracts`, `api`, `shell`, `ui`, `catalog`, `tools`, `repo`. The list here mirrors `scope-enum` in `commitlint.config.mjs`, which is the one that actually rejects a commit — if you add a scope, add it in both.
 - Enforced by the `commit-msg` hook via `commitlint` (`commitlint.config.mjs`). A malformed message is rejected, not merely discouraged.
 - Commits land at green. The `pre-commit` hook blocks a commit if the catalog is stale or the tooling tests fail (the fast checks). The full `npm run verify` gate runs in CI on every push and PR (`.github/workflows/verify.yml`); run it yourself before pushing meaningful work.
 

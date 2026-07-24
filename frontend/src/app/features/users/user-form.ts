@@ -16,27 +16,29 @@ import { userFormSchema, type UserFormModel } from './user-form.schema';
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormField, HlmFieldImports, HlmInputImports, HlmButtonImports],
   template: `
-    <form (submit)="onSubmit($event)" class="user-form">
+    <!-- hlmFieldGroup is spartan's own field stack; hlm-field lays out one field
+         and says nothing about the gap between rows. -->
+    <form hlmFieldGroup (submit)="onSubmit($event)">
       <hlm-field>
         <label hlmFieldLabel for="name">{{ meta['name'].label }}</label>
         <input hlmInput id="name" [formField]="form.name" [attr.placeholder]="meta['name'].placeholder ?? null" />
-        @if (form.name().touched()) {
-          @for (error of form.name().errors(); track error.kind) {
-            <hlm-field-error data-error-for="name">{{ error.message }}</hlm-field-error>
-          }
+        <!-- No touched() guard: hlm-field-error already gates itself on the field's
+             error state, and only registers its id with the control's
+             aria-describedby while showing. Guarding it here would hide it from
+             assistive tech as well as from sight. -->
+        @for (error of form.name().errors(); track error.kind) {
+          <hlm-field-error data-error-for="name">{{ error.message }}</hlm-field-error>
         }
       </hlm-field>
 
       <hlm-field>
         <label hlmFieldLabel for="email">{{ meta['email'].label }}</label>
         <input hlmInput id="email" [formField]="form.email" [attr.placeholder]="meta['email'].placeholder ?? null" />
-        @if (form.email().touched()) {
-          @for (error of form.email().errors(); track error.kind) {
-            <hlm-field-error data-error-for="email">{{ error.message }}</hlm-field-error>
-          }
+        @for (error of form.email().errors(); track error.kind) {
+          <hlm-field-error data-error-for="email">{{ error.message }}</hlm-field-error>
         }
       </hlm-field>
 

@@ -1,0 +1,182 @@
+import type { Routes } from '@angular/router';
+
+/**
+ * Explicit slug -> lazy page map. Deliberately not a template-literal dynamic
+ * import: the Angular builder resolves lazy chunks statically, so
+ * `import('./pages/' + slug)` yields no chunk and fails at runtime.
+ *
+ * Adding a component page is one line here and nothing else — this array is the
+ * only record of which pages exist. A parallel `documented` flag in the registry
+ * used to duplicate it; it was never read, and two hand-maintained statements of
+ * one fact is exactly the drift the catalog generator exists to prevent.
+ */
+export const PAGE_ROUTES: Routes = [
+  // Actions
+  { path: 'button', loadComponent: () => import('./pages/button.page').then((m) => m.ButtonPage) },
+  {
+    path: 'button-group',
+    loadComponent: () => import('./pages/button-group.page').then((m) => m.ButtonGroupPage),
+  },
+  { path: 'toggle', loadComponent: () => import('./pages/toggle.page').then((m) => m.TogglePage) },
+  {
+    path: 'toggle-group',
+    loadComponent: () => import('./pages/toggle-group.page').then((m) => m.ToggleGroupPage),
+  },
+
+  // Forms
+  { path: 'field', loadComponent: () => import('./pages/field.page').then((m) => m.FieldPage) },
+  { path: 'label', loadComponent: () => import('./pages/label.page').then((m) => m.LabelPage) },
+  { path: 'input', loadComponent: () => import('./pages/input.page').then((m) => m.InputPage) },
+  {
+    path: 'textarea',
+    loadComponent: () => import('./pages/textarea.page').then((m) => m.TextareaPage),
+  },
+  {
+    path: 'native-select',
+    loadComponent: () => import('./pages/native-select.page').then((m) => m.NativeSelectPage),
+  },
+  { path: 'select', loadComponent: () => import('./pages/select.page').then((m) => m.SelectPage) },
+  {
+    path: 'combobox',
+    loadComponent: () => import('./pages/combobox.page').then((m) => m.ComboboxPage),
+  },
+  {
+    path: 'autocomplete',
+    loadComponent: () => import('./pages/autocomplete.page').then((m) => m.AutocompletePage),
+  },
+  {
+    path: 'checkbox',
+    loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
+  },
+  {
+    path: 'radio-group',
+    loadComponent: () => import('./pages/radio-group.page').then((m) => m.RadioGroupPage),
+  },
+  { path: 'switch', loadComponent: () => import('./pages/switch.page').then((m) => m.SwitchPage) },
+  { path: 'slider', loadComponent: () => import('./pages/slider.page').then((m) => m.SliderPage) },
+  {
+    path: 'input-group',
+    loadComponent: () => import('./pages/input-group.page').then((m) => m.InputGroupPage),
+  },
+  {
+    path: 'input-otp',
+    loadComponent: () => import('./pages/input-otp.page').then((m) => m.InputOtpPage),
+  },
+  {
+    path: 'date-picker',
+    loadComponent: () => import('./pages/date-picker.page').then((m) => m.DatePickerPage),
+  },
+  {
+    path: 'calendar',
+    loadComponent: () => import('./pages/calendar.page').then((m) => m.CalendarPage),
+  },
+
+  // Menus
+  {
+    path: 'dropdown-menu',
+    loadComponent: () => import('./pages/dropdown-menu.page').then((m) => m.DropdownMenuPage),
+  },
+  {
+    path: 'context-menu',
+    loadComponent: () => import('./pages/context-menu.page').then((m) => m.ContextMenuPage),
+  },
+  { path: 'menubar', loadComponent: () => import('./pages/menubar.page').then((m) => m.MenubarPage) },
+  { path: 'command', loadComponent: () => import('./pages/command.page').then((m) => m.CommandPage) },
+
+  // Overlays
+  { path: 'dialog', loadComponent: () => import('./pages/dialog.page').then((m) => m.DialogPage) },
+  {
+    path: 'alert-dialog',
+    loadComponent: () => import('./pages/alert-dialog.page').then((m) => m.AlertDialogPage),
+  },
+  { path: 'sheet', loadComponent: () => import('./pages/sheet.page').then((m) => m.SheetPage) },
+  { path: 'drawer', loadComponent: () => import('./pages/drawer.page').then((m) => m.DrawerPage) },
+  { path: 'popover', loadComponent: () => import('./pages/popover.page').then((m) => m.PopoverPage) },
+  {
+    path: 'hover-card',
+    loadComponent: () => import('./pages/hover-card.page').then((m) => m.HoverCardPage),
+  },
+  { path: 'tooltip', loadComponent: () => import('./pages/tooltip.page').then((m) => m.TooltipPage) },
+
+  // Navigation
+  { path: 'tabs', loadComponent: () => import('./pages/tabs.page').then((m) => m.TabsPage) },
+  {
+    path: 'breadcrumb',
+    loadComponent: () => import('./pages/breadcrumb.page').then((m) => m.BreadcrumbPage),
+  },
+  {
+    path: 'pagination',
+    loadComponent: () => import('./pages/pagination.page').then((m) => m.PaginationPage),
+  },
+  {
+    path: 'navigation-menu',
+    loadComponent: () => import('./pages/navigation-menu.page').then((m) => m.NavigationMenuPage),
+  },
+  { path: 'sidebar', loadComponent: () => import('./pages/sidebar.page').then((m) => m.SidebarPage) },
+
+  // Layout
+  {
+    path: 'separator',
+    loadComponent: () => import('./pages/separator.page').then((m) => m.SeparatorPage),
+  },
+  {
+    path: 'accordion',
+    loadComponent: () => import('./pages/accordion.page').then((m) => m.AccordionPage),
+  },
+  {
+    path: 'collapsible',
+    loadComponent: () => import('./pages/collapsible.page').then((m) => m.CollapsiblePage),
+  },
+  {
+    path: 'carousel',
+    loadComponent: () => import('./pages/carousel.page').then((m) => m.CarouselPage),
+  },
+  {
+    path: 'resizable',
+    loadComponent: () => import('./pages/resizable.page').then((m) => m.ResizablePage),
+  },
+  {
+    path: 'scroll-area',
+    loadComponent: () => import('./pages/scroll-area.page').then((m) => m.ScrollAreaPage),
+  },
+
+  // Data display
+  { path: 'table', loadComponent: () => import('./pages/table.page').then((m) => m.TablePage) },
+  { path: 'card', loadComponent: () => import('./pages/card.page').then((m) => m.CardPage) },
+  { path: 'badge', loadComponent: () => import('./pages/badge.page').then((m) => m.BadgePage) },
+  { path: 'avatar', loadComponent: () => import('./pages/avatar.page').then((m) => m.AvatarPage) },
+  { path: 'kbd', loadComponent: () => import('./pages/kbd.page').then((m) => m.KbdPage) },
+  { path: 'item', loadComponent: () => import('./pages/item.page').then((m) => m.ItemPage) },
+  { path: 'empty', loadComponent: () => import('./pages/empty.page').then((m) => m.EmptyPage) },
+  {
+    path: 'typography',
+    loadComponent: () => import('./pages/typography.page').then((m) => m.TypographyPage),
+  },
+  {
+    path: 'aspect-ratio',
+    loadComponent: () => import('./pages/aspect-ratio.page').then((m) => m.AspectRatioPage),
+  },
+
+  // Feedback
+  { path: 'alert', loadComponent: () => import('./pages/alert.page').then((m) => m.AlertPage) },
+  {
+    path: 'progress',
+    loadComponent: () => import('./pages/progress.page').then((m) => m.ProgressPage),
+  },
+  {
+    path: 'skeleton',
+    loadComponent: () => import('./pages/skeleton.page').then((m) => m.SkeletonPage),
+  },
+  { path: 'spinner', loadComponent: () => import('./pages/spinner.page').then((m) => m.SpinnerPage) },
+  { path: 'sonner', loadComponent: () => import('./pages/sonner.page').then((m) => m.SonnerPage) },
+
+  // Patterns
+  {
+    path: 'schema-form',
+    loadComponent: () => import('./pages/schema-form.page').then((m) => m.SchemaFormPage),
+  },
+  {
+    path: 'signal-form',
+    loadComponent: () => import('./pages/signal-form.page').then((m) => m.SignalFormPage),
+  },
+];

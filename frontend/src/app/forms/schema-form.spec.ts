@@ -43,6 +43,38 @@ describe('SchemaForm (dynamic renderer)', () => {
     expect(err.textContent).toContain('Title is required');
   });
 
+  it('drives the field into spartan-invalid so the control renders as invalid', () => {
+    const fixture = render();
+    fixture.componentInstance.onSubmit();
+    fixture.detectChanges();
+
+    // data-matches-spartan-invalid is what the generated helm classes key off for
+    // the destructive ring and border; without it the control looks untouched
+    // while the error text below it says otherwise.
+    const field = fixture.nativeElement.querySelector('hlm-field');
+    expect(field.getAttribute('data-matches-spartan-invalid')).toBe('true');
+  });
+
+  it('links the control to its error message for assistive tech', () => {
+    const fixture = render();
+    fixture.componentInstance.onSubmit();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('#title');
+    const error = fixture.nativeElement.querySelector('[data-error-for="title"]');
+    expect(input.getAttribute('aria-describedby')).toBe(error.id);
+  });
+
+  it('stacks its fields through the spartan field group, not flush against each other', () => {
+    // The form had no layout at all until the showcase became its first
+    // consumer: hlm-field lays out one field internally and says nothing about
+    // the gap BETWEEN fields, so every row sat flush. hlmFieldGroup is spartan's
+    // own answer to that, which is why this is an attribute and not a class.
+    const form = render().nativeElement.querySelector('form');
+
+    expect(form.getAttribute('data-slot')).toBe('field-group');
+  });
+
   it('emits the parsed value when the schema passes', () => {
     const fixture = render();
     let emitted: Record<string, unknown> | undefined;

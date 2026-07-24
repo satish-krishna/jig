@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 20,
+  "count": 22,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -161,6 +161,22 @@
       "file": "frontend/src/app/transport/provide-transport.ts",
       "language": "typescript",
       "symbol": "provideTransport"
+    },
+    {
+      "capability": "ui.component-showcase",
+      "intent": "Browse every vendored spartan component, one page each, with verified usages.",
+      "reuse": "Route to /showcase. Add a component page under showcase/pages and register it in component-registry.ts.",
+      "file": "frontend/src/app/showcase/showcase-layout.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "ui.theme-mode",
+      "intent": "Switch the app between light and dark, remembering the choice.",
+      "reuse": "Inject it and call toggle(), or bind to mode(). Applied globally from the shell header.",
+      "file": "frontend/src/app/theme/theme.service.ts",
+      "language": "typescript",
+      "symbol": "ThemeService"
     }
   ]
 }

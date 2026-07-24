@@ -69,10 +69,11 @@ never marketing.
 - **Spacing & density.** 4px base unit. Controls are **compact**: default height is
   **32px (`h-8`)**, horizontal padding **10px (`px-2.5`)**, control gap 6px. Card gutters
   are 24px. This tightness is a defining jig trait — do not loosen to a roomier scale.
-- **Radius (Lyra style).** Flat, squared corners throughout — the `--radius` knob is
-  **0**, so buttons, inputs, cards, and menu rows all render with sharp corners. Only
-  genuinely circular elements (avatars) keep `--radius-full`. This is the Spartan **Lyra**
-  look; to soften back to the rounded default, raise `--radius` in `tokens/radius.css`.
+- **Radius (nova style).** The `--radius` knob is **0.625rem (10px)**, and every other
+  radius derives from it: controls 10px, cards 14px, menu rows 8px. Only genuinely
+  circular elements (avatars) keep `--radius-full`. This mirrors `frontend/src/styles.css`
+  — the app is upstream (ADR 0007), so if `--radius` moves there it moves here. To go flat,
+  set `--radius: 0` in the app; corners are token-driven, so nothing needs regenerating.
 - **Borders over shadow.** The UI is built on **1px hairlines** (`--border`, a light
   gray) — inputs, cards, table rows, the sidebar edge, the header underline. Shadow is
   deliberately restrained: `shadow-sm` on cards, larger ramps reserved for popovers and

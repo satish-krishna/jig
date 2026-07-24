@@ -7,7 +7,7 @@ export default {
     'scope-enum': [
       2,
       'always',
-      ['transport', 'forms', 'contracts', 'api', 'shell', 'catalog', 'tools', 'repo'],
+      ['transport', 'forms', 'contracts', 'api', 'shell', 'ui', 'catalog', 'tools', 'repo'],
     ],
     'scope-empty': [2, 'never'],
   },
