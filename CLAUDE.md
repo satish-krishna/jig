@@ -77,8 +77,8 @@ frontend/src/app/
   features/users/       the reference slice. Copy this shape.
   showcase/            live examples of every libs/ui component, routed at /showcase
 frontend/libs/ui/       GENERATED spartan helm components (never hand-edit; add with the CLI — ADR 0010)
-frontend/src/styles.css theme tokens: source of truth for UI *colour* (OKLCH, light + dark). Control
-                        shape (heights, radii, padding) is baked into libs/ui at generation time.
+frontend/src/styles.css theme tokens: colour AND radius (OKLCH, light + dark). Control size and
+                        spacing (h-8, px-2.5) is inlined into libs/ui at generation time — ADR 0010.
 .claude/skills/jig-design/  design-language skill: mocks/previews + the feel spec (downstream mirror of the app, ADR 0007)
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure
 contracts/openapi/     OpenAPI spec emitted by the API (source for TS codegen)

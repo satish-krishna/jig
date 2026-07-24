@@ -1,16 +1,22 @@
 /* ────────────────────────────────────────────────────────────
-   Jig — Radius tokens · LYRA style
-   Lyra is Spartan's flat, squared-corner look: the --radius knob
-   is 0, so every control and card renders with sharp corners.
-   --radius-full is kept for genuinely circular elements (avatars).
+   Jig — Radius tokens · NOVA style
+   Mirrors the app. frontend/src/styles.css sets --radius to
+   0.625rem and the spartan preset derives the rest from it by
+   multiplication (0.6x, 0.8x, 1.0x, 1.4x, 1.8x). Those resolved
+   values are written out here only because this mirror renders
+   without the preset that would compute them.
+   The app is upstream (ADR 0007): if --radius moves there, move
+   it here to match. This file previously declared the Lyra look
+   (every radius 0), which the app has never used.
+   --radius-full is for genuinely circular elements (avatars).
    ──────────────────────────────────────────────────────────── */
 
 :root {
-  --radius: 0;            /* flat — the defining Lyra trait */
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;         /* controls: buttons, inputs */
-  --radius-xl: 0;         /* cards */
-  --radius-2xl: 0;
-  --radius-full: 9999px;  /* avatars / circular badges only */
+  --radius: 0.625rem;      /* 10px — the knob everything derives from */
+  --radius-sm: 0.375rem;   /* 0.6x  →  6px */
+  --radius-md: 0.5rem;     /* 0.8x  →  8px */
+  --radius-lg: 0.625rem;   /* 1.0x  → 10px — controls: buttons, inputs */
+  --radius-xl: 0.875rem;   /* 1.4x  → 14px — cards */
+  --radius-2xl: 1.125rem;  /* 1.8x  → 18px */
+  --radius-full: 9999px;   /* avatars / circular badges only */
 }
