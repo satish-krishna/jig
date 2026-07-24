@@ -27,6 +27,16 @@ describe('UserForm', () => {
     expect(fixture.nativeElement.querySelectorAll('input').length).toBe(2);
   });
 
+  it('stacks its fields through the spartan field group, not a class that styles nothing', () => {
+    // It carried class="user-form", which matched no rule in styles.css or any
+    // component stylesheet, so the rows sat flush. hlmFieldGroup is spartan's own
+    // field stack — the reference form should not hand-roll one.
+    const form = render().nativeElement.querySelector('form');
+
+    expect(form.getAttribute('data-slot')).toBe('field-group');
+    expect(form.classList.contains('user-form')).toBe(false);
+  });
+
   it('surfaces the zod validation on the matching field (Standard Schema bridge)', () => {
     const fixture = render();
     const form = (fixture.componentInstance as unknown as { form: TestForm }).form;

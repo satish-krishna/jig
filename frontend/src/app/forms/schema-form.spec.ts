@@ -65,6 +65,16 @@ describe('SchemaForm (dynamic renderer)', () => {
     expect(input.getAttribute('aria-describedby')).toBe(error.id);
   });
 
+  it('stacks its fields through the spartan field group, not flush against each other', () => {
+    // The form had no layout at all until the showcase became its first
+    // consumer: hlm-field lays out one field internally and says nothing about
+    // the gap BETWEEN fields, so every row sat flush. hlmFieldGroup is spartan's
+    // own answer to that, which is why this is an attribute and not a class.
+    const form = render().nativeElement.querySelector('form');
+
+    expect(form.getAttribute('data-slot')).toBe('field-group');
+  });
+
   it('emits the parsed value when the schema passes', () => {
     const fixture = render();
     let emitted: Record<string, unknown> | undefined;

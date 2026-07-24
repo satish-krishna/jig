@@ -19,7 +19,9 @@ import { userFormSchema, type UserFormModel } from './user-form.schema';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormField, HlmFieldImports, HlmInputImports, HlmButtonImports],
   template: `
-    <form (submit)="onSubmit($event)" class="user-form">
+    <!-- hlmFieldGroup is spartan's own field stack; hlm-field lays out one field
+         and says nothing about the gap between rows. -->
+    <form hlmFieldGroup (submit)="onSubmit($event)">
       <hlm-field>
         <label hlmFieldLabel for="name">{{ meta['name'].label }}</label>
         <input hlmInput id="name" [formField]="form.name" [attr.placeholder]="meta['name'].placeholder ?? null" />

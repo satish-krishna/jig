@@ -42,7 +42,10 @@ function defaultFor(meta: FormFieldMeta): unknown {
     HlmButtonImports,
   ],
   template: `
-    <form [formGroup]="form()" (ngSubmit)="onSubmit()">
+    <!-- hlmFieldGroup, not a hand-written stack: hlm-field lays out ONE field and
+         says nothing about the gap between rows, and spartan already ships the
+         primitive for that. -->
+    <form hlmFieldGroup [formGroup]="form()" (ngSubmit)="onSubmit()">
       @for (field of fields(); track field.name) {
         <hlm-field>
           <label hlmFieldLabel [attr.for]="field.name">{{ field.meta.label }}</label>
