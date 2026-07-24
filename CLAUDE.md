@@ -39,6 +39,7 @@ This file is tier one. Everything below is disclosed on demand: open the file th
 | Touch the transport seam (IPC or HTTP) | `docs/architecture/conduit.md` |
 | Build or change a form | `docs/architecture/forms.md` |
 | Build UI, style a component, or make a mock | `docs/architecture/design.md` |
+| Add or change a component showcase page | `frontend/src/app/showcase/pages/checkbox.page.ts` (the pattern) |
 | Add a whole feature | `.bob/prompts/new-feature.md` |
 | Understand a past decision | `.bob/adr/` |
 
@@ -52,9 +53,11 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 |---|---|
 | `npm run setup` | One-command environment bootstrap for a fresh clone |
 | `npm run dev` | Frontend HMR + backend hot-reload together; monitor it for compile errors |
-| `npm run verify` | Full build, all tests, and catalog freshness (the green gate) |
+| `npm run verify` | Full build, all tests, catalog and showcase-API freshness (the green gate) |
 | `npm run catalog` | Regenerate the capability catalog after annotating code |
 | `npm run codegen` | Emit OpenAPI from the API and generate the TypeScript DTOs |
+| `npm run showcase:api` | Regenerate the showcase API tables from `libs/ui` (verify checks freshness) |
+| `npm run ui:style -- <name>` | Switch the spartan style. Deletes and regenerates `libs/ui`; refuses on a dirty tree |
 
 **Development loop:** for iterative work, run `npm run dev` in the background and watch its output for compile errors instead of full-building per change; LSP diagnostics are the type-check backup. This speeds the inner loop only. It is not the gate: run `npm run verify` (which runs the tests) before committing. The `pre-commit` hook enforces only the fast checks (catalog freshness and tooling tests); CI runs the full `npm run verify` on every push.
 
@@ -63,7 +66,7 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 ```
 CLAUDE.md              this file, always read first
 CONTRIBUTING.md        how to work here: standards, TDD, commits, gates
-docs/architecture/     task-scoped deep rules (conduit, forms)
+docs/architecture/     task-scoped deep rules (conduit, forms, design)
 .bob/registry/         GENERATED catalog (do not hand-edit)
 .bob/adr/              architecture decision records
 .bob/prompts/          feature recipes
@@ -73,8 +76,11 @@ frontend/src/app/
   transport/           port, http/ipc/normalizing transports, provide-transport
   repositories/        speak operations only
   forms/               FormFieldMeta, zod-meta, dynamic SchemaForm renderer (signal-forms for authored forms)
+  menu/                region-keyed Command registry (sidebar/header contributions)
+  theme/               light/dark mode; toggles the `dark` class on the document root
   capabilities/        native-only services (PATTERN, not yet created; add when first needed, absent from web bootstrap)
   features/users/       the reference slice. Copy this shape.
+  shell/               app shell: CSS Grid layout, sidebar, header, footer
   showcase/            live examples of every libs/ui component, routed at /showcase
 frontend/libs/ui/       GENERATED spartan helm components (never hand-edit; add with the CLI — ADR 0010)
 frontend/src/styles.css theme tokens: colour AND radius (OKLCH, light + dark). Control size and
@@ -82,7 +88,8 @@ frontend/src/styles.css theme tokens: colour AND radius (OKLCH, light + dark). C
 .claude/skills/jig-design/  design-language skill: mocks/previews + the feel spec (downstream mirror of the app, ADR 0007)
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure
 contracts/openapi/     OpenAPI spec emitted by the API (source for TS codegen)
-tools/                 setup, init (template rename), catalog generator, codegen, verify (the gate)
+tools/                 setup, init (template rename), catalog, codegen, showcase-api, ui-style,
+                       analyzers (Roslyn layer rules, ADR 0009), hooks, verify (the gate)
 ```
 
 Discover first. Annotate what you build. Commit at green.
