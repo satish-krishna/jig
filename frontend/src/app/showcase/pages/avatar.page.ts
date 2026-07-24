@@ -56,7 +56,7 @@ import { Usage } from '../usage';
         <div class="flex flex-wrap items-center gap-3">
           <hlm-avatar>
             <span hlmAvatarFallback>RG</span>
-            <hlm-avatar-badge [class]="online() ? 'bg-green-600' : 'bg-muted-foreground'" />
+            <hlm-avatar-badge [class]="online() ? 'bg-foreground' : 'bg-muted-foreground'" />
           </hlm-avatar>
           <button hlmBtn variant="outline" size="sm" (click)="toggleOnline()">
             {{ online() ? 'Go offline' : 'Go online' }}
@@ -106,7 +106,7 @@ toggleOnline() { this.online.update((v) => !v); }
 
 <hlm-avatar>
   <span hlmAvatarFallback>RG</span>
-  <hlm-avatar-badge [class]="online() ? 'bg-green-600' : 'bg-muted-foreground'" />
+  <hlm-avatar-badge [class]="online() ? 'bg-foreground' : 'bg-muted-foreground'" />
 </hlm-avatar>`;
 
   protected readonly codeGroup = `<hlm-avatar-group>

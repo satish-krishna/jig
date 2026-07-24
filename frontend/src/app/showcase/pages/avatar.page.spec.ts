@@ -45,7 +45,7 @@ describe('AvatarPage', () => {
 
     const badge = root.querySelector('hlm-avatar-badge') as HTMLElement;
     expect(badge, 'no avatar badge found').toBeTruthy();
-    expect(badge.classList.contains('bg-green-600')).toBe(true);
+    expect(badge.classList.contains('bg-foreground')).toBe(true);
   });
 
   it('reflects a click into the real online signal, flipping the badge class', () => {
