@@ -23,9 +23,51 @@ export const PAGE_ROUTES: Routes = [
   },
 
   // Forms
+  { path: 'field', loadComponent: () => import('./pages/field.page').then((m) => m.FieldPage) },
+  { path: 'label', loadComponent: () => import('./pages/label.page').then((m) => m.LabelPage) },
+  { path: 'input', loadComponent: () => import('./pages/input.page').then((m) => m.InputPage) },
+  {
+    path: 'textarea',
+    loadComponent: () => import('./pages/textarea.page').then((m) => m.TextareaPage),
+  },
+  {
+    path: 'native-select',
+    loadComponent: () => import('./pages/native-select.page').then((m) => m.NativeSelectPage),
+  },
+  { path: 'select', loadComponent: () => import('./pages/select.page').then((m) => m.SelectPage) },
+  {
+    path: 'combobox',
+    loadComponent: () => import('./pages/combobox.page').then((m) => m.ComboboxPage),
+  },
+  {
+    path: 'autocomplete',
+    loadComponent: () => import('./pages/autocomplete.page').then((m) => m.AutocompletePage),
+  },
   {
     path: 'checkbox',
     loadComponent: () => import('./pages/checkbox.page').then((m) => m.CheckboxPage),
+  },
+  {
+    path: 'radio-group',
+    loadComponent: () => import('./pages/radio-group.page').then((m) => m.RadioGroupPage),
+  },
+  { path: 'switch', loadComponent: () => import('./pages/switch.page').then((m) => m.SwitchPage) },
+  { path: 'slider', loadComponent: () => import('./pages/slider.page').then((m) => m.SliderPage) },
+  {
+    path: 'input-group',
+    loadComponent: () => import('./pages/input-group.page').then((m) => m.InputGroupPage),
+  },
+  {
+    path: 'input-otp',
+    loadComponent: () => import('./pages/input-otp.page').then((m) => m.InputOtpPage),
+  },
+  {
+    path: 'date-picker',
+    loadComponent: () => import('./pages/date-picker.page').then((m) => m.DatePickerPage),
+  },
+  {
+    path: 'calendar',
+    loadComponent: () => import('./pages/calendar.page').then((m) => m.CalendarPage),
   },
 
   // Menus
