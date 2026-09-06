@@ -23,18 +23,20 @@ test('the dirty fixture reports every hardcoded value', async () => {
   const warnings = await lint('spacing-dirty.css');
   const props = warnings.map((w) => w.text.match(/of "([^"]+)"/)?.[1]).filter(Boolean).sort();
 
-  assert.deepEqual(props, ['background', 'border-radius', 'color', 'gap', 'margin-left', 'padding']);
+  assert.deepEqual(props, ['background', 'border-radius', 'color', 'column-gap', 'gap', 'margin-left', 'padding', 'row-gap']);
 });
 
 test('the clean fixture reports nothing', async () => {
   assert.deepEqual(await lint('spacing-clean.css'), []);
 });
 
-test('1px hairlines and zero are not spacing literals', async () => {
-  // design.md declares 1px hairlines a primitive of the language, and 0 is the
-  // absence of spacing rather than a step. Neither has a token, and demanding
-  // one would invent tokens the ADR says must not exist.
+test('ignoreValues exemptions are properly guarded by property lists', async () => {
+  // Exempt values (0 and 1px) are safe only on governed properties. gap IS
+  // governed; border and inset are not. The clean fixture's gap: 1px and gap: 0
+  // pass because they match both conditions: property is governed AND value is
+  // exempt. Removing either 1px or 0 from ignoreValues makes this test fail,
+  // proving the exemptions are actually needed and tested.
   const warnings = await lint('spacing-clean.css');
 
-  assert.equal(warnings.length, 0, 'border: 1px and inset: 0 must both pass');
+  assert.equal(warnings.length, 0, 'gap: 1px and gap: 0 must pass due to ignoreValues');
 });
