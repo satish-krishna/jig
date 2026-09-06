@@ -1,8 +1,20 @@
 # Frontend enforcement: the design language as a gate
 
 - Date: 2026-09-06
-- Status: designed
+- Status: partially implemented — the spacing scale and its two gates shipped in #11 and #12; the 25-rule plugin, the hooks, and the measurement remain
 - Scope: frontend, tools/lint, tools/hooks, docs/architecture, .bob/adr
+
+## What execution changed
+
+The spacing half of this design shipped first, and building it falsified four things the rest of the design depends on. They are recorded here rather than silently corrected, because the whole subject of this document is what happens to a written rule nobody checks.
+
+**The lint toolchain installs at the repo root, not in `frontend/`.** The rules and their tests live in `tools/`, `npm run test:tools` runs from the repo root, and Node resolution walks up from `tools/` to the root `node_modules` and never into `frontend/node_modules`. A frontend-only install leaves every rule test unable to resolve `eslint` or `stylelint`. This also matches every other cross-cutting tool here — `catalog`, `codegen`, `showcase:api`, `ui-style` are all root scripts operating on subdirectories. The `lint` and `stylelint` scripts therefore live in the root `package.json`, and `verify` runs both with cwd `ROOT`.
+
+**`ignores` patterns in `frontend/eslint.config.mjs` resolve against the working directory, not the config file.** ESLint 9 pins `basePath` to cwd when `--config` is passed explicitly. The first implementation wrote `'libs/**'` expecting it to mean `frontend/libs/**`; it resolved against the repo root, matched nothing, and `frontend/libs/ui` — generated code that ADR 0010 forbids editing — was being linted. The patterns must be root-relative, and the config-completeness test pins the ignore list so a future edit cannot silently widen it.
+
+**Rule modules are TypeScript, not `.mjs`.** This repo's convention is unambiguous and predates this work: `.ts` for logic modules with exports and for every test (`catalog/parse.ts`, `init/rename.ts`, `showcase-api.ts`, and `*.test.ts` throughout), `.mjs` only for executable entry points (`verify.mjs`, `init.mjs`, the hooks). A rule is a logic module. The first implementation copied angular-jig's `.mjs` extensions instead of reading jig's own convention — a prime-directive failure — and the cost was immediate: it introduced the repo's first `.test.mjs`, which then required widening the test glob in three separate places to accommodate an extension that should never have existed. ESLint 9 loads a `.ts` plugin without ceremony; this was verified directly, not assumed. The paths below are written accordingly: `tools/lint/*.ts` for the plugin, the rules and their helpers; `.mjs` only where Node executes the file directly, which is the PostToolUse hooks and the firing-report script.
+
+**The test glob is hardcoded in three places, not one.** `package.json`'s `test:tools`, `.githooks/pre-commit`, and `tools/verify/verify.mjs` each carry their own copy. Changing one leaves the real commit gate and the real CI gate unchanged while the visible script looks correct. Any change to what the tooling tests match must touch all three.
 
 ## Problem
 
@@ -71,9 +83,9 @@ flowchart TD
   end
 
   UI -->|"npm run showcase:api"| GEN["component-api.generated.ts<br/>318 selectors, freshness-gated by verify"]
-  GEN -->|"derives attribute and element sets"| VOCAB["tools/lint/vocabulary.mjs"]
+  GEN -->|"derives attribute and element sets"| VOCAB["tools/lint/vocabulary.ts"]
 
-  VOCAB --> PLUGIN["tools/lint/index.mjs<br/>the jig plugin, 26 rules"]
+  VOCAB --> PLUGIN["tools/lint/index.ts<br/>the jig plugin, 26 rules"]
   PLUGIN --> CFG["frontend/eslint.config.mjs<br/>the single rule list"]
 
   CFG --> VERIFY["tools/verify - repo-wide"]
@@ -142,7 +154,7 @@ jig adds `no-literal-spacing`, which has no counterpart in the reference set and
 
 The hand-written part is small and stays small: a map from native element to suggested primitive, covering `button` to `hlmBtn`, `h1` to `hlmH1`, `ul` to `hlmUl`, and roughly nine more. That map changes when HTML changes, which is to say never.
 
-`tools/lint/vocabulary.mjs` asserts at load that every primitive named in the map still exists in the generated set. A spartan upgrade or a `npm run ui:style` that removes one fails the lint run loudly rather than letting a rule go quietly dead. This is the DR0002 lesson in its third application.
+`tools/lint/vocabulary.ts` asserts at load that every primitive named in the map still exists in the generated set. A spartan upgrade or a `npm run ui:style` that removes one fails the lint run loudly rather than letting a rule go quietly dead. This is the DR0002 lesson in its third application.
 
 ### Spacing becomes a token scale
 
@@ -201,7 +213,7 @@ A `rule-docs` test asserts that every rule has a doc and every doc names a real 
 
 ### Measurement
 
-`tools/hooks/_hook-log.mjs` appends one JSON line per firing, shaped `{ hook, file, count, rules, ts }`, to a git-ignored `.claude/hook-firings.jsonl`. Logging never throws into the gate, because a gate that dies when its telemetry cannot write is worse than a gate with no telemetry.
+`tools/hooks/_hook-log.ts` appends one JSON line per firing, shaped `{ hook, file, count, rules, ts }`, to a git-ignored `.claude/hook-firings.jsonl`. Logging never throws into the gate, because a gate that dies when its telemetry cannot write is worse than a gate with no telemetry.
 
 `tools/lint/analyze-firings.mjs` reads that log and reports streaks. A streak is a maximal run of consecutive firings on the same hook and file pair. A depth-one streak means the hook fired and the correction landed on the first attempt. A depth-N streak means the same file was rejected N times, which is a defect in the rule's documentation rather than in the agent. Within a streak, a `count` that steps down by one per firing is an agent walking a batch, while a `count` that stays flat or rises is not learning. The script takes `--json` so a claim about these figures can be re-derived rather than trusted.
 
@@ -237,7 +249,7 @@ Branch 1 is already approved and sits outside this spec. On `fix(ui)/exemplar-an
 
 Branch 2 is `feat(ui)/spacing-tokens`. Write the failing stylelint fixture first. Add the `@theme` block with the six spacing steps and nothing else. Migrate 19 declarations in `shell.layout.css` and roughly 310 utility sites across app templates, including the 29 orphan half-steps. Write the superseding ADR. Rewrite `design.md` along the app-authored versus vendored line, correcting all seven failed claims rather than dropping them, recording the `libs/ui` facts as facts, and settling the 200ms sidebar transition either way. Mirror the six tokens into the `jig-design` skill, which ADR 0007 makes a downstream mirror rather than a second source of truth.
 
-Branch 3 is `feat(tools)/frontend-enforcement`. Install `angular-eslint`, `typescript-eslint`, `stylelint`, and `stylelint-declaration-strict-value`. Build `tools/lint/vocabulary.mjs` against a failing test first. Then the rules, one at a time, each with its `RuleTester` test and its doc, red before green. Then the config, the completeness test, and the fixture tests. Then the PostToolUse hooks with their corrective messages, the firing log, and `analyze-firings.mjs`. Then extend `guard-ruleset.mjs` to the two configs and add `.claude/hook-firings.jsonl` to `TEMPLATE_ONLY`. Delete `standalone: true` and `changeDetection` from 68 components, which is 136 lines, extract `UserFormViewModel` and `AppShellViewModel`, replace the `signal('jig')` in `app.ts` with a plain constant, and fix the seventeen sealing sites. Add the boot-every-route Playwright spec with its route list derived from `component-registry`, and loop the existing shell layout assertions over 768 and 1280.
+Branch 3 is `feat(tools)/frontend-enforcement`. Install `angular-eslint`, `typescript-eslint`, `stylelint`, and `stylelint-declaration-strict-value`. Build `tools/lint/vocabulary.ts` against a failing test first. Then the rules, one at a time, each with its `RuleTester` test and its doc, red before green. Then the config, the completeness test, and the fixture tests. Then the PostToolUse hooks with their corrective messages, the firing log, and `analyze-firings.mjs`. Then extend `guard-ruleset.mjs` to the two configs and add `.claude/hook-firings.jsonl` to `TEMPLATE_ONLY`. Delete `standalone: true` and `changeDetection` from 68 components, which is 136 lines, extract `UserFormViewModel` and `AppShellViewModel`, replace the `signal('jig')` in `app.ts` with a plain constant, and fix the seventeen sealing sites. Add the boot-every-route Playwright spec with its route list derived from `component-registry`, and loop the existing shell layout assertions over 768 and 1280.
 
 Each branch lands green at `npm run verify` and integrates by squash merge.
 
