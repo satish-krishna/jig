@@ -42,3 +42,6 @@ frontend/.playwright/
 
 # Implementation plans are working scaffolding, not shipped artifacts — never checked in
 docs/superpowers/plans/
+
+# SDD scratch workspace (ledger, briefs, review packages) — never committed
+.superpowers/
