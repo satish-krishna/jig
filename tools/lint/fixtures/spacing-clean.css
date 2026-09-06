@@ -1,0 +1,10 @@
+.clean {
+  color: var(--foreground);
+  background: var(--card);
+  padding: var(--spacing-s);
+  margin-left: var(--spacing-l);
+  gap: var(--spacing-m);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  inset: 0;
+}

@@ -19,11 +19,14 @@
     "test:tools": "node --test \"tools/**/*.test.ts\"",
     "commitlint": "commitlint",
     "showcase:api": "node tools/showcase-api/showcase-api.ts",
+    "stylelint": "stylelint \"frontend/src/**/*.css\" --ignore-pattern \"frontend/src/styles.css\"",
     "ui:style": "node tools/ui-style/ui-style.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
-    "openapi-typescript": "^7.0.0"
+    "openapi-typescript": "^7.0.0",
+    "stylelint": "^16.26.1",
+    "stylelint-declaration-strict-value": "^1.12.1"
   }
 }
