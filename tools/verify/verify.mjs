@@ -18,6 +18,8 @@ const steps = [
   ['backend tests (.NET)', 'dotnet test services/api/Jig.sln --nologo -v q', ROOT],
   ['rust tests', 'cargo test', SRC_TAURI],
   ['frontend unit tests (Vitest)', 'npm test', FRONTEND],
+  ['frontend lint (ESLint)', 'npm run lint', ROOT],
+  ['frontend css (stylelint)', 'npm run stylelint', ROOT],
   ['frontend build (Angular AOT)', 'npm run build', FRONTEND],
   ['e2e smoke (Playwright)', 'npm run e2e', FRONTEND],
 ];

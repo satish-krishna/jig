@@ -49,6 +49,25 @@ test('renameContent rewrites the dist path and Cargo package name to kebab', () 
   assert.equal(renameContent('name = "jig"', n), 'name = "acme-portal"');
 });
 
+test('renameContent rewrites the ESLint plugin import, registration, and rule prefix consistently', () => {
+  // The `jig` plugin's import binding and its `plugins: { jig }` shorthand key
+  // are both JS identifiers, not strings, so a naive kebab-case rewrite (valid
+  // for the quoted rule prefix) would leave `plugins: { acme-portal }` and
+  // `import acme-portal from ...` — both syntax errors. The identifier must
+  // rewrite to a valid JS name while the rule prefix stays kebab-case, and the
+  // plugin registration key must still match that prefix.
+  const n = deriveNames('AcmePortal');
+  assert.equal(
+    renameContent("import jig from '../tools/lint/index.mjs';", n),
+    "import acmePortal from '../tools/lint/index.mjs';",
+  );
+  assert.equal(renameContent('plugins: { jig },', n), "plugins: { 'acme-portal': acmePortal },");
+  assert.equal(
+    renameContent("'jig/no-literal-spacing': 'error',", n),
+    "'acme-portal/no-literal-spacing': 'error',",
+  );
+});
+
 test('stripTemplateBlocks removes marked template-only prose, keeps the rest', () => {
   const text = 'keep me\n<!-- template:start -->\ntemplate only\n<!-- template:end -->\nkeep me too\n';
   assert.equal(stripTemplateBlocks(text), 'keep me\nkeep me too\n');
