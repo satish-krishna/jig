@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmTypographyImports } from '@spartan-ng/helm/typography';
 import { MenuService } from '../../menu';
 import { UserForm } from './user-form';
 import type { UserFormModel } from './user-form.schema';
@@ -14,28 +16,35 @@ import { newUserCommand } from './users.commands';
   selector: 'app-user-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [UserForm],
+  imports: [UserForm, HlmTypographyImports, HlmAlertImports],
   providers: [UserListViewModel],
+  // Composed from the helm vocabulary, not from hand-rolled class names. The
+  // element stays semantic (<h1> is still a heading) and the appearance comes
+  // from the primitive: hlmH3 is the page-title weight the showcase already
+  // uses, not hlmH1, whose text-4xl belongs to a marketing page rather than a
+  // compact desktop shell. HlmAlert supplies its own role="alert".
   template: `
-    <section class="users">
-      <h1>Users</h1>
+    <section class="grid gap-3">
+      <h1 hlmH3>Users</h1>
 
       @if (vm.formOpen()) {
         <app-user-form (saved)="onSaved($event)" />
       }
 
       @if (vm.loading()) {
-        <p class="status">Loading...</p>
+        <p hlmMuted>Loading...</p>
       }
       @if (vm.error(); as err) {
-        <p class="error" role="alert">{{ err.message }}</p>
+        <div hlmAlert variant="destructive">
+          <p hlmAlertDescription>{{ err.message }}</p>
+        </div>
       }
 
-      <ul class="user-list">
+      <ul hlmUl>
         @for (user of vm.users(); track user.id) {
           <li>{{ user.name }} · {{ user.email }}</li>
         } @empty {
-          <li class="empty">No users yet.</li>
+          <li hlmMuted>No users yet.</li>
         }
       </ul>
     </section>
