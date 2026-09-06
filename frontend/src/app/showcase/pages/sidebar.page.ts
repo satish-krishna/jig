@@ -49,7 +49,7 @@ class SidebarDemoScope {}
         <div sidebarDemoScope class="h-80 w-64 overflow-hidden rounded-lg border">
           <hlm-sidebar collapsible="none" class="h-full w-full">
             <div hlmSidebarHeader>
-              <span class="px-2 text-sm font-semibold">Acme Inc</span>
+              <span class="px-s text-sm font-semibold">Acme Inc</span>
             </div>
             <div hlmSidebarContent>
               <div hlmSidebarGroup>
@@ -63,7 +63,7 @@ class SidebarDemoScope {}
               </div>
             </div>
             <div hlmSidebarFooter>
-              <span class="text-muted-foreground px-2 text-xs">v1.0.0</span>
+              <span class="text-muted-foreground px-s text-xs">v1.0.0</span>
             </div>
           </hlm-sidebar>
         </div>
@@ -114,7 +114,7 @@ class SidebarDemoScope {}
         note="isActive is bound to a real signal, flipped by (click) — not a hand-set attribute."
         [code]="codeState"
       >
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-s">
           <div sidebarDemoScope class="h-56 w-64 overflow-hidden rounded-lg border">
             <hlm-sidebar collapsible="none" class="h-full w-full">
               <div hlmSidebarContent>

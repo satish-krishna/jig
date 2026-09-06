@@ -19,10 +19,10 @@ import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
   imports: [NgIcon],
   providers: [provideIcons({ lucideExternalLink })],
   template: `
-    <article class="grid max-w-4xl gap-8">
-      <header class="grid gap-1">
+    <article class="grid max-w-4xl gap-2xl">
+      <header class="grid gap-xs">
         <!-- one inline run: title beside its slug -->
-        <div class="flex items-baseline gap-3">
+        <div class="flex items-baseline gap-m">
           <h1 class="text-2xl font-semibold">{{ entry()?.name ?? slug() }}</h1>
           <code class="text-muted-foreground font-mono text-xs">{{ slug() }}</code>
         </div>
@@ -31,13 +31,13 @@ import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
         }
       </header>
 
-      <div class="grid gap-6"><ng-content /></div>
+      <div class="grid gap-xl"><ng-content /></div>
 
-      <section class="grid gap-3">
+      <section class="grid gap-m">
         <h2 class="text-lg font-medium">API</h2>
         @for (cls of api(); track cls.className) {
           <div class="border-border overflow-hidden rounded-lg border">
-            <header class="border-border flex items-baseline gap-3 border-b px-4 py-2">
+            <header class="border-border flex items-baseline gap-m border-b px-l py-s">
               <span class="text-sm font-medium">{{ cls.className }}</span>
               <code class="text-muted-foreground font-mono text-xs">{{ cls.selector }}</code>
             </header>
@@ -45,25 +45,25 @@ import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
               <table class="w-full text-left text-xs">
                 <thead class="text-muted-foreground">
                   <tr>
-                    <th class="px-4 py-1.5 font-medium">Member</th>
-                    <th class="px-4 py-1.5 font-medium">Kind</th>
-                    <th class="px-4 py-1.5 font-medium">Type</th>
+                    <th class="px-l py-xs font-medium">Member</th>
+                    <th class="px-l py-xs font-medium">Kind</th>
+                    <th class="px-l py-xs font-medium">Type</th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (m of cls.members; track m.name + m.kind) {
                     <tr class="border-border border-t">
-                      <td class="px-4 py-1.5 font-mono">
+                      <td class="px-l py-xs font-mono">
                         {{ m.name }}@if (m.required) {<span class="text-destructive">*</span>}
                       </td>
-                      <td class="text-muted-foreground px-4 py-1.5">{{ m.kind }}</td>
-                      <td class="text-muted-foreground px-4 py-1.5 font-mono">{{ m.type }}</td>
+                      <td class="text-muted-foreground px-l py-xs">{{ m.kind }}</td>
+                      <td class="text-muted-foreground px-l py-xs font-mono">{{ m.type }}</td>
                     </tr>
                   }
                 </tbody>
               </table>
             } @else {
-              <p class="text-muted-foreground px-4 py-2 text-xs">No inputs or outputs.</p>
+              <p class="text-muted-foreground px-l py-s text-xs">No inputs or outputs.</p>
             }
           </div>
         } @empty {
@@ -76,7 +76,7 @@ import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
       </section>
 
       @if (docsUrl(); as href) {
-        <footer class="border-border border-t pt-4">
+        <footer class="border-border border-t pt-l">
           <a
             class="text-primary text-sm underline underline-offset-4"
             [href]="href"

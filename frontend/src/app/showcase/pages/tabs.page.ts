@@ -67,15 +67,15 @@ import { Usage } from '../usage';
       >
         <hlm-tabs tab="profile" class="w-full max-w-sm">
           <hlm-tabs-list variant="line">
-            <button hlmTabsTrigger="profile" class="gap-1.5">
+            <button hlmTabsTrigger="profile" class="gap-xs">
               <ng-icon name="lucideUser" />
               Profile
             </button>
-            <button hlmTabsTrigger="billing" class="gap-1.5">
+            <button hlmTabsTrigger="billing" class="gap-xs">
               <ng-icon name="lucideCreditCard" />
               Billing
             </button>
-            <button hlmTabsTrigger="settings" class="gap-1.5">
+            <button hlmTabsTrigger="settings" class="gap-xs">
               <ng-icon name="lucideSettings" />
               Settings
             </button>
@@ -91,7 +91,7 @@ import { Usage } from '../usage';
         note="[tab] and (tabActivated) are wired to a real signal — an external button can jump the active tab too."
         [code]="codeState"
       >
-        <div class="grid w-full max-w-sm gap-2">
+        <div class="grid w-full max-w-sm gap-s">
           <hlm-tabs [tab]="activeTab()" (tabActivated)="activeTab.set($event)" class="w-full">
             <hlm-tabs-list>
               <button hlmTabsTrigger="summary">Summary</button>
@@ -102,7 +102,7 @@ import { Usage } from '../usage';
             <div hlmTabsContent="activity" class="text-muted-foreground text-sm">Activity panel.</div>
             <div hlmTabsContent="invoice" class="text-muted-foreground text-sm">Invoice panel.</div>
           </hlm-tabs>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-s">
             <button hlmBtn size="sm" variant="outline" (click)="activeTab.set('invoice')">Jump to invoice</button>
             <p class="text-muted-foreground text-xs">Active: {{ activeTab() }}</p>
           </div>
@@ -125,14 +125,14 @@ import { Usage } from '../usage';
                 <h3 hlmCardTitle>Account</h3>
                 <p hlmCardDescription>Make changes to your account here.</p>
               </div>
-              <div hlmCardContent class="grid gap-3">
+              <div hlmCardContent class="grid gap-m">
                 <label class="block" hlmLabel>
                   Name
-                  <input class="mt-1.5 w-full" value="Pedro Duarte" hlmInput />
+                  <input class="mt-xs w-full" value="Pedro Duarte" hlmInput />
                 </label>
                 <label class="block" hlmLabel>
                   Username
-                  <input class="mt-1.5 w-full" placeholder="@peduarte" hlmInput />
+                  <input class="mt-xs w-full" placeholder="@peduarte" hlmInput />
                 </label>
               </div>
               <div hlmCardFooter>
@@ -146,14 +146,14 @@ import { Usage } from '../usage';
                 <h3 hlmCardTitle>Password</h3>
                 <p hlmCardDescription>Change your password here.</p>
               </div>
-              <div hlmCardContent class="grid gap-3">
+              <div hlmCardContent class="grid gap-m">
                 <label class="block" hlmLabel>
                   Old password
-                  <input class="mt-1.5 w-full" type="password" hlmInput />
+                  <input class="mt-xs w-full" type="password" hlmInput />
                 </label>
                 <label class="block" hlmLabel>
                   New password
-                  <input class="mt-1.5 w-full" type="password" hlmInput />
+                  <input class="mt-xs w-full" type="password" hlmInput />
                 </label>
               </div>
               <div hlmCardFooter>

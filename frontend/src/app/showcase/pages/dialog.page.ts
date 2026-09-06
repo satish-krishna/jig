@@ -45,7 +45,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sizes" note="The content class carries the max-width — the dialog has no size input." [code]="codeSizes">
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-s">
           <hlm-dialog>
             <button hlmDialogTrigger hlmBtn variant="outline" size="sm">Small</button>
             <hlm-dialog-content *hlmDialogPortal="let ctx" class="sm:max-w-xs">

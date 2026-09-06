@@ -27,19 +27,19 @@ import { Usage } from '../usage';
         [code]="codeDefault"
       >
         <hlm-radio-group [value]="spacing()" (valueChange)="spacing.set($event)">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-radio value="default" inputId="rg-default">
               <hlm-radio-indicator indicator />
             </hlm-radio>
             <label hlmLabel for="rg-default">Default</label>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-radio value="comfortable" inputId="rg-comfortable">
               <hlm-radio-indicator indicator />
             </hlm-radio>
             <label hlmLabel for="rg-comfortable">Comfortable</label>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-radio value="compact" inputId="rg-compact">
               <hlm-radio-indicator indicator />
             </hlm-radio>
@@ -50,13 +50,13 @@ import { Usage } from '../usage';
 
       <app-usage title="Disabled option" note="A single radio can be disabled inside an enabled group." [code]="codeDisabled">
         <hlm-radio-group value="comfortable">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-radio value="default" inputId="rg-d-default" disabled>
               <hlm-radio-indicator indicator />
             </hlm-radio>
             <label hlmLabel for="rg-d-default">Default (disabled)</label>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-radio value="comfortable" inputId="rg-d-comfortable">
               <hlm-radio-indicator indicator />
             </hlm-radio>
@@ -66,14 +66,14 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Horizontal layout" note="The group's own class overrides the default vertical grid." [code]="codeHorizontal">
-        <hlm-radio-group value="monthly" class="flex flex-row gap-6">
-          <div class="flex items-center gap-3">
+        <hlm-radio-group value="monthly" class="flex flex-row gap-xl">
+          <div class="flex items-center gap-m">
             <hlm-radio value="monthly" inputId="rg-h-monthly">
               <hlm-radio-indicator indicator />
             </hlm-radio>
             <label hlmLabel for="rg-h-monthly">Monthly</label>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-radio value="yearly" inputId="rg-h-yearly">
               <hlm-radio-indicator indicator />
             </hlm-radio>
@@ -89,13 +89,13 @@ import { Usage } from '../usage';
       >
         <div hlmField class="max-w-sm">
           <hlm-radio-group [formControl]="plan">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-m">
               <hlm-radio value="free" inputId="rg-v-free">
                 <hlm-radio-indicator indicator />
               </hlm-radio>
               <label hlmLabel for="rg-v-free">Free</label>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-m">
               <hlm-radio value="pro" inputId="rg-v-pro">
                 <hlm-radio-indicator indicator />
               </hlm-radio>
@@ -120,7 +120,7 @@ export class RadioGroupPage {
   }
 
   protected readonly codeDefault = `<hlm-radio-group [value]="spacing()" (valueChange)="spacing.set($event)">
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-m">
     <hlm-radio value="default" inputId="rg-default">
       <hlm-radio-indicator indicator />
     </hlm-radio>
@@ -130,7 +130,7 @@ export class RadioGroupPage {
 </hlm-radio-group>`;
 
   protected readonly codeDisabled = `<hlm-radio-group value="comfortable">
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-m">
     <hlm-radio value="default" inputId="d-default" disabled>
       <hlm-radio-indicator indicator />
     </hlm-radio>
@@ -138,8 +138,8 @@ export class RadioGroupPage {
   </div>
 </hlm-radio-group>`;
 
-  protected readonly codeHorizontal = `<hlm-radio-group value="monthly" class="flex flex-row gap-6">
-  <div class="flex items-center gap-3">
+  protected readonly codeHorizontal = `<hlm-radio-group value="monthly" class="flex flex-row gap-xl">
+  <div class="flex items-center gap-m">
     <hlm-radio value="monthly" inputId="h-monthly">
       <hlm-radio-indicator indicator />
     </hlm-radio>
@@ -151,7 +151,7 @@ export class RadioGroupPage {
 
 <div hlmField>
   <hlm-radio-group [formControl]="plan">
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-m">
       <hlm-radio value="free" inputId="free">
         <hlm-radio-indicator indicator />
       </hlm-radio>

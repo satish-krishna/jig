@@ -36,7 +36,7 @@ import { Usage } from '../usage';
             <div hlmEmptyTitle>No projects yet</div>
             <div hlmEmptyDescription>Get started by creating your first project.</div>
           </hlm-empty-header>
-          <hlm-empty-content class="flex-row justify-center gap-2">
+          <hlm-empty-content class="flex-row justify-center gap-s">
             <button hlmBtn>Create project</button>
             <button hlmBtn variant="outline">Import project</button>
           </hlm-empty-content>
@@ -128,7 +128,7 @@ export class EmptyPage {
     <div hlmEmptyTitle>No projects yet</div>
     <div hlmEmptyDescription>Get started by creating your first project.</div>
   </hlm-empty-header>
-  <hlm-empty-content class="flex-row justify-center gap-2">
+  <hlm-empty-content class="flex-row justify-center gap-s">
     <button hlmBtn>Create project</button>
     <button hlmBtn variant="outline">Import project</button>
   </hlm-empty-content>

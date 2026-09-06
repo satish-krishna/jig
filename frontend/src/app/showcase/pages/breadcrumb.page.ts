@@ -72,7 +72,7 @@ import { Usage } from '../usage';
         note="The trail is a real signal-backed array — clicking an earlier segment truncates it, like drilling back out of a folder."
         [code]="codeState"
       >
-        <div class="flex w-full flex-col gap-2">
+        <div class="flex w-full flex-col gap-s">
           <nav hlmBreadcrumb>
             <ol hlmBreadcrumbList>
               @for (segment of trail(); track segment; let i = $index, last = $last) {

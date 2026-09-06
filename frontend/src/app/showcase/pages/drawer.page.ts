@@ -32,7 +32,7 @@ import { Usage } from '../usage';
               <h3 hlmDrawerTitle>Edit profile</h3>
               <p hlmDrawerDescription>Make changes to your profile here. Click save when you're done.</p>
             </hlm-drawer-header>
-            <div hlmField class="px-4">
+            <div hlmField class="px-l">
               <label hlmFieldLabel for="drawer-name">Name</label>
               <input hlmInput id="drawer-name" value="Pedro Duarte" />
             </div>
@@ -49,7 +49,7 @@ import { Usage } from '../usage';
         note="Vaul's own term for the edge — the wrapping hlm-drawer takes it as the direction input."
         [code]="codeDirection"
       >
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-s">
           @for (dir of directions; track dir) {
             <hlm-drawer [direction]="dir">
               <button hlmDrawerTrigger hlmBtn variant="outline">{{ dir }}</button>
@@ -99,9 +99,9 @@ import { Usage } from '../usage';
               <h3 hlmDrawerTitle>Filter results</h3>
               <p hlmDrawerDescription>{{ visibleCount() }} of {{ allItems.length }} items match.</p>
             </hlm-drawer-header>
-            <div class="grid gap-2 px-4">
+            <div class="grid gap-s px-l">
               @for (tag of tags; track tag) {
-                <label class="flex items-center gap-2 text-sm">
+                <label class="flex items-center gap-s text-sm">
                   <input
                     type="checkbox"
                     [checked]="selectedTags().includes(tag)"
@@ -147,7 +147,7 @@ export class DrawerPage {
       <h3 hlmDrawerTitle>Edit profile</h3>
       <p hlmDrawerDescription>Make changes to your profile here.</p>
     </hlm-drawer-header>
-    <div hlmField class="px-4">
+    <div hlmField class="px-l">
       <label hlmFieldLabel for="name">Name</label>
       <input hlmInput id="name" value="Pedro Duarte" />
     </div>

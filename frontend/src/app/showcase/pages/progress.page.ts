@@ -39,7 +39,7 @@ import { Usage } from '../usage';
         note="A signal drives the value on an interval — a real ticking state, not a hand-set style."
         [code]="codeLive"
       >
-        <div class="flex w-64 flex-col gap-2">
+        <div class="flex w-64 flex-col gap-s">
           <hlm-progress [value]="liveValue()">
             <hlm-progress-indicator />
           </hlm-progress>
@@ -50,7 +50,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="With a label" note="Paired with hlmLabel above the bar." [code]="codeLabel">
-        <div class="flex w-64 flex-col gap-2">
+        <div class="flex w-64 flex-col gap-s">
           <label hlmLabel>Uploading…</label>
           <hlm-progress [value]="60">
             <hlm-progress-indicator />

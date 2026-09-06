@@ -23,7 +23,7 @@ import { groupedByCategory } from './component-registry';
   host: { class: 'block h-full' },
   template: `
     <div class="grid h-full grid-cols-[13rem_1fr] overflow-hidden">
-      <nav class="border-border flex min-h-0 flex-col gap-2 overflow-y-auto border-r pr-4">
+      <nav class="border-border flex min-h-0 flex-col gap-s overflow-y-auto border-r pr-l">
         <input
           hlmInput
           class="h-8 shrink-0"
@@ -35,8 +35,8 @@ import { groupedByCategory } from './component-registry';
         />
 
         @for (group of groups(); track group.category) {
-          <div class="flex flex-col gap-0.5">
-            <span class="text-muted-foreground px-2 pt-2 text-xs font-medium">
+          <div class="flex flex-col gap-xs">
+            <span class="text-muted-foreground px-s pt-s text-xs font-medium">
               {{ group.category }}
             </span>
             @for (c of group.items; track c.slug) {
@@ -54,11 +54,11 @@ import { groupedByCategory } from './component-registry';
             }
           </div>
         } @empty {
-          <p class="text-muted-foreground px-2 py-4 text-sm">No component matches that.</p>
+          <p class="text-muted-foreground px-s py-l text-sm">No component matches that.</p>
         }
       </nav>
 
-      <div class="min-h-0 overflow-y-auto pl-6">
+      <div class="min-h-0 overflow-y-auto pl-xl">
         <router-outlet />
       </div>
     </div>

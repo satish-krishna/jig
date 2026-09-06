@@ -24,7 +24,7 @@ import { newUserCommand } from './users.commands';
   // uses, not hlmH1, whose text-4xl belongs to a marketing page rather than a
   // compact desktop shell. HlmAlert supplies its own role="alert".
   template: `
-    <section class="grid gap-3">
+    <section class="grid gap-m">
       <h1 hlmH3>Users</h1>
 
       @if (vm.formOpen()) {

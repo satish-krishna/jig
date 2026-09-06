@@ -70,11 +70,11 @@ const serverSchema = z.object({
         note="The schema is the only input; the output is already parsed and valid."
         [code]="codeBasic"
       >
-        <div class="grid w-full max-w-sm gap-4">
+        <div class="grid w-full max-w-sm gap-l">
           <app-schema-form [schema]="contact" submitLabel="Send" (submitted)="sent.set($event)" />
           @if (sent(); as value) {
             <pre
-              class="border-border bg-muted/40 overflow-x-auto rounded-md border px-3 py-2 font-mono text-xs"
+              class="border-border bg-muted/40 overflow-x-auto rounded-md border px-m py-s font-mono text-xs"
             >{{ value | json }}</pre>
           }
         </div>
@@ -105,9 +105,9 @@ const serverSchema = z.object({
         note="Swap it and the whole form is rebuilt. This is what separates the renderer from a hand-written form."
         [code]="codeSwap"
       >
-        <div class="grid w-full max-w-sm gap-4">
+        <div class="grid w-full max-w-sm gap-l">
           <!-- one inline run of two buttons: flex, not grid -->
-          <div class="flex gap-2">
+          <div class="flex gap-s">
             <button
               hlmBtn
               size="xs"

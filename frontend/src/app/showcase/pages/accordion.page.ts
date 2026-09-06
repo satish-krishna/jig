@@ -97,12 +97,12 @@ import { Usage } from '../usage';
                 <hlm-accordion-content>
                   <p>Your plan includes analytics, alerts, and email support.</p>
                   @if (showDetails()) {
-                    <ul class="mt-2 list-disc pl-4">
+                    <ul class="mt-s list-disc pl-l">
                       <li>Priority support</li>
                       <li>Custom dashboards</li>
                     </ul>
                   }
-                  <button hlmBtn size="sm" variant="outline" class="mt-3" (click)="showDetails.set(!showDetails())">
+                  <button hlmBtn size="sm" variant="outline" class="mt-m" (click)="showDetails.set(!showDetails())">
                     {{ showDetails() ? 'Hide' : 'Show' }} details
                   </button>
                 </hlm-accordion-content>

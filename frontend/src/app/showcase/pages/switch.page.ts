@@ -22,32 +22,32 @@ import { Usage } from '../usage';
     <app-component-page slug="switch">
       <app-usage title="Default" note="The label wraps the switch — no for/id needed here." [code]="codeDefault">
         <label class="flex items-center" hlmLabel>
-          <hlm-switch class="mr-2" />
+          <hlm-switch class="mr-s" />
           Airplane mode
         </label>
       </app-usage>
 
       <app-usage title="Sizes" note="sm and the default size, side by side." [code]="codeSizes">
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-xl">
           <label class="flex items-center" hlmLabel>
-            <hlm-switch class="me-2" size="sm" />
+            <hlm-switch class="me-s" size="sm" />
             Small
           </label>
           <label class="flex items-center" hlmLabel>
-            <hlm-switch class="me-2" size="default" />
+            <hlm-switch class="me-s" size="default" />
             Default
           </label>
         </div>
       </app-usage>
 
       <app-usage title="Checked and disabled" note="Independent checked and disabled states." [code]="codeStates">
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-xl">
           <label class="flex items-center" hlmLabel>
-            <hlm-switch class="me-2" [checked]="true" />
+            <hlm-switch class="me-s" [checked]="true" />
             Checked
           </label>
           <label class="flex items-center" hlmLabel>
-            <hlm-switch class="me-2" disabled />
+            <hlm-switch class="me-s" disabled />
             Disabled
           </label>
         </div>
@@ -59,7 +59,7 @@ import { Usage } from '../usage';
         [code]="codeValidated"
       >
         <div hlmField class="max-w-sm">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-switch inputId="switch-required" [formControl]="accepted" />
             <label hlmFieldLabel for="switch-required">I agree to the terms</label>
           </div>
@@ -82,7 +82,7 @@ export class SwitchPage {
   }
 
   protected readonly codeDefault = `<label class="flex items-center" hlmLabel>
-  <hlm-switch class="mr-2" />
+  <hlm-switch class="mr-s" />
   Airplane mode
 </label>`;
 

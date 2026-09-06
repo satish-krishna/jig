@@ -26,7 +26,7 @@ import { Usage } from '../usage';
         note="Six semantic variants; the same classes apply whether the host is a button or an anchor."
         [code]="codeVariants"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmBtn>Default</button>
           <button hlmBtn variant="outline">Outline</button>
           <button hlmBtn variant="secondary">Secondary</button>
@@ -41,7 +41,7 @@ import { Usage } from '../usage';
         note="Text sizes pair with a matching square icon size for icon-only buttons."
         [code]="codeSizes"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmBtn variant="outline" size="sm">Small</button>
           <button hlmBtn variant="outline">Default</button>
           <button hlmBtn variant="outline" size="lg">Large</button>
@@ -56,7 +56,7 @@ import { Usage } from '../usage';
         note="Disabled is a static attribute; the loading state is a real signal flipped by the click handler."
         [code]="codeStates"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmBtn variant="outline" disabled>Disabled</button>
           <button hlmBtn variant="secondary" [disabled]="saving()" (click)="save()">
             @if (saving()) {
@@ -72,7 +72,7 @@ import { Usage } from '../usage';
         note="The data-icon attribute, inline-start or inline-end, tells the button's own padding utilities which side the icon sits on."
         [code]="codeIcons"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmBtn variant="outline">
             <ng-icon data-icon="inline-start" name="lucideGitBranch" />
             New branch

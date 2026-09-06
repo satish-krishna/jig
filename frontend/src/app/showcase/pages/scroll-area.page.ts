@@ -30,12 +30,12 @@ import { Usage } from '../usage';
         [code]="codeVertical"
       >
         <ng-scrollbar hlm class="h-56 w-48 border">
-          <div class="p-4">
-            <h4 class="mb-4 text-sm leading-none font-medium">Tags</h4>
+          <div class="p-l">
+            <h4 class="mb-l text-sm leading-none font-medium">Tags</h4>
             @for (tag of tags; track tag) {
               <div class="text-sm">
                 {{ tag }}
-                <div hlmSeparator class="my-2"></div>
+                <div hlmSeparator class="my-s"></div>
               </div>
             }
           </div>
@@ -48,10 +48,10 @@ import { Usage } from '../usage';
         [code]="codeHorizontal"
       >
         <ng-scrollbar hlm class="w-80 border whitespace-nowrap">
-          <div class="flex w-max gap-3 p-4">
+          <div class="flex w-max gap-m p-l">
             @for (swatch of swatches; track swatch.label) {
               <div
-                class="flex size-20 shrink-0 flex-col items-center justify-center gap-1 rounded-md text-xs font-medium"
+                class="flex size-20 shrink-0 flex-col items-center justify-center gap-xs rounded-md text-xs font-medium"
                 [style.background]="swatch.color"
               >
                 {{ swatch.label }}
@@ -67,7 +67,7 @@ import { Usage } from '../usage';
         [code]="codeCompact"
       >
         <ng-scrollbar hlm class="h-32 w-64 border" appearance="compact">
-          <p class="p-4 text-sm">
+          <p class="p-l text-sm">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium architecto, asperiores beatae
             consequuntur dolor ducimus et exercitationem facilis fugiat magni nisi officiis quibusdam rem repellat
             reprehenderit totam veritatis voluptatibus.
@@ -81,11 +81,11 @@ import { Usage } from '../usage';
         [code]="codeComposition"
       >
         <ng-scrollbar hlm class="h-56 w-64 border">
-          <div class="grid p-2">
+          <div class="grid p-s">
             @for (member of members; track member; let i = $index) {
               <button
                 type="button"
-                class="hover:bg-muted flex items-center justify-between rounded-md px-3 py-2 text-left text-sm"
+                class="hover:bg-muted flex items-center justify-between rounded-md px-m py-s text-left text-sm"
                 (click)="selected.set(i)"
               >
                 {{ member }}
@@ -124,19 +124,19 @@ export class ScrollAreaPage {
   protected readonly selected = signal(0);
 
   protected readonly codeVertical = `<ng-scrollbar hlm class="h-56 w-48 border">
-  <div class="p-4">
-    <h4 class="mb-4 text-sm font-medium">Tags</h4>
+  <div class="p-l">
+    <h4 class="mb-l text-sm font-medium">Tags</h4>
     @for (tag of tags; track tag) {
       <div class="text-sm">
         {{ tag }}
-        <div hlmSeparator class="my-2"></div>
+        <div hlmSeparator class="my-s"></div>
       </div>
     }
   </div>
 </ng-scrollbar>`;
 
   protected readonly codeHorizontal = `<ng-scrollbar hlm class="w-80 border whitespace-nowrap">
-  <div class="flex w-max gap-3 p-4">
+  <div class="flex w-max gap-m p-l">
     @for (swatch of swatches; track swatch.label) {
       <div class="size-20 shrink-0 rounded-md" [style.background]="swatch.color">{{ swatch.label }}</div>
     }
@@ -144,13 +144,13 @@ export class ScrollAreaPage {
 </ng-scrollbar>`;
 
   protected readonly codeCompact = `<ng-scrollbar hlm class="h-32 w-64 border" appearance="compact">
-  <p class="p-4 text-sm">Lorem ipsum dolor sit amet…</p>
+  <p class="p-l text-sm">Lorem ipsum dolor sit amet…</p>
 </ng-scrollbar>`;
 
   protected readonly codeComposition = `selected = signal(0);
 
 <ng-scrollbar hlm class="h-56 w-64 border">
-  <div class="grid p-2">
+  <div class="grid p-s">
     @for (member of members; track member; let i = $index) {
       <button (click)="selected.set(i)">
         {{ member }}

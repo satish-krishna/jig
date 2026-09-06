@@ -25,14 +25,14 @@ import { Usage } from '../usage';
         note="default stays transparent until pressed; outline adds a resting border."
         [code]="codeVariants"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmToggle aria-label="Toggle italic">Italic</button>
           <button hlmToggle variant="outline" aria-label="Toggle bold">Bold</button>
         </div>
       </app-usage>
 
       <app-usage title="Sizes" note="sm, default and lg, all outline." [code]="codeSizes">
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmToggle variant="outline" size="sm" aria-label="Toggle small">Small</button>
           <button hlmToggle variant="outline" aria-label="Toggle default">Default</button>
           <button hlmToggle variant="outline" size="lg" aria-label="Toggle large">Large</button>
@@ -44,7 +44,7 @@ import { Usage } from '../usage';
         note="Bookmark is driven by a real two-way [(state)] binding, not a hand-set aria-pressed."
         [code]="codeStates"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmToggle variant="outline" aria-label="Toggle bookmark" [(state)]="bookmarkState">
             <ng-icon name="lucideBookmark" />
             Bookmark

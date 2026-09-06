@@ -18,7 +18,7 @@ import { Usage } from '../usage';
   template: `
     <app-component-page slug="kbd">
       <app-usage title="Basic" note="Each key is its own kbd[hlmKbd]." [code]="codeBasic">
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <kbd hlmKbd>⌘</kbd>
           <kbd hlmKbd>⇧</kbd>
           <kbd hlmKbd>⌥</kbd>
@@ -43,12 +43,12 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="With button" note="A kbd hint riding inside a button's own padding." [code]="codeButton">
-        <div class="flex flex-wrap items-center gap-3">
-          <button hlmBtn variant="outline" size="sm" class="pr-2">
+        <div class="flex flex-wrap items-center gap-m">
+          <button hlmBtn variant="outline" size="sm" class="pr-s">
             Accept
             <kbd hlmKbd>⏎</kbd>
           </button>
-          <button hlmBtn variant="outline" size="sm" class="pr-2">
+          <button hlmBtn variant="outline" size="sm" class="pr-s">
             Cancel
             <kbd hlmKbd>Esc</kbd>
           </button>
@@ -60,7 +60,7 @@ import { Usage } from '../usage';
         note="A real signal switches which modifier keys render — nothing here is hand-set."
         [code]="codeToggle"
       >
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-m">
           <button hlmBtn variant="outline" size="sm" (click)="toggleMac()">
             {{ mac() ? 'Show Windows keys' : 'Show Mac keys' }}
           </button>
@@ -96,7 +96,7 @@ export class KbdPage {
   <kbd hlmKbd>K</kbd>
 </kbd>`;
 
-  protected readonly codeButton = `<button hlmBtn variant="outline" size="sm" class="pr-2">
+  protected readonly codeButton = `<button hlmBtn variant="outline" size="sm" class="pr-s">
   Accept
   <kbd hlmKbd>⏎</kbd>
 </button>`;

@@ -27,20 +27,20 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="The built-in trigger toggles the panel — no extra wiring needed."
         [code]="codeDefault"
       >
-        <hlm-collapsible class="grid w-72 gap-2">
-          <div class="flex items-center justify-between gap-4">
+        <hlm-collapsible class="grid w-72 gap-s">
+          <div class="flex items-center justify-between gap-l">
             <h4 class="text-sm font-semibold">Order #4189</h4>
             <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon" class="size-8">
               <ng-icon name="lucideChevronsUpDown" />
               <span class="sr-only">Toggle</span>
             </button>
           </div>
-          <div class="flex items-center justify-between rounded-md border px-4 py-2 text-sm">
+          <div class="flex items-center justify-between rounded-md border px-l py-s text-sm">
             <span class="text-muted-foreground">Status</span>
             <span class="font-medium">Shipped</span>
           </div>
-          <hlm-collapsible-content class="flex flex-col gap-2">
-            <div class="rounded-md border px-4 py-2 text-sm">
+          <hlm-collapsible-content class="flex flex-col gap-s">
+            <div class="rounded-md border px-l py-s text-sm">
               <p class="font-medium">Shipping address</p>
               <p class="text-muted-foreground">100 Market St, San Francisco</p>
             </div>
@@ -53,16 +53,16 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="disabled makes the built-in trigger inert; the panel cannot be toggled."
         [code]="codeDisabled"
       >
-        <hlm-collapsible class="grid w-72 gap-2" disabled>
-          <div class="flex items-center justify-between gap-4">
+        <hlm-collapsible class="grid w-72 gap-s" disabled>
+          <div class="flex items-center justify-between gap-l">
             <h4 class="text-sm font-semibold">Locked section</h4>
             <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon" class="size-8">
               <ng-icon name="lucideChevronsUpDown" />
               <span class="sr-only">Toggle</span>
             </button>
           </div>
-          <hlm-collapsible-content class="flex flex-col gap-2">
-            <div class="rounded-md border px-4 py-2 text-sm">This never shows — the trigger cannot open it.</div>
+          <hlm-collapsible-content class="flex flex-col gap-s">
+            <div class="rounded-md border px-l py-s text-sm">This never shows — the trigger cannot open it.</div>
           </hlm-collapsible-content>
         </hlm-collapsible>
       </app-usage>
@@ -72,13 +72,13 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="expanded/expandedChange are wired to a signal, driven here by an external button instead of the built-in trigger."
         [code]="codeControlled"
       >
-        <div class="grid w-72 gap-2">
+        <div class="grid w-72 gap-s">
           <button hlmBtn variant="outline" size="sm" class="self-start" (click)="detailsOpen.set(!detailsOpen())">
             {{ detailsOpen() ? 'Hide' : 'Show' }} shipping details
           </button>
-          <hlm-collapsible [(expanded)]="detailsOpen" class="flex flex-col gap-2">
-            <hlm-collapsible-content class="flex flex-col gap-2">
-              <div class="rounded-md border px-4 py-2 text-sm">
+          <hlm-collapsible [(expanded)]="detailsOpen" class="flex flex-col gap-s">
+            <hlm-collapsible-content class="flex flex-col gap-s">
+              <div class="rounded-md border px-l py-s text-sm">
                 <p class="font-medium">Shipping address</p>
                 <p class="text-muted-foreground">100 Market St, San Francisco</p>
               </div>
@@ -92,17 +92,17 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
         note="Adding or clearing members mutates a real signal, and the panel height animates to fit."
         [code]="codeComposition"
       >
-        <hlm-collapsible class="grid w-72 gap-2">
-          <div class="flex items-center justify-between gap-4">
+        <hlm-collapsible class="grid w-72 gap-s">
+          <div class="flex items-center justify-between gap-l">
             <h4 class="text-sm font-semibold">Team · {{ members().length }} members</h4>
             <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon" class="size-8">
               <ng-icon name="lucideChevronsUpDown" />
               <span class="sr-only">Toggle</span>
             </button>
           </div>
-          <hlm-collapsible-content class="flex flex-col gap-2">
+          <hlm-collapsible-content class="flex flex-col gap-s">
             @for (member of members(); track member) {
-              <div class="rounded-md border px-4 py-2 text-sm">{{ member }}</div>
+              <div class="rounded-md border px-l py-s text-sm">{{ member }}</div>
             }
             <button hlmBtn variant="outline" size="sm" (click)="isFull() ? clear() : addMember()">
               <ng-icon [name]="isFull() ? 'lucideTrash2' : 'lucidePlus'" />
@@ -131,15 +131,15 @@ export class CollapsiblePage {
     this.members.set([]);
   }
 
-  protected readonly codeDefault = `<hlm-collapsible class="grid w-72 gap-2">
-  <div class="flex items-center justify-between gap-4">
+  protected readonly codeDefault = `<hlm-collapsible class="grid w-72 gap-s">
+  <div class="flex items-center justify-between gap-l">
     <h4 class="text-sm font-semibold">Order #4189</h4>
     <button hlmCollapsibleTrigger hlmBtn variant="ghost" size="icon">
       <ng-icon name="lucideChevronsUpDown" />
     </button>
   </div>
   <hlm-collapsible-content>
-    <div class="rounded-md border px-4 py-2 text-sm">Shipping address…</div>
+    <div class="rounded-md border px-l py-s text-sm">Shipping address…</div>
   </hlm-collapsible-content>
 </hlm-collapsible>`;
 

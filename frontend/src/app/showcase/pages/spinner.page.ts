@@ -21,7 +21,7 @@ import { Usage } from '../usage';
   template: `
     <app-component-page slug="spinner">
       <app-usage title="Sizes" note="Text size controls the spinner's size." [code]="codeSizes">
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-xl">
           <hlm-spinner class="text-sm" />
           <hlm-spinner class="text-xl" />
           <hlm-spinner class="text-3xl" />
@@ -41,7 +41,7 @@ import { Usage } from '../usage';
         note="A real signal drives the disabled button and the cancel action."
         [code]="codeSubmitting"
       >
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-s">
           <button hlmBtn size="sm" [disabled]="submitting()" (click)="submit()">
             @if (submitting()) {
               <hlm-spinner />
@@ -59,7 +59,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Status row" note="Composed alongside text in a bordered row." [code]="codeStatusRow">
-        <div class="border-border grid w-72 grid-cols-[auto_1fr_auto] items-center gap-3 rounded-lg border px-3 py-2">
+        <div class="border-border grid w-72 grid-cols-[auto_1fr_auto] items-center gap-m rounded-lg border px-m py-s">
           <hlm-spinner />
           <div class="flex flex-col">
             <span class="text-sm font-medium">Processing payment...</span>
@@ -106,7 +106,7 @@ export class SpinnerPage {
   }
 </button>`;
 
-  protected readonly codeStatusRow = `<div class="flex items-center gap-3 rounded-lg border px-3 py-2">
+  protected readonly codeStatusRow = `<div class="flex items-center gap-m rounded-lg border px-m py-s">
   <hlm-spinner />
   <span>Processing payment...</span>
   <span>$100.00</span>

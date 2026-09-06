@@ -27,15 +27,15 @@ import { Usage } from '../usage';
         <hlm-hover-card>
           <button hlmBtn variant="link" hlmHoverCardTrigger [showDelay]="0" [hideDelay]="0" [animationDelay]="0">&#64;analogjs</button>
           <hlm-hover-card-content *hlmHoverCardPortal class="w-72">
-            <div class="flex justify-between gap-4">
+            <div class="flex justify-between gap-l">
               <hlm-avatar size="sm">
                 <span hlmAvatarFallback>AN</span>
               </hlm-avatar>
-              <div class="grid gap-1">
+              <div class="grid gap-xs">
                 <h4 class="text-sm font-semibold">&#64;analogjs</h4>
                 <p class="text-sm">The Angular meta-framework.</p>
-                <div class="flex items-center pt-1">
-                  <ng-icon name="lucideCalendar" class="mr-2 opacity-70" />
+                <div class="flex items-center pt-xs">
+                  <ng-icon name="lucideCalendar" class="mr-s opacity-70" />
                   <span class="text-muted-foreground text-xs">Joined December 2021</span>
                 </div>
               </div>
@@ -45,7 +45,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sides" note="align controls which edge the card opens from." [code]="codeSides">
-        <div class="flex gap-6">
+        <div class="flex gap-xl">
           @for (a of aligns; track a) {
             <hlm-hover-card>
               <button
@@ -75,7 +75,7 @@ import { Usage } from '../usage';
             &#64;spartan
           </button>
           <hlm-hover-card-content *hlmHoverCardPortal class="w-64">
-            <div class="grid gap-2">
+            <div class="grid gap-s">
               <h4 class="text-sm font-semibold">&#64;spartan</h4>
               <p class="text-sm">Angular component libraries.</p>
               <button hlmBtn [variant]="following() ? 'outline' : 'default'" size="sm" (click)="toggleFollow()">
@@ -115,9 +115,9 @@ export class HoverCardPage {
   protected readonly codeDefault = `<hlm-hover-card>
   <button hlmBtn variant="link" hlmHoverCardTrigger [showDelay]="0" [hideDelay]="0" [animationDelay]="0">&#64;analogjs</button>
   <hlm-hover-card-content *hlmHoverCardPortal class="w-72">
-    <div class="flex justify-between gap-4">
+    <div class="flex justify-between gap-l">
       <hlm-avatar size="sm"><span hlmAvatarFallback>AN</span></hlm-avatar>
-      <div class="grid gap-1">
+      <div class="grid gap-xs">
         <h4 class="text-sm font-semibold">&#64;analogjs</h4>
         <p class="text-sm">The Angular meta-framework.</p>
       </div>

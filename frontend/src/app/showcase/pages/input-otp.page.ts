@@ -62,7 +62,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Controlled value" note="A plain value/valueChange binding, no form involved." [code]="codeControlled">
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-s">
           <brn-input-otp hlmInputOtp [value]="code()" (valueChange)="code.set($event)" maxLength="4">
             <hlm-input-otp-group>
               <hlm-input-otp-slot index="0" />
@@ -80,7 +80,7 @@ import { Usage } from '../usage';
         note="Driven by a real FormControl — the button enables once all 6 digits are entered. Note: BrnInputOtp has no BrnFieldControl at all, so it cannot register with an ancestor hlm-field — hlm-field-error would silently never display here, so this usage disables the submit button off real control validity instead, the same shape spartan's own form example uses."
         [code]="codeValidated"
       >
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-m">
           <brn-input-otp hlmInputOtp maxLength="6" [formControl]="otp">
             <hlm-input-otp-group>
               <hlm-input-otp-slot index="0" />
