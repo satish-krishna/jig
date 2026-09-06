@@ -4,7 +4,7 @@ One-liner: A 1px divider between sections or inline items; set `orientation="ver
 <Separator />
 <div style={{ display: 'flex', height: 20 }}>
   <span>Docs</span>
-  <Separator orientation="vertical" style={{ marginInline: 12 }} />
+  <Separator orientation="vertical" style={{ marginInline: 'var(--spacing-m)' }} />
   <span>API</span>
 </div>
 ```

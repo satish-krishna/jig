@@ -3,7 +3,8 @@ import * as React from 'react';
 /**
  * Content surface: bordered, radius-xl, subtle shadow-sm. Compose with the
  * Header/Title/Description/Content/Footer parts — each supplies its own
- * horizontal padding so children align to the same 24px gutter.
+ * horizontal padding so children align to the same `--spacing-xl` (24px)
+ * gutter.
  */
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
 
