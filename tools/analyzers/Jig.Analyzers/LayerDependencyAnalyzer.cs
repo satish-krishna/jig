@@ -29,21 +29,23 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
     internal static readonly DiagnosticDescriptor LayerViolation = new(
         id: "DR0001",
         title: "Layer dependency violation",
-        messageFormat: "'{0}' must not depend on '{1}': the type '{2}' lives there",
+        messageFormat: "'{0}' must not depend on '{1}': the type '{2}' lives there. Fix the dependency, not the map.",
         category: "Architecture",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "The layer map in ArchLayers.txt forbids this dependency. Fix the dependency, not the map.",
+        description: "The layer map in ArchLayers.txt forbids this dependency.",
+        helpLinkUri: "docs/architecture/rules/DR0001.md",
         customTags: WellKnownDiagnosticTags.NotConfigurable);
 
     internal static readonly DiagnosticDescriptor EmptyRuleset = new(
         id: "DR0002",
         title: "Architecture ruleset is empty",
-        messageFormat: "The architecture ruleset '{0}' is empty or missing; DR0001 enforced nothing",
+        messageFormat: "The architecture ruleset '{0}' is empty or missing; DR0001 enforced nothing. Restore it from git.",
         category: "Architecture",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "A check that reports success because it found nothing to check is paperwork. Restore ArchLayers.txt.",
+        description: "A check that reports success because it found nothing to check is paperwork.",
+        helpLinkUri: "docs/architecture/rules/DR0002.md",
         customTags: new[] { WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.CompilationEnd });
 
     internal static readonly DiagnosticDescriptor MalformedRule = new(
@@ -53,7 +55,8 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
         category: "Architecture",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "A line that fails to parse as a rule must fail the build, not vanish silently — a check that stays green because a typo quietly deleted a rule is paperwork. Fix the line in ArchLayers.txt.",
+        description: "A line that fails to parse as a rule must fail the build, not vanish silently — a check that stays green because a typo quietly deleted a rule is paperwork.",
+        helpLinkUri: "docs/architecture/rules/DR0003.md",
         customTags: new[] { WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.CompilationEnd });
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
