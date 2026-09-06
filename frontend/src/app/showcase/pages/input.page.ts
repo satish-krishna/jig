@@ -23,7 +23,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Types and states" note="Password, disabled, and file variants." [code]="codeStates">
-        <div class="flex max-w-sm flex-col gap-3">
+        <div class="flex max-w-sm flex-col gap-m">
           <input hlmInput type="password" placeholder="sk-..." />
           <input hlmInput placeholder="Disabled" disabled />
           <input hlmInput type="file" />

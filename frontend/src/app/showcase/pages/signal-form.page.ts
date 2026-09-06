@@ -90,7 +90,7 @@ const EMPTY: Profile = { displayName: '', email: '' };
         note="formMeta(schema) reads .meta() off each field. No label string is written in the template."
         [code]="codeMeta"
       >
-        <div class="grid w-full max-w-sm gap-4">
+        <div class="grid w-full max-w-sm gap-l">
           <form hlmFieldGroup>
             @for (field of metaFields; track field) {
               <hlm-field>
@@ -105,7 +105,7 @@ const EMPTY: Profile = { displayName: '', email: '' };
             }
           </form>
           <pre
-            class="border-border bg-muted/40 overflow-x-auto rounded-md border px-3 py-2 font-mono text-xs"
+            class="border-border bg-muted/40 overflow-x-auto rounded-md border px-m py-s font-mono text-xs"
           >{{ metaSummary }}</pre>
         </div>
       </app-usage>
@@ -146,7 +146,7 @@ const EMPTY: Profile = { displayName: '', email: '' };
           @if (gatePayload(); as payload) {
             <pre
               data-slot="payload"
-              class="border-border bg-muted/40 overflow-x-auto rounded-md border px-3 py-2 font-mono text-xs"
+              class="border-border bg-muted/40 overflow-x-auto rounded-md border px-m py-s font-mono text-xs"
             >{{ payload }}</pre>
           } @else {
             <p class="text-muted-foreground text-xs">

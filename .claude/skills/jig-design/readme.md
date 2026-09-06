@@ -21,7 +21,7 @@ richer, more accurate jig designs:
 
 - **GitHub:** `satish-krishna/jig` — https://github.com/satish-krishna/jig (private)
   - `frontend/src/styles.css` — the theme tokens (OKLCH neutral scale, light + dark).
-  - `frontend/libs/ui/*` — the Spartan `hlm*` directives (button, input, label, field, separator). Numeric values (heights, paddings, radii) were copied verbatim from these files.
+  - `frontend/libs/ui/*` — the Spartan `hlm*` directives (button, input, label, field, separator). Heights and radii were copied verbatim from these files; padding/margin/gap were snapped onto jig's app-authored 4px scale instead (ADR 0011) — see "Spacing & density" below.
 - **Spartan / shadcn reference:** the Spartan Figma docs — https://spartan.ng/documentation/figma — informed the card, badge, and sidebar treatments that jig's token set (`--card`, `--sidebar-*`) implies but the copied subset didn't yet instantiate. See "Intentional additions" below.
 
 > Access note: the repo is private. If you can open it, prefer reading the real
@@ -66,9 +66,7 @@ never marketing.
   webfonts are shipped. A **system monospace** stack (Consolas) carries developer content: emails, IDs,
   versions, keyboard hints. Body is **14px (`text-sm`)**; headings 24px, semibold (600),
   tight tracking (`-0.015em`). Labels and buttons are medium (500).
-- **Spacing & density.** 4px base unit. Controls are **compact**: default height is
-  **32px (`h-8`)**, horizontal padding **10px (`px-2.5`)**, control gap 6px. Card gutters
-  are 24px. This tightness is a defining jig trait — do not loosen to a roomier scale.
+- **Spacing & density.** Two scales, not one — jig's own design language (governed) and spartan's vendored kit (not). **App-authored spacing** is a six-step 4px grid — `xs` 4px, `s` 8px, `m` 12px, `l` 16px, `xl` 24px, `2xl` 32px (`tokens/spacing.css`, `--spacing-*`) — and this system's own CSS (`css/base.css`, `css/components.css`, `css/layout.css`) is built from it, snapping the handful of values it inherited from spartan's half-steps onto the nearest step (`px-2.5`'s 10px → 12px, `gap-1.5`'s 6px → 4px) rather than reproducing them exactly. **The real `frontend/libs/ui`** keeps spartan's half-step rhythm forever — `px-2.5` (10px), `gap-1.5` (6px), and 75 more like them — because that tree is generated and reasserted byte-for-byte by every `npm run ui:style`; a governed scale would just be undone by the next regeneration. See ADR 0011. Controls stay **compact** regardless of which step their padding lands on: default height is **32px (`h-8`)**. Card gutters are `xl` (24px). This tightness is a defining jig trait — do not loosen to a roomier scale.
 - **Radius (nova style).** The `--radius` knob is **0.625rem (10px)**, and every other
   radius derives from it: controls 10px, cards 14px, menu rows 8px. Only genuinely
   circular elements (avatars) keep `--radius-full`. This mirrors `frontend/src/styles.css`
@@ -81,10 +79,7 @@ never marketing.
 - **Backgrounds.** Flat solid fills only. No gradients, no imagery, no texture or
   pattern. The one transparency effect is the **sticky header**: a
   `backdrop-filter: blur(8px)` over an 80%-opacity background so content scrolls under it.
-- **Motion.** Quick and functional: 120–150ms color/background transitions on hover,
-  a 200ms sidebar collapse. The only "playful" motion is a **1px downward nudge** on
-  button press (`active: translateY(1px)`) and a chevron rotate on menu expand. No
-  bounces, no long eases, no decorative loops.
+- **Motion.** Two legitimate bands, not one. **Control feedback** — hover, press, focus — runs **120–150ms**; this is where latency reads as sluggishness. **Layout transitions** run longer: the sidebar rail's collapse animates `grid-template-columns` over **200ms**, because a transition that moves the page's whole geometry needs to read as movement, not a snap. The only "playful" motion is a **1px downward nudge** on button press (`active: translateY(1px)`) and a chevron rotate on menu expand. No bounces, no long eases, no decorative loops.
 - **Hover / press states.** Hover = a subtle fill change (solid buttons drop to 80%
   opacity of their fill; ghost/outline pick up `--muted`; nav rows pick up
   `--sidebar-accent`). Press = the 1px nudge. Focus = a 3px `--ring` halo plus a

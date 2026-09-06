@@ -2,8 +2,8 @@ import * as React from 'react';
 
 /**
  * Form field group. Mirrors Spartan `[hlmField]` — stacks Label + control
- * + description/error with 8px gaps. Use `horizontal` for inline checkbox/
- * switch rows.
+ * + description/error with `--spacing-s` (8px) gaps. Use `horizontal` for
+ * inline checkbox/switch rows.
  */
 export interface FieldProps extends React.HTMLAttributes<HTMLDivElement> {
   /** @default 'vertical' */

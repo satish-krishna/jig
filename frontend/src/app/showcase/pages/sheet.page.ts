@@ -31,7 +31,7 @@ import { Usage } from '../usage';
               <h3 hlmSheetTitle>Edit profile</h3>
               <p hlmSheetDescription>Make changes to your profile here. Click save when you're done.</p>
             </hlm-sheet-header>
-            <div hlmField class="px-4">
+            <div hlmField class="px-l">
               <label hlmFieldLabel for="sheet-name">Name</label>
               <input hlmInput id="sheet-name" value="Pedro Duarte" />
             </div>
@@ -44,7 +44,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sides" note="The panel slides in from whichever edge the trigger names." [code]="codeSides">
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-s">
           @for (side of sides; track side) {
             <hlm-sheet [side]="side">
               <button hlmSheetTrigger hlmBtn variant="outline">{{ side }}</button>
@@ -94,9 +94,9 @@ import { Usage } from '../usage';
               <h3 hlmSheetTitle>Notifications</h3>
               <p hlmSheetDescription>{{ unreadCount() }} unread of {{ notifications().length }}.</p>
             </hlm-sheet-header>
-            <ul class="grid gap-2 px-4 text-sm">
+            <ul class="grid gap-s px-l text-sm">
               @for (n of notifications(); track n.id) {
-                <li class="flex items-center justify-between gap-2">
+                <li class="flex items-center justify-between gap-s">
                   <span [class.font-medium]="!n.read">{{ n.text }}</span>
                   @if (!n.read) {
                     <span class="bg-primary size-1.5 rounded-full"></span>
@@ -142,7 +142,7 @@ export class SheetPage {
       <h3 hlmSheetTitle>Edit profile</h3>
       <p hlmSheetDescription>Make changes to your profile here.</p>
     </hlm-sheet-header>
-    <div hlmField class="px-4">
+    <div hlmField class="px-l">
       <label hlmFieldLabel for="name">Name</label>
       <input hlmInput id="name" value="Pedro Duarte" />
     </div>

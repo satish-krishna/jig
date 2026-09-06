@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCalendar, lucideCircleHelp, lucideCog, lucideCreditCard, lucideHouse, lucideInbox, lucideUser } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -32,7 +32,7 @@ import { Usage } from '../usage';
     <app-component-page slug="command">
       <app-usage
         title="Inline command list"
-        [note]="lastSelected() ? 'Selected: ' + lastSelected() : 'Nothing selected yet — try typing \\'cal\\'.'"
+        [note]="note()"
         [code]="codeDefault"
       >
         <hlm-command class="w-full max-w-xs border">
@@ -94,8 +94,8 @@ import { Usage } from '../usage';
         [note]="'Query: ' + (query() || '(empty)')"
         [code]="codeControlled"
       >
-        <div class="grid w-full max-w-xs gap-2">
-          <div class="flex gap-2">
+        <div class="grid w-full max-w-xs gap-s">
+          <div class="flex gap-s">
             <button hlmBtn size="sm" variant="outline" (click)="query.set('')">All</button>
             <button hlmBtn size="sm" variant="outline" (click)="query.set('play')">Playback</button>
             <button hlmBtn size="sm" variant="outline" (click)="query.set('vol')">Volume</button>
@@ -168,6 +168,9 @@ import { Usage } from '../usage';
 })
 export class CommandPage {
   protected readonly lastSelected = signal<string | undefined>(undefined);
+  protected readonly note = computed(() =>
+    this.lastSelected() ? `Selected: ${this.lastSelected()}` : `Nothing selected yet — try typing 'cal'.`,
+  );
   protected readonly iconsState = signal<BrnDialogState>('closed');
   protected readonly query = signal('');
   protected readonly paletteState = signal<BrnDialogState>('closed');

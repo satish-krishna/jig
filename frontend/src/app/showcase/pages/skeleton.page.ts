@@ -19,7 +19,7 @@ import { Usage } from '../usage';
       <app-usage title="Shapes" note="Circle and rectangle placeholders." [code]="codeShapes">
         <!-- avatar beside a stack of lines: two dimensions, so one grid rather
              than a flex row wrapping a flex column -->
-        <div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2">
+        <div class="grid grid-cols-[auto_1fr] items-center gap-x-l gap-y-s">
           <hlm-skeleton class="row-span-2 size-12 rounded-full" />
           <hlm-skeleton class="h-4 w-48" />
           <hlm-skeleton class="h-4 w-36" />
@@ -27,7 +27,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sizes" note="Height controls how prominent the placeholder reads." [code]="codeSizes">
-        <div class="grid w-64 gap-2">
+        <div class="grid w-64 gap-s">
           <hlm-skeleton class="h-3 w-full" />
           <hlm-skeleton class="h-6 w-full" />
           <hlm-skeleton class="h-10 w-full" />
@@ -35,7 +35,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Table rows" note="Composed into a grid of cells for a loading table." [code]="codeTable">
-        <div class="grid w-72 grid-cols-[1fr_4rem_3rem] gap-3">
+        <div class="grid w-72 grid-cols-[1fr_4rem_3rem] gap-m">
           @for (row of tableRows; track $index) {
             <hlm-skeleton class="h-4" />
             <hlm-skeleton class="h-4" />
@@ -49,14 +49,14 @@ import { Usage } from '../usage';
         note="Driven by a real signal — the skeleton is swapped for actual content, never forced."
         [code]="codeToggle"
       >
-        <div class="grid w-64 gap-3">
+        <div class="grid w-64 gap-m">
           @if (loading()) {
-            <div class="grid gap-2">
+            <div class="grid gap-s">
               <hlm-skeleton class="h-4 w-3/4" />
               <hlm-skeleton class="h-4 w-1/2" />
             </div>
           } @else {
-            <div class="grid gap-1">
+            <div class="grid gap-xs">
               <p class="text-sm font-medium">Quarterly report ready</p>
               <p class="text-muted-foreground text-xs">Generated just now.</p>
             </div>
@@ -75,7 +75,7 @@ export class SkeletonPage {
 
   // The wrapper is part of this example: row-span-2 is what puts the circle
   // beside both lines, so a copy without it does not reproduce what is shown.
-  protected readonly codeShapes = `<div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2">
+  protected readonly codeShapes = `<div class="grid grid-cols-[auto_1fr] items-center gap-x-l gap-y-s">
   <hlm-skeleton class="row-span-2 size-12 rounded-full" />
   <hlm-skeleton class="h-4 w-48" />
   <hlm-skeleton class="h-4 w-36" />
@@ -85,7 +85,7 @@ export class SkeletonPage {
 <hlm-skeleton class="h-6 w-full" />
 <hlm-skeleton class="h-10 w-full" />`;
 
-  protected readonly codeTable = `<div class="grid grid-cols-[1fr_4rem_3rem] gap-3">
+  protected readonly codeTable = `<div class="grid grid-cols-[1fr_4rem_3rem] gap-m">
   @for (row of rows; track $index) {
     <hlm-skeleton class="h-4" />
     <hlm-skeleton class="h-4" />

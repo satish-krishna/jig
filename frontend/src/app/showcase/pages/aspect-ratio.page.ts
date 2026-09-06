@@ -43,7 +43,7 @@ import { Usage } from '../usage';
         note="The ratio input is bound to a real signal; the button cycles it, nothing here is hand-set."
         [code]="codeDynamic"
       >
-        <div class="flex w-full max-w-sm flex-col items-center gap-3">
+        <div class="flex w-full max-w-sm flex-col items-center gap-m">
           <div [hlmAspectRatio]="ratio()" class="bg-muted w-full overflow-hidden rounded-lg">
             <div class="text-muted-foreground flex h-full w-full items-center justify-center text-sm">
               {{ label() }}

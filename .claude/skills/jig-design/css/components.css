@@ -1,9 +1,17 @@
 /* ────────────────────────────────────────────────────────────
    Jig — Component styles
-   Concrete CSS translated 1:1 from the Spartan hlm directives in
-   frontend/libs/ui/*. Numeric values are copied exactly from the
-   source (h-8 = 32px, px-2.5 = 10px, rounded-lg = var(--radius),
-   text-sm = 14px, font-medium = 500), not snapped to a grid.
+   Concrete CSS translated from the Spartan hlm directives in
+   frontend/libs/ui/*. Height, radius, and type are copied exactly
+   from the source (h-8 = 32px, rounded-lg = var(--radius),
+   text-sm = 14px, font-medium = 500) — those are not spacing and
+   are not governed by the scale below.
+   Padding/margin/gap are the one exception: they follow the
+   app-authored six-step 4px scale in tokens/spacing.css
+   (--spacing-xs … --spacing-2xl), not spartan's exact half-step
+   rhythm. Real libs/ui keeps px-2.5 (10px) and gap-1.5 (6px)
+   forever (ADR 0011); this mirror snaps them to the nearest step
+   (10px → 12px, 6px → 4px) so the skill stays one language rather
+   than reproducing a vendored rhythm it does not govern.
    React components in this system apply these classes.
    ──────────────────────────────────────────────────────────── */
 
@@ -13,10 +21,10 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;                 /* gap-1.5 */
+  gap: var(--spacing-xs);                 /* gap-1.5 */
   white-space: nowrap;
   height: 2rem;                  /* h-8 */
-  padding-inline: 0.625rem;      /* px-2.5 */
+  padding-inline: var(--spacing-m);      /* px-2.5 */
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
   background-clip: padding-box;
@@ -81,9 +89,9 @@
 .hlm-btn--link:hover { text-decoration: underline; }
 
 /* sizes */
-.hlm-btn--xs { height: 1.5rem; gap: 0.25rem; padding-inline: 0.5rem; font-size: var(--text-xs); border-radius: var(--radius-md); }
-.hlm-btn--sm { height: 1.75rem; gap: 0.25rem; padding-inline: 0.625rem; font-size: 0.8rem; border-radius: var(--radius-md); }
-.hlm-btn--lg { height: 2.25rem; padding-inline: 0.625rem; }
+.hlm-btn--xs { height: 1.5rem; gap: var(--spacing-xs); padding-inline: var(--spacing-s); font-size: var(--text-xs); border-radius: var(--radius-md); }
+.hlm-btn--sm { height: 1.75rem; gap: var(--spacing-xs); padding-inline: var(--spacing-m); font-size: 0.8rem; border-radius: var(--radius-md); }
+.hlm-btn--lg { height: 2.25rem; padding-inline: var(--spacing-m); }
 .hlm-btn--icon { width: 2rem; height: 2rem; padding: 0; }
 .hlm-btn--icon-sm { width: 1.75rem; height: 1.75rem; padding: 0; border-radius: var(--radius-md); }
 .hlm-btn--icon-xs { width: 1.5rem; height: 1.5rem; padding: 0; border-radius: var(--radius-md); }
@@ -95,7 +103,7 @@
   width: 100%;
   min-width: 0;
   height: 2rem;                  /* h-8 */
-  padding: 0.25rem 0.625rem;     /* py-1 px-2.5 */
+  padding: var(--spacing-xs) var(--spacing-m);     /* py-1 px-2.5 */
   border: 1px solid var(--input);
   border-radius: var(--radius-lg);
   background: transparent;
@@ -124,13 +132,13 @@
 }
 
 /* Textarea shares the input skin but grows */
-.hlm-textarea { height: auto; min-height: 4rem; padding: 0.5rem 0.625rem; resize: vertical; line-height: 1.5; }
+.hlm-textarea { height: auto; min-height: 4rem; padding: var(--spacing-s) var(--spacing-m); resize: vertical; line-height: 1.5; }
 
 /* ===== Label ===== hlm-label.ts ===== */
 .hlm-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-s);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   line-height: 1;
@@ -141,7 +149,7 @@
 .hlm-field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;                   /* gap-2 */
+  gap: var(--spacing-s);                   /* gap-2 */
   width: 100%;
 }
 .hlm-field--horizontal { flex-direction: row; align-items: center; }
@@ -157,27 +165,27 @@
 .hlm-card {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;                   /* gap-6 */
+  gap: var(--spacing-xl);                   /* gap-6 */
   background: var(--card);
   color: var(--card-foreground);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
-  padding-block: 1.5rem;         /* py-6 */
+  padding-block: var(--spacing-xl);         /* py-6 */
 }
-.hlm-card__header { display: flex; flex-direction: column; gap: 0.375rem; padding-inline: 1.5rem; }
+.hlm-card__header { display: flex; flex-direction: column; gap: var(--spacing-xs); padding-inline: var(--spacing-xl); }
 .hlm-card__title { font-size: var(--text-lg); font-weight: var(--font-semibold); letter-spacing: var(--tracking-tight); }
 .hlm-card__description { font-size: var(--text-sm); color: var(--muted-foreground); }
-.hlm-card__content { padding-inline: 1.5rem; }
-.hlm-card__footer { display: flex; align-items: center; gap: 0.5rem; padding-inline: 1.5rem; }
+.hlm-card__content { padding-inline: var(--spacing-xl); }
+.hlm-card__footer { display: flex; align-items: center; gap: var(--spacing-s); padding-inline: var(--spacing-xl); }
 
 /* ===== Badge ===== shadcn badge ===== */
 .hlm-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--spacing-xs);
   width: fit-content;
-  padding: 0.125rem 0.5rem;      /* py-0.5 px-2 */
+  padding: var(--spacing-xs) var(--spacing-s);      /* py-0.5 px-2 */
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
@@ -196,7 +204,7 @@
   display: inline-flex;
   align-items: center;
   height: 1.25rem;
-  padding-inline: 0.375rem;
+  padding-inline: var(--spacing-xs);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--muted);

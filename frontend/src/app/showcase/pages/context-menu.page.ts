@@ -134,7 +134,7 @@ import { Usage } from '../usage';
       >
         <div
           [hlmContextMenuTrigger]="fileMenu"
-          class="flex w-full min-w-3xs items-center justify-between rounded-lg border px-3 py-2 text-sm"
+          class="flex w-full min-w-3xs items-center justify-between rounded-lg border px-m py-s text-sm"
         >
           <span>quarterly-report.pdf</span>
           <span class="text-muted-foreground text-xs">Right click for actions</span>
@@ -214,7 +214,7 @@ sortBy = signal<'name' | 'date'>('name');
 
   protected readonly codeComposition = `lastAction = signal<string | undefined>(undefined);
 
-<div [hlmContextMenuTrigger]="fileMenu" class="flex items-center justify-between rounded-lg border px-3 py-2">
+<div [hlmContextMenuTrigger]="fileMenu" class="flex items-center justify-between rounded-lg border px-m py-s">
   <span>quarterly-report.pdf</span>
 </div>
 

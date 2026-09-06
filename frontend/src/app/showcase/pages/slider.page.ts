@@ -36,7 +36,7 @@ function minVolume(min: number) {
       </app-usage>
 
       <app-usage title="Ticks and disabled" note="showTicks renders labeled tick marks; disabled stops all interaction." [code]="codeStates">
-        <div class="flex max-w-sm flex-col gap-6">
+        <div class="flex max-w-sm flex-col gap-xl">
           <hlm-slider [(value)]="volume" [showTicks]="true" />
           <hlm-slider [value]="[40]" [disabled]="true" />
         </div>

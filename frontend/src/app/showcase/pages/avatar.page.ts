@@ -35,7 +35,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sizes" note="sm, default and lg — the fallback text scales with the group." [code]="codeSizes">
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-m">
           <hlm-avatar size="sm">
             <span hlmAvatarFallback>SM</span>
           </hlm-avatar>
@@ -53,7 +53,7 @@ import { Usage } from '../usage';
         note="Toggling status flips a real signal; the badge color class is bound to it, never hand-set."
         [code]="codeStatus"
       >
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-m">
           <hlm-avatar>
             <span hlmAvatarFallback>RG</span>
             <hlm-avatar-badge [class]="online() ? 'bg-foreground' : 'bg-muted-foreground'" />

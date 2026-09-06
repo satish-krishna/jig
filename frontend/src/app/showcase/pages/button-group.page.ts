@@ -28,7 +28,7 @@ import { Usage } from '../usage';
         note="Horizontal is the default; vertical stacks the same buttons top to bottom."
         [code]="codeOrientation"
       >
-        <div class="flex flex-wrap items-start gap-6">
+        <div class="flex flex-wrap items-start gap-xl">
           <div hlmButtonGroup>
             <button hlmBtn variant="outline">One</button>
             <button hlmBtn variant="outline">Two</button>
@@ -43,7 +43,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sizes" note="Match every button in a group to the same size." [code]="codeSizes">
-        <div class="flex flex-col items-start gap-3">
+        <div class="flex flex-col items-start gap-m">
           <div hlmButtonGroup>
             <button hlmBtn variant="outline" size="sm">Small</button>
             <button hlmBtn variant="outline" size="sm">Button</button>
@@ -62,7 +62,7 @@ import { Usage } from '../usage';
         note="Locking is real signal state — the Lock button disables every action in the group below it."
         [code]="codeStates"
       >
-        <div class="flex flex-col items-start gap-3">
+        <div class="flex flex-col items-start gap-m">
           <button hlmBtn variant="ghost" size="sm" (click)="locked.set(!locked())">
             {{ locked() ? 'Unlock' : 'Lock' }}
           </button>

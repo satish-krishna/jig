@@ -22,7 +22,7 @@ import { Usage } from '../usage';
   template: `
     <app-component-page slug="badge">
       <app-usage title="Variants" note="Six semantic variants, all on the same span[hlmBadge]." [code]="codeVariants">
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <span hlmBadge>Default</span>
           <span hlmBadge variant="secondary">Secondary</span>
           <span hlmBadge variant="destructive">Destructive</span>
@@ -37,7 +37,7 @@ import { Usage } from '../usage';
         note="data-icon=inline-start|inline-end tells the badge's own padding utilities which side the icon sits on."
         [code]="codeIcons"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <span hlmBadge variant="secondary">
             <ng-icon data-icon="inline-start" name="lucideBadgeCheck" />
             Verified
@@ -50,7 +50,7 @@ import { Usage } from '../usage';
         note="The number is a real signal; clicking the button increments it, nothing here is hand-typed."
         [code]="codeInteractive"
       >
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-m">
           <button hlmBtn variant="outline" size="sm" (click)="bump()">Simulate event</button>
           <span hlmBadge variant="destructive">{{ count() }}</span>
         </div>
@@ -64,7 +64,7 @@ import { Usage } from '../usage';
         <button hlmBtn variant="outline" size="icon" class="relative" (click)="bump()" aria-label="Notifications">
           <ng-icon name="lucideBell" />
           @if (count() > 0) {
-            <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4 px-1">
+            <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4 px-xs">
               {{ count() }}
             </span>
           }
@@ -102,7 +102,7 @@ bump() { this.count.update((n) => n + 1); }
   protected readonly codeContext = `<button hlmBtn variant="outline" size="icon" class="relative" aria-label="Notifications">
   <ng-icon name="lucideBell" />
   @if (count() > 0) {
-    <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4 px-1">
+    <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4 px-xs">
       {{ count() }}
     </span>
   }

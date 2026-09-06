@@ -44,7 +44,7 @@ import { Usage } from '../usage';
         note="Driven by real signal state — Confirm without picking a date and the error appears."
         [code]="codeValidated"
       >
-        <div class="flex flex-col items-start gap-3">
+        <div class="flex flex-col items-start gap-m">
           <hlm-calendar [(date)]="requiredDate" [max]="maxDate" />
           @if (touched() && !requiredDate()) {
             <p class="text-destructive text-sm">Please select a date.</p>

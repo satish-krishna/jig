@@ -23,7 +23,7 @@ import { Usage } from '../usage';
       <app-usage title="Dimensions" note="A small form living inside the popover body." [code]="codeDefault">
         <hlm-popover sideOffset="5" align="start">
           <button hlmPopoverTrigger hlmBtn variant="outline">Open popover</button>
-          <hlm-popover-content *hlmPopoverPortal="let ctx" class="grid w-64 gap-3">
+          <hlm-popover-content *hlmPopoverPortal="let ctx" class="grid w-64 gap-m">
             <hlm-popover-header>
               <div hlmPopoverTitle>Dimensions</div>
               <p hlmPopoverDescription>Set the dimensions for the layer.</p>
@@ -37,7 +37,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Align" note="start / center / end, relative to the trigger." [code]="codeAlign">
-        <div class="flex gap-6">
+        <div class="flex gap-xl">
           @for (a of aligns; track a) {
             <hlm-popover sideOffset="5" [align]="a">
               <button hlmPopoverTrigger hlmBtn variant="outline">{{ a }}</button>
@@ -76,7 +76,7 @@ import { Usage } from '../usage';
               <div hlmPopoverTitle>Notifications</div>
               <p hlmPopoverDescription>{{ unread().length }} unread of {{ items().length }}.</p>
             </hlm-popover-header>
-            <ul class="flex flex-col gap-1.5 text-sm">
+            <ul class="flex flex-col gap-xs text-sm">
               @for (item of items(); track item.id) {
                 <li [class.font-medium]="!item.read">{{ item.text }}</li>
               }
@@ -109,7 +109,7 @@ export class PopoverPage {
 
   protected readonly codeDefault = `<hlm-popover sideOffset="5" align="start">
   <button hlmPopoverTrigger hlmBtn variant="outline">Open popover</button>
-  <hlm-popover-content *hlmPopoverPortal="let ctx" class="grid w-64 gap-3">
+  <hlm-popover-content *hlmPopoverPortal="let ctx" class="grid w-64 gap-m">
     <hlm-popover-header>
       <div hlmPopoverTitle>Dimensions</div>
       <p hlmPopoverDescription>Set the dimensions for the layer.</p>

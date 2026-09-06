@@ -26,7 +26,7 @@ import { Usage } from '../usage';
         note="type=single is exclusive; type=multiple lets several items stay pressed. Both bound with [(value)]."
         [code]="codeTypes"
       >
-        <div class="flex flex-wrap items-start gap-6">
+        <div class="flex flex-wrap items-start gap-xl">
           <hlm-toggle-group type="single" variant="outline" [(value)]="view">
             <button hlmToggleGroupItem value="list" aria-label="Toggle list view">List</button>
             <button hlmToggleGroupItem value="grid" aria-label="Toggle grid view">Grid</button>
@@ -47,7 +47,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sizes" note="sm and default, both outline, single selection." [code]="codeSizes">
-        <div class="flex flex-col items-start gap-4">
+        <div class="flex flex-col items-start gap-l">
           <hlm-toggle-group type="single" size="sm" variant="outline" value="top">
             <button hlmToggleGroupItem value="top" aria-label="Toggle top">Top</button>
             <button hlmToggleGroupItem value="bottom" aria-label="Toggle bottom">Bottom</button>

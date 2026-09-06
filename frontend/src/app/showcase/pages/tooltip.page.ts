@@ -31,7 +31,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Positions" note="position places the tooltip on a given side of the trigger." [code]="codePositions">
-        <div class="grid grid-cols-2 items-center justify-items-center gap-2">
+        <div class="grid grid-cols-2 items-center justify-items-center gap-s">
           <button
             type="button"
             hlmBtn
@@ -86,7 +86,7 @@ import { Usage } from '../usage';
         <ng-template #richTooltip>
           <span class="flex items-center">
             Add to library
-            <ng-icon class="ml-2 text-sm" name="lucidePlus" />
+            <ng-icon class="ml-s text-sm" name="lucidePlus" />
           </span>
         </ng-template>
       </app-usage>
@@ -96,7 +96,7 @@ import { Usage } from '../usage';
         [note]="tooltipDisabled() ? 'Tooltip disabled.' : 'Tooltip enabled.'"
         [code]="codeDisabled"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-m">
           <div hlmTooltip="Re-enable the field above first" [showDelay]="0" [hideDelay]="0" [tooltipDisabled]="!disabled()">
             <button hlmBtn variant="outline" [disabled]="disabled()">Disabled target</button>
           </div>
@@ -127,7 +127,7 @@ export class TooltipPage {
 <ng-template #richTooltip>
   <span class="flex items-center">
     Add to library
-    <ng-icon class="ml-2 text-sm" name="lucidePlus" />
+    <ng-icon class="ml-s text-sm" name="lucidePlus" />
   </span>
 </ng-template>`;
 

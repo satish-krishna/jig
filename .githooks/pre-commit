@@ -27,6 +27,6 @@ echo "pre-commit: checking capability catalog freshness…"
 node tools/catalog/catalog.ts --check
 
 echo "pre-commit: running tooling tests…"
-node --test "tools/**/*.test.ts" >/dev/null
+node --test "tools/**/*.test.ts" "tools/**/*.test.mjs" >/dev/null
 
 echo "pre-commit: ok"

@@ -20,7 +20,7 @@ import { COMPONENTS } from '../component-registry';
   template: `
     @if (known()) {
       <app-component-page [slug]="known()!">
-        <div class="border-border grid gap-1 rounded-lg border border-dashed px-4 py-6">
+        <div class="border-border grid gap-xs rounded-lg border border-dashed px-l py-xl">
           <p class="text-sm font-medium">Usages not written yet.</p>
           <p class="text-muted-foreground text-sm">
             The API below is generated from the vendored source and is accurate. Until worked
@@ -29,7 +29,7 @@ import { COMPONENTS } from '../component-registry';
         </div>
       </app-component-page>
     } @else {
-      <div class="grid max-w-xl gap-3" data-testid="showcase-not-found">
+      <div class="grid max-w-xl gap-m" data-testid="showcase-not-found">
         <h1 class="text-2xl font-semibold">No such component</h1>
         <p class="text-muted-foreground text-sm">
           <code class="font-mono">{{ requested() || '(none)' }}</code> is not one of the

@@ -24,7 +24,7 @@ import { Usage } from '../usage';
   template: `
     <app-component-page slug="typography">
       <app-usage title="Headings" note="hlmH1 through hlmH4, largest to smallest." [code]="codeHeadings">
-        <div class="grid w-full gap-2">
+        <div class="grid w-full gap-s">
           <h1 hlmH1>Heading one</h1>
           <h2 hlmH2>Heading two</h2>
           <h3 hlmH3>Heading three</h3>
@@ -37,7 +37,7 @@ import { Usage } from '../usage';
         note="hlmLead for an intro line, hlmP for body copy, hlmLarge/hlmSmall/hlmMuted for emphasis."
         [code]="codeBody"
       >
-        <div class="grid w-full gap-1">
+        <div class="grid w-full gap-xs">
           <p hlmLead>A short lead paragraph introducing the section.</p>
           <p hlmP>Regular body text, the default reading size for prose.</p>
           <p hlmLarge>Larger, semibold text for emphasis.</p>
@@ -51,7 +51,7 @@ import { Usage } from '../usage';
         note="hlmBlockquote for quoted text, hlmCode for inline code spans."
         [code]="codeQuote"
       >
-        <div class="grid w-full gap-2">
+        <div class="grid w-full gap-s">
           <blockquote hlmBlockquote>"Make it work, make it right, make it fast."</blockquote>
           <p hlmP>Run <code hlmCode>npm run verify</code> before every commit.</p>
         </div>
@@ -62,7 +62,7 @@ import { Usage } from '../usage';
         note="Heading, lead, paragraph and list together, the realistic combination."
         [code]="codeArticle"
       >
-        <article class="grid w-full gap-1">
+        <article class="grid w-full gap-xs">
           <h2 hlmH2>Release notes</h2>
           <p hlmLead>What changed in this version.</p>
           <p hlmP>This release focuses on stability and a handful of small fixes.</p>

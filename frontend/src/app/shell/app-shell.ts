@@ -40,7 +40,7 @@ import { SidebarNavItem } from './sidebar-nav-item';
         </span>
         <!-- The header's second grid column. Its contents are a single inline
              run of controls, which is what flex is for. -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-m">
           <button
             hlmBtn
             variant="ghost"

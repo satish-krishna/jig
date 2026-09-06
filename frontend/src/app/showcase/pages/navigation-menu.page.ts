@@ -36,7 +36,7 @@ import { Usage } from '../usage';
             <li hlmNavigationMenuItem>
               <button hlmNavigationMenuTrigger>Product</button>
               <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                <ul class="grid w-[220px] gap-1 p-2">
+                <ul class="grid w-[220px] gap-xs p-s">
                   <li><a hlmNavigationMenuLink href="#">Overview</a></li>
                   <li><a hlmNavigationMenuLink href="#">Pricing</a></li>
                   <li><a hlmNavigationMenuLink href="#">Changelog</a></li>
@@ -60,7 +60,7 @@ import { Usage } from '../usage';
             <li hlmNavigationMenuItem>
               <button hlmNavigationMenuTrigger>Design system</button>
               <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                <ul class="grid w-60 gap-1 p-2">
+                <ul class="grid w-60 gap-xs p-s">
                   <li>
                     <a hlmNavigationMenuLink href="#"><ng-icon name="lucideBox" />Primitives</a>
                   </li>
@@ -82,19 +82,19 @@ import { Usage } from '../usage';
         note="[value]/(valueChange) are wired to a real signal — the open item's id is displayed, not hand-set."
         [code]="codeState"
       >
-        <div class="flex w-full flex-col gap-2">
+        <div class="flex w-full flex-col gap-s">
           <nav hlmNavigationMenu openOn="click" [value]="openItem()" (valueChange)="openItem.set($event)">
             <ul hlmNavigationMenuList>
               <li hlmNavigationMenuItem id="getting-started">
                 <button hlmNavigationMenuTrigger>Getting started</button>
                 <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                  <p class="w-48 p-3 text-sm">Install the CLI and scaffold your first project.</p>
+                  <p class="w-48 p-m text-sm">Install the CLI and scaffold your first project.</p>
                 </hlm-navigation-menu-content>
               </li>
               <li hlmNavigationMenuItem id="components">
                 <button hlmNavigationMenuTrigger>Components</button>
                 <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                  <p class="w-48 p-3 text-sm">Browse every component and its API.</p>
+                  <p class="w-48 p-m text-sm">Browse every component and its API.</p>
                 </hlm-navigation-menu-content>
               </li>
             </ul>
@@ -113,7 +113,7 @@ import { Usage } from '../usage';
             <li hlmNavigationMenuItem>
               <button hlmNavigationMenuTrigger>Docs</button>
               <hlm-navigation-menu-content *hlmNavigationMenuPortal>
-                <ul class="grid w-[220px] gap-1 p-2">
+                <ul class="grid w-[220px] gap-xs p-s">
                   <li><a hlmNavigationMenuLink href="#"><ng-icon name="lucideBookOpen" />Guides</a></li>
                   <li><a hlmNavigationMenuLink href="#"><ng-icon name="lucideBox" />API reference</a></li>
                 </ul>

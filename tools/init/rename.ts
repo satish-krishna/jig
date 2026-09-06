@@ -47,14 +47,28 @@ export function deriveNames(rawName: string, bundleId?: string): Names {
 
 /**
  * Rewrite file CONTENT. Order matters: the specific lowercase forms that contain
- * "jig" (the bundle id and the `jig_lib` Rust identifier) are replaced before the
- * generic `jig` -> kebab pass, so they are not mangled. `Jig` and `jig` are
- * case-sensitive and independent.
+ * "jig" (the bundle id, the `jig_lib` Rust identifier, and the ESLint plugin's
+ * import binding / registration key) are replaced before the generic `jig` ->
+ * kebab pass, so they are not mangled. `Jig` and `jig` are case-sensitive and
+ * independent.
+ *
+ * The ESLint plugin name is a special case: `'jig/no-literal-spacing'` is a
+ * quoted string, so it rewrites fine to kebab-case, but `import jig from
+ * '../tools/lint/index.mjs'` and the `plugins: { jig }` shorthand bind and
+ * reference a JS identifier, not a string. Kebab-case is not a valid
+ * identifier, so a blind kebab pass would leave `import acme-portal from ...`
+ * and `plugins: { acme-portal }` — both syntax errors. These two forms are
+ * rewritten to a camelCase identifier instead, and the shorthand is expanded to
+ * an explicit `'kebab-key': camelValue` pair so the registered key still
+ * matches the kebab-case prefix the generic pass gives the rule string.
  */
 export function renameContent(text: string, n: Names): string {
+  const camel = n.pascal.charAt(0).toLowerCase() + n.pascal.slice(1);
   return text
     .split('com.jig.app').join(n.bundleId)
     .split('jig_lib').join(`${n.snake}_lib`)
+    .split('import jig from').join(`import ${camel} from`)
+    .split('plugins: { jig }').join(`plugins: { '${n.kebab}': ${camel} }`)
     .split('Jig').join(n.pascal)
     .split('jig').join(n.kebab);
 }

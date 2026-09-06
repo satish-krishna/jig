@@ -1,0 +1,24 @@
+.clean {
+  color: var(--foreground);
+  background: var(--card);
+  padding: var(--spacing-s);
+  margin-left: var(--spacing-l);
+  gap: var(--spacing-m);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  inset: 0;
+}
+
+/* gap IS governed, so these two pass only because '1px' and '0' are in
+   ignoreValues. Delete either value from the config and this fixture reports a
+   violation, which is what makes the config's exemptions testable at all.
+   gap: 1px is not synthetic: shell.layout.css uses exactly that for the sidebar
+   hairline separator, and design.md declares a 1px hairline a primitive of the
+   design language rather than a spacing step. */
+.clean-hairline {
+  gap: 1px;
+}
+
+.clean-zero {
+  gap: 0;
+}

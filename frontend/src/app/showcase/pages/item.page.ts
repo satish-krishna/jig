@@ -47,7 +47,7 @@ import { Usage } from '../usage';
         note="default, outline and muted — the border and background shift, layout stays identical."
         [code]="codeVariants"
       >
-        <div class="flex w-full max-w-md flex-col gap-3">
+        <div class="flex w-full max-w-md flex-col gap-m">
           <hlm-item variant="default">
             <hlm-item-content>
               <hlm-item-title>Default</hlm-item-title>
@@ -67,7 +67,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sizes" note="default, sm and xs tighten the padding and gap together." [code]="codeSizes">
-        <div class="flex w-full max-w-md flex-col gap-3">
+        <div class="flex w-full max-w-md flex-col gap-m">
           <hlm-item variant="outline" size="default">
             <hlm-item-content>
               <hlm-item-title>Default size</hlm-item-title>

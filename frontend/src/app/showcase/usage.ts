@@ -20,7 +20,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
   imports: [HlmButtonImports],
   template: `
     <section class="border-border overflow-hidden rounded-lg border">
-      <header class="border-border flex items-baseline gap-3 border-b px-4 py-2.5">
+      <header class="border-border flex items-baseline gap-m border-b px-l py-m">
         <h3 class="text-sm font-medium">{{ title() }}</h3>
         @if (note(); as n) {
           <p class="text-muted-foreground text-xs">{{ n }}</p>
@@ -34,12 +34,12 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
         </button>
       </header>
 
-      <div class="flex flex-wrap items-center gap-4 p-4" data-slot="usage-stage">
+      <div class="flex flex-wrap items-center gap-l p-l" data-slot="usage-stage">
         <ng-content />
       </div>
 
       <pre
-        class="border-border bg-muted/40 overflow-x-auto border-t px-4 py-3 font-mono text-xs"
+        class="border-border bg-muted/40 overflow-x-auto border-t px-l py-m font-mono text-xs"
       ><code>{{ code() }}</code></pre>
     </section>
   `,

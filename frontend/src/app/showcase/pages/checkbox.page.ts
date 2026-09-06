@@ -30,22 +30,22 @@ import { Usage } from '../usage';
         note="The label is a sibling, paired by inputId — not projected content."
         [code]="codeDefault"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-m">
           <hlm-checkbox inputId="cb-terms" />
           <label hlmLabel for="cb-terms">Accept terms and conditions</label>
         </div>
       </app-usage>
 
       <app-usage title="States" note="Checked, indeterminate and disabled." [code]="codeStates">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-m">
           <hlm-checkbox inputId="cb-on" [checked]="true" />
           <label hlmLabel for="cb-on">Checked</label>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-m">
           <hlm-checkbox inputId="cb-mixed" [(indeterminate)]="mixed" />
           <label hlmLabel for="cb-mixed">Indeterminate</label>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-m">
           <hlm-checkbox inputId="cb-off" disabled />
           <label hlmLabel for="cb-off">Disabled</label>
         </div>
@@ -71,7 +71,7 @@ import { Usage } from '../usage';
         [code]="codeValidated"
       >
         <div hlmField class="max-w-sm">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-m">
             <hlm-checkbox inputId="cb-required" [formControl]="accepted" />
             <label hlmFieldLabel for="cb-required">I accept the terms</label>
           </div>
@@ -95,7 +95,7 @@ export class CheckboxPage {
     this.accepted.markAsTouched();
   }
 
-  protected readonly codeDefault = `<div class="flex items-center gap-3">
+  protected readonly codeDefault = `<div class="flex items-center gap-m">
   <hlm-checkbox inputId="cb-terms" />
   <label hlmLabel for="cb-terms">Accept terms and conditions</label>
 </div>`;
@@ -116,7 +116,7 @@ export class CheckboxPage {
 accepted = new FormControl(false, { validators: [Validators.requiredTrue] });
 
 <div hlmField>
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-m">
     <hlm-checkbox inputId="cb-required" [formControl]="accepted" />
     <label hlmFieldLabel for="cb-required">I accept the terms</label>
   </div>

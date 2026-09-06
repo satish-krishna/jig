@@ -22,7 +22,7 @@ import { Usage } from '../usage';
   template: `
     <app-component-page slug="alert">
       <app-usage title="Variants" note="Default and destructive." [code]="codeVariants">
-        <div class="flex w-full max-w-md flex-col gap-3">
+        <div class="flex w-full max-w-md flex-col gap-m">
           <hlm-alert>
             <h4 hlmAlertTitle>Payment successful</h4>
             <p hlmAlertDescription>A receipt has been sent to your email address.</p>
@@ -73,9 +73,9 @@ import { Usage } from '../usage';
         note="Driven by a real FormControl — submit an empty field to see it appear."
         [code]="codeValidation"
       >
-        <div class="flex max-w-md flex-col gap-3">
+        <div class="flex max-w-md flex-col gap-m">
           <input
-            class="border-border rounded-md border px-2.5 py-1.5 text-sm"
+            class="border-border rounded-md border px-m py-xs text-sm"
             placeholder="you@example.com"
             [formControl]="email"
           />

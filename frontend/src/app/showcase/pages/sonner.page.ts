@@ -30,7 +30,7 @@ import { Usage } from '../usage';
         note="success / error / warning / info, plus dismissing every visible toast."
         [code]="codeTypes"
       >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-s">
           <button hlmBtn variant="outline" size="sm" (click)="showSuccess()">Success</button>
           <button hlmBtn variant="outline" size="sm" (click)="showError()">Error</button>
           <button hlmBtn variant="outline" size="sm" (click)="showWarning()">Warning</button>
@@ -50,7 +50,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Positions" note="Per-toast position overrides the toaster default." [code]="codePosition">
-        <div class="flex gap-2">
+        <div class="flex gap-s">
           <button hlmBtn variant="outline" size="sm" (click)="showTopLeft()">Top left</button>
           <button hlmBtn variant="outline" size="sm" (click)="showBottomRight()">Bottom right</button>
         </div>

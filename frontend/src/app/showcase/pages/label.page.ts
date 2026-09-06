@@ -19,7 +19,7 @@ import { Usage } from '../usage';
   template: `
     <app-component-page slug="label">
       <app-usage title="Default" note="A sibling of the input, paired by for/id." [code]="codeDefault">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-xs">
           <label hlmLabel for="label-name">Name</label>
           <input hlmInput id="label-name" placeholder="Ada Lovelace" />
         </div>
@@ -30,14 +30,14 @@ import { Usage } from '../usage';
         note="peer-disabled:opacity-50 dims the label when the input carries class=peer and is disabled."
         [code]="codeDisabled"
       >
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-xs">
           <input hlmInput id="label-disabled" class="peer" placeholder="Unavailable" disabled />
           <label hlmLabel for="label-disabled">Disabled field</label>
         </div>
       </app-usage>
 
       <app-usage title="Wrapping a control" note="A label can wrap its control instead of using for/id." [code]="codeWrapping">
-        <label hlmLabel class="flex items-center gap-2">
+        <label hlmLabel class="flex items-center gap-s">
           <input hlmInput placeholder="Search" class="max-w-40" />
           Search term
         </label>
@@ -66,7 +66,7 @@ export class LabelPage {
     this.name.markAsTouched();
   }
 
-  protected readonly codeDefault = `<div class="flex flex-col gap-1.5">
+  protected readonly codeDefault = `<div class="flex flex-col gap-xs">
   <label hlmLabel for="label-name">Name</label>
   <input hlmInput id="label-name" placeholder="Ada Lovelace" />
 </div>`;
@@ -74,7 +74,7 @@ export class LabelPage {
   protected readonly codeDisabled = `<input hlmInput id="label-disabled" class="peer" disabled />
 <label hlmLabel for="label-disabled">Disabled field</label>`;
 
-  protected readonly codeWrapping = `<label hlmLabel class="flex items-center gap-2">
+  protected readonly codeWrapping = `<label hlmLabel class="flex items-center gap-s">
   <input hlmInput placeholder="Search" />
   Search term
 </label>`;

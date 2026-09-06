@@ -21,13 +21,13 @@ import { Usage } from '../usage';
       <app-usage title="Default, two panels" note="Drag the handle to resize either side." [code]="codeDefault">
         <hlm-resizable-group class="h-40 w-full max-w-sm rounded-lg border">
           <hlm-resizable-panel defaultSize="50">
-            <div class="flex h-full items-center justify-center p-6">
+            <div class="flex h-full items-center justify-center p-xl">
               <span class="font-semibold">One</span>
             </div>
           </hlm-resizable-panel>
           <hlm-resizable-handle withHandle />
           <hlm-resizable-panel defaultSize="50">
-            <div class="flex h-full items-center justify-center p-6">
+            <div class="flex h-full items-center justify-center p-xl">
               <span class="font-semibold">Two</span>
             </div>
           </hlm-resizable-panel>
@@ -41,13 +41,13 @@ import { Usage } from '../usage';
       >
         <hlm-resizable-group class="h-56 w-full max-w-sm rounded-lg border" direction="vertical">
           <hlm-resizable-panel defaultSize="30">
-            <div class="flex h-full items-center justify-center p-6">
+            <div class="flex h-full items-center justify-center p-xl">
               <span class="font-semibold">Header</span>
             </div>
           </hlm-resizable-panel>
           <hlm-resizable-handle withHandle />
           <hlm-resizable-panel defaultSize="70">
-            <div class="flex h-full items-center justify-center p-6">
+            <div class="flex h-full items-center justify-center p-xl">
               <span class="font-semibold">Content</span>
             </div>
           </hlm-resizable-panel>
@@ -61,7 +61,7 @@ import { Usage } from '../usage';
       >
         <hlm-resizable-group class="h-56 w-full max-w-sm rounded-lg border">
           <hlm-resizable-panel defaultSize="50">
-            <div class="flex h-full items-center justify-center p-6">
+            <div class="flex h-full items-center justify-center p-xl">
               <span class="font-semibold">Sidebar</span>
             </div>
           </hlm-resizable-panel>
@@ -69,13 +69,13 @@ import { Usage } from '../usage';
           <hlm-resizable-panel defaultSize="50">
             <hlm-resizable-group direction="vertical">
               <hlm-resizable-panel defaultSize="50">
-                <div class="flex h-full items-center justify-center p-6">
+                <div class="flex h-full items-center justify-center p-xl">
                   <span class="font-semibold">Preview</span>
                 </div>
               </hlm-resizable-panel>
               <hlm-resizable-handle withHandle />
               <hlm-resizable-panel defaultSize="50">
-                <div class="flex h-full items-center justify-center p-6">
+                <div class="flex h-full items-center justify-center p-xl">
                   <span class="font-semibold">Console</span>
                 </div>
               </hlm-resizable-panel>
@@ -89,19 +89,19 @@ import { Usage } from '../usage';
         note="layout/layoutChange are wired to a signal — the reset button writes to it directly, the drag handle writes back."
         [code]="codeControlled"
       >
-        <div class="flex w-full max-w-sm flex-col gap-2">
+        <div class="flex w-full max-w-sm flex-col gap-s">
           <button hlmBtn variant="outline" size="sm" class="self-start" (click)="resetLayout()">
             Reset to 40 / 60
           </button>
           <hlm-resizable-group class="h-40 rounded-lg border" [(layout)]="layout">
             <hlm-resizable-panel defaultSize="40">
-              <div class="flex h-full items-center justify-center p-6">
+              <div class="flex h-full items-center justify-center p-xl">
                 <span class="font-semibold">One</span>
               </div>
             </hlm-resizable-panel>
             <hlm-resizable-handle withHandle />
             <hlm-resizable-panel defaultSize="60">
-              <div class="flex h-full items-center justify-center p-6">
+              <div class="flex h-full items-center justify-center p-xl">
                 <span class="font-semibold">Two</span>
               </div>
             </hlm-resizable-panel>
@@ -121,37 +121,37 @@ export class ResizablePage {
 
   protected readonly codeDefault = `<hlm-resizable-group class="h-40 rounded-lg border">
   <hlm-resizable-panel defaultSize="50">
-    <div class="flex h-full items-center justify-center p-6">One</div>
+    <div class="flex h-full items-center justify-center p-xl">One</div>
   </hlm-resizable-panel>
   <hlm-resizable-handle withHandle />
   <hlm-resizable-panel defaultSize="50">
-    <div class="flex h-full items-center justify-center p-6">Two</div>
+    <div class="flex h-full items-center justify-center p-xl">Two</div>
   </hlm-resizable-panel>
 </hlm-resizable-group>`;
 
   protected readonly codeVertical = `<hlm-resizable-group class="h-56 rounded-lg border" direction="vertical">
   <hlm-resizable-panel defaultSize="30">
-    <div class="flex h-full items-center justify-center p-6">Header</div>
+    <div class="flex h-full items-center justify-center p-xl">Header</div>
   </hlm-resizable-panel>
   <hlm-resizable-handle withHandle />
   <hlm-resizable-panel defaultSize="70">
-    <div class="flex h-full items-center justify-center p-6">Content</div>
+    <div class="flex h-full items-center justify-center p-xl">Content</div>
   </hlm-resizable-panel>
 </hlm-resizable-group>`;
 
   protected readonly codeNested = `<hlm-resizable-group class="h-56 rounded-lg border">
   <hlm-resizable-panel defaultSize="50">
-    <div class="flex h-full items-center justify-center p-6">Sidebar</div>
+    <div class="flex h-full items-center justify-center p-xl">Sidebar</div>
   </hlm-resizable-panel>
   <hlm-resizable-handle withHandle />
   <hlm-resizable-panel defaultSize="50">
     <hlm-resizable-group direction="vertical">
       <hlm-resizable-panel defaultSize="50">
-        <div class="flex h-full items-center justify-center p-6">Preview</div>
+        <div class="flex h-full items-center justify-center p-xl">Preview</div>
       </hlm-resizable-panel>
       <hlm-resizable-handle withHandle />
       <hlm-resizable-panel defaultSize="50">
-        <div class="flex h-full items-center justify-center p-6">Console</div>
+        <div class="flex h-full items-center justify-center p-xl">Console</div>
       </hlm-resizable-panel>
     </hlm-resizable-group>
   </hlm-resizable-panel>
@@ -163,11 +163,11 @@ resetLayout() { this.layout.set([40, 60]); }
 <button hlmBtn variant="outline" size="sm" (click)="resetLayout()">Reset to 40 / 60</button>
 <hlm-resizable-group class="h-40 rounded-lg border" [(layout)]="layout">
   <hlm-resizable-panel defaultSize="40">
-    <div class="flex h-full items-center justify-center p-6">One</div>
+    <div class="flex h-full items-center justify-center p-xl">One</div>
   </hlm-resizable-panel>
   <hlm-resizable-handle withHandle />
   <hlm-resizable-panel defaultSize="60">
-    <div class="flex h-full items-center justify-center p-6">Two</div>
+    <div class="flex h-full items-center justify-center p-xl">Two</div>
   </hlm-resizable-panel>
 </hlm-resizable-group>`;
 }

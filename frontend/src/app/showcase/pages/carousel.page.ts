@@ -27,9 +27,9 @@ import { Usage } from '../usage';
           <hlm-carousel-content>
             @for (item of slides; track item) {
               <hlm-carousel-item>
-                <div class="p-1">
+                <div class="p-xs">
                   <section hlmCard>
-                    <p hlmCardContent class="flex aspect-square items-center justify-center p-6">
+                    <p hlmCardContent class="flex aspect-square items-center justify-center p-xl">
                       <span class="text-4xl font-semibold">{{ item }}</span>
                     </p>
                   </section>
@@ -51,9 +51,9 @@ import { Usage } from '../usage';
           <hlm-carousel-content class="h-56">
             @for (item of slides; track item) {
               <hlm-carousel-item>
-                <div class="p-1">
+                <div class="p-xs">
                   <section hlmCard>
-                    <p hlmCardContent class="flex items-center justify-center p-6">
+                    <p hlmCardContent class="flex items-center justify-center p-xl">
                       <span class="text-3xl font-semibold">{{ item }}</span>
                     </p>
                   </section>
@@ -75,9 +75,9 @@ import { Usage } from '../usage';
           <hlm-carousel-content>
             @for (item of slides; track item) {
               <hlm-carousel-item class="basis-1/2">
-                <div class="p-1">
+                <div class="p-xs">
                   <section hlmCard>
-                    <p hlmCardContent class="flex aspect-square items-center justify-center p-6">
+                    <p hlmCardContent class="flex aspect-square items-center justify-center p-xl">
                       <span class="text-2xl font-semibold">{{ item }}</span>
                     </p>
                   </section>
@@ -87,7 +87,7 @@ import { Usage } from '../usage';
           </hlm-carousel-content>
           <button hlm-carousel-previous></button>
           <button hlm-carousel-next></button>
-          <hlm-carousel-slide-display class="mt-1 flex justify-end" />
+          <hlm-carousel-slide-display class="mt-xs flex justify-end" />
         </hlm-carousel>
       </app-usage>
 
@@ -100,9 +100,9 @@ import { Usage } from '../usage';
           <hlm-carousel-content>
             @for (t of testimonials; track t.name) {
               <hlm-carousel-item>
-                <div class="p-1">
+                <div class="p-xs">
                   <section hlmCard>
-                    <div hlmCardContent class="flex flex-col gap-2 p-4">
+                    <div hlmCardContent class="flex flex-col gap-s p-l">
                       <p class="text-sm">&ldquo;{{ t.quote }}&rdquo;</p>
                       <p class="text-muted-foreground text-xs font-medium">{{ t.name }}</p>
                     </div>
@@ -132,7 +132,7 @@ export class CarouselPage {
     @for (item of slides; track item) {
       <hlm-carousel-item>
         <section hlmCard>
-          <p hlmCardContent class="flex aspect-square items-center justify-center p-6">
+          <p hlmCardContent class="flex aspect-square items-center justify-center p-xl">
             {{ item }}
           </p>
         </section>
@@ -161,7 +161,7 @@ export class CarouselPage {
   </hlm-carousel-content>
   <button hlm-carousel-previous></button>
   <button hlm-carousel-next></button>
-  <hlm-carousel-slide-display class="mt-1 flex justify-end" />
+  <hlm-carousel-slide-display class="mt-xs flex justify-end" />
 </hlm-carousel>`;
 
   protected readonly codeComposition = `<hlm-carousel class="w-full max-w-xs">
@@ -169,7 +169,7 @@ export class CarouselPage {
     @for (t of testimonials; track t.name) {
       <hlm-carousel-item>
         <section hlmCard>
-          <div hlmCardContent class="flex flex-col gap-2 p-4">
+          <div hlmCardContent class="flex flex-col gap-s p-l">
             <p class="text-sm">"{{ t.quote }}"</p>
             <p class="text-muted-foreground text-xs font-medium">{{ t.name }}</p>
           </div>

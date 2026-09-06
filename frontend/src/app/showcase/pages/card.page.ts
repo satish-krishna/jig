@@ -40,7 +40,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Sizes" note="size='sm' shrinks the --card-spacing custom property." [code]="codeSizes">
-        <div class="flex flex-wrap items-start gap-4">
+        <div class="flex flex-wrap items-start gap-l">
           <hlm-card size="sm" class="w-full max-w-xs">
             <hlm-card-header>
               <h3 hlmCardTitle>Small</h3>
@@ -94,7 +94,7 @@ import { Usage } from '../usage';
           <div hlmCardContent>
             <p class="text-2xl font-semibold">{{ seats() }}</p>
           </div>
-          <hlm-card-footer class="gap-2">
+          <hlm-card-footer class="gap-s">
             <button hlmBtn variant="outline" size="sm" (click)="removeSeat()" [disabled]="seats() === 1">
               Remove seat
             </button>
@@ -148,7 +148,7 @@ removeSeat() { this.seats.update((n) => Math.max(1, n - 1)); }
 <div hlmCardContent>
   <p class="text-2xl font-semibold">{{ seats() }}</p>
 </div>
-<hlm-card-footer class="gap-2">
+<hlm-card-footer class="gap-s">
   <button hlmBtn variant="outline" size="sm" (click)="removeSeat()" [disabled]="seats() === 1">Remove seat</button>
   <button hlmBtn variant="outline" size="sm" (click)="addSeat()">Add seat</button>
 </hlm-card-footer>`;

@@ -34,7 +34,7 @@ import { Usage } from '../usage';
       </app-usage>
 
       <app-usage title="Text addons" note="hlm-input-group-text renders a plain-text prefix or suffix." [code]="codeText">
-        <div class="flex max-w-sm flex-col gap-3">
+        <div class="flex max-w-sm flex-col gap-m">
           <hlm-input-group>
             <hlm-input-group-addon>
               <hlm-input-group-text>$</hlm-input-group-text>

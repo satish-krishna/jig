@@ -45,7 +45,7 @@ import { Usage } from '../usage';
         note="The content's size input, not a class override — sm is narrower on every breakpoint."
         [code]="codeSizes"
       >
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-s">
           <hlm-alert-dialog>
             <button hlmAlertDialogTrigger hlmBtn variant="outline" size="sm">Small</button>
             <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx" size="sm">
