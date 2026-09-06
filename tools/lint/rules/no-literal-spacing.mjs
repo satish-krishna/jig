@@ -21,7 +21,11 @@ const NAMED = new Set(SPACING_STEPS.map((s) => s.name));
 /** Values that are not a step on any scale and therefore need no token. */
 const EXEMPT = new Set(['0', 'auto', 'px']);
 
-const PATTERN = new RegExp(`^(${SPACING_PREFIXES.join('|')})-(.+)$`);
+// The leading `-?` covers a negative margin (`-mt-2`, `-mx-4`), Tailwind's
+// idiom for pulling an element outward. `gap` has no negative form, but the
+// prefix is shared with `m`/`p` in SPACING_PREFIXES, so this stays permissive
+// there rather than special-casing which families accept a leading `-`.
+const PATTERN = new RegExp(`^-?(${SPACING_PREFIXES.join('|')})-(.+)$`);
 
 /**
  * True when the class is a spacing utility carrying a literal rather than a

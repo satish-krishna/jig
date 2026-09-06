@@ -28,6 +28,6 @@ Steps: `xs` 4px, `s` 8px, `m` 12px, `l` 16px, `xl` 24px, `2xl` 32px.
 
 ## Known blind spots
 
-It reads static `class` attributes only. A class list built by `[class]`, `ngClass`, or `cn()` in TypeScript is invisible to it — though `no-ng-class-style` forbids the first two outright.
+It reads static `class` attributes only. A class list built by `[class]`, `ngClass`, or `cn()` in TypeScript is invisible to it, and nothing gates that today: `frontend/src/app/showcase/pages/avatar.page.ts:59` uses `[class]` and `popover.page.ts:81` uses `[class.font-medium]` right now, unflagged. A rule closing this gap is not yet written.
 
 It cannot govern `libs/ui`, which is generated and ignored. Spartan inlines its own half-steps (`px-2.5`, `gap-1.5`), so a primitive's internal padding sits up to 2px off this grid. That split is permanent for as long as the vendored kit uses a different rhythm, and it is recorded in ADR 0011.

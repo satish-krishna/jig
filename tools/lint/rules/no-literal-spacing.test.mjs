@@ -26,6 +26,18 @@ test('flags an arbitrary spacing value', () => {
   assert.equal(isLiteralSpacingClass('gap-[0.4rem]'), true);
 });
 
+test('flags a negative margin literal, and accepts a negative margin step', () => {
+  // libs/ui uses -mx-1, -mx-4, and -mb-4 today (spartan's half-step rhythm),
+  // which is exactly the idiom an author copying that pattern into app code
+  // reaches for. The rule must catch it there too.
+  for (const cls of ['-mt-2', '-mx-4', '-mb-0.5']) {
+    assert.equal(isLiteralSpacingClass(cls), true, `${cls} should be flagged`);
+  }
+  for (const cls of ['-mt-s', '-mx-xl']) {
+    assert.equal(isLiteralSpacingClass(cls), false, `${cls} should pass`);
+  }
+});
+
 test('leaves zero, px and auto alone', () => {
   // Zero is the absence of spacing, not a step; mx-auto is centring, not spacing;
   // gap-px is the 1px hairline design.md declares a primitive.

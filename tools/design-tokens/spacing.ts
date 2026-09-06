@@ -6,6 +6,11 @@
  * Six steps on a 4px grid, derived from the nine magnitudes the app used before
  * the migration rather than invented. libs/ui keeps spartan's half-steps; see
  * ADR 0011 for why that split is accepted.
+ *
+ * Two of the nine source magnitudes sat exactly equidistant between grid
+ * lines: 6px snapped down to `xs` (4px), 10px snapped up to `m` (12px). See
+ * ADR 0011 for why that is not a general tie-break rule — decide a future
+ * exact-midpoint value explicitly rather than assuming these two set one.
  */
 export const SPACING_STEPS = [
   { name: 'xs', rem: '0.25rem', px: 4 },

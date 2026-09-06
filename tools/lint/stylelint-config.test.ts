@@ -27,16 +27,10 @@ test('the dirty fixture reports every hardcoded value', async () => {
 });
 
 test('the clean fixture reports nothing', async () => {
-  assert.deepEqual(await lint('spacing-clean.css'), []);
-});
-
-test('ignoreValues exemptions are properly guarded by property lists', async () => {
   // Exempt values (0 and 1px) are safe only on governed properties. gap IS
   // governed; border and inset are not. The clean fixture's gap: 1px and gap: 0
   // pass because they match both conditions: property is governed AND value is
   // exempt. Removing either 1px or 0 from ignoreValues makes this test fail,
   // proving the exemptions are actually needed and tested.
-  const warnings = await lint('spacing-clean.css');
-
-  assert.equal(warnings.length, 0, 'gap: 1px and gap: 0 must pass due to ignoreValues');
+  assert.deepEqual(await lint('spacing-clean.css'), []);
 });
