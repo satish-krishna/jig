@@ -9,6 +9,23 @@
    rules per CSS spec, so it lives here with the other imports, not at EOF. */
 @import './app/shell/shell.layout.css';
 
+/* The app-authored spacing scale: six steps on a 4px grid. Tailwind 4 turns each
+   --spacing-* entry into real utilities, so this gives us gap-m, p-xl, mt-s and
+   the rest alongside the numeric ones.
+
+   libs/ui is NOT on this scale. The spartan style inlines its own half-steps
+   (px-2.5, gap-1.5) at generation time and npm run ui:style reasserts them, so a
+   primitive's internal padding sits up to 2px off this grid. That split is
+   deliberate and recorded in ADR 0011. */
+@theme {
+  --spacing-xs: 0.25rem;
+  --spacing-s: 0.5rem;
+  --spacing-m: 0.75rem;
+  --spacing-l: 1rem;
+  --spacing-xl: 1.5rem;
+  --spacing-2xl: 2rem;
+}
+
 :root {
 color-scheme: light;
 
