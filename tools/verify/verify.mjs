@@ -14,7 +14,7 @@ const FRONTEND = join(ROOT, 'frontend');
 const steps = [
   ['catalog freshness', 'node tools/catalog/catalog.ts --check', ROOT],
   ['showcase api freshness', 'node tools/showcase-api/showcase-api.ts --check', ROOT],
-  ['tooling tests', 'node --test "tools/**/*.test.ts"', ROOT],
+  ['tooling tests', 'node --test "tools/**/*.test.ts" "tools/**/*.test.mjs"', ROOT],
   ['backend tests (.NET)', 'dotnet test services/api/Jig.sln --nologo -v q', ROOT],
   ['rust tests', 'cargo test', SRC_TAURI],
   ['frontend unit tests (Vitest)', 'npm test', FRONTEND],

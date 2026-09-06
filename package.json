@@ -16,8 +16,9 @@
     "catalog": "node tools/catalog/catalog.ts",
     "catalog:check": "node tools/catalog/catalog.ts --check",
     "codegen": "node tools/codegen/generate.mjs",
-    "test:tools": "node --test \"tools/**/*.test.ts\"",
+    "test:tools": "node --test \"tools/**/*.test.ts\" \"tools/**/*.test.mjs\"",
     "commitlint": "commitlint",
+    "lint": "eslint frontend --config frontend/eslint.config.mjs",
     "showcase:api": "node tools/showcase-api/showcase-api.ts",
     "stylelint": "stylelint \"frontend/src/**/*.css\" --ignore-pattern \"frontend/src/styles.css\"",
     "ui:style": "node tools/ui-style/ui-style.ts"
@@ -25,8 +26,11 @@
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
+    "angular-eslint": "^20.7.0",
+    "eslint": "^9.39.5",
     "openapi-typescript": "^7.0.0",
     "stylelint": "^16.26.1",
-    "stylelint-declaration-strict-value": "^1.12.1"
+    "stylelint-declaration-strict-value": "^1.12.1",
+    "typescript-eslint": "^8.69.0"
   }
 }
