@@ -13,6 +13,7 @@
     "init": "node tools/init/init.ts",
     "dev": "node tools/dev/dev.ts",
     "verify": "node tools/verify/verify.ts",
+    "verify:frontend": "node tools/verify/verify.ts --frontend",
     "catalog": "node tools/catalog/catalog.ts",
     "catalog:check": "node tools/catalog/catalog.ts --check",
     "typecheck": "tsc -p tsconfig.tools.json",

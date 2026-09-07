@@ -34,13 +34,27 @@ async function runFrontendLint(): Promise<boolean> {
   return result.ok;
 }
 
-const steps: [string, string | (() => Promise<boolean>), string][] = [
+/**
+ * Every step, in order, tagged with whether it is native — .NET or Rust.
+ *
+ * `--frontend` drops the native ones, which is the whole difference between the
+ * two gates. It exists because a branch that touches only `frontend/` and
+ * `tools/` still paid for `dotnet test` and `cargo test` on every run, and a
+ * two-minute inner loop gets run less often than a twenty-second one.
+ *
+ * It is a LOOP gate, never a substitute. The frontend consumes DTOs generated
+ * from the API, so a contract change breaks the TypeScript side without any
+ * frontend file being touched — only the full run proves the fixture holds.
+ * Commits and CI use the full gate; this is the same split CLAUDE.md already
+ * draws between `npm run dev` and `npm run verify`.
+ */
+const steps: [string, string | (() => Promise<boolean>), string, 'native'?][] = [
   ['catalog freshness', 'node tools/catalog/catalog.ts --check', ROOT],
   ['showcase api freshness', 'node tools/showcase-api/showcase-api.ts --check', ROOT],
   ['tools typecheck', 'npm run typecheck', ROOT],
   ['tooling tests', 'node --test "tools/**/*.test.ts"', ROOT],
-  ['backend tests (.NET)', 'dotnet test services/api/Jig.sln --nologo -v q', ROOT],
-  ['rust tests', 'cargo test', SRC_TAURI],
+  ['backend tests (.NET)', 'dotnet test services/api/Jig.sln --nologo -v q', ROOT, 'native'],
+  ['rust tests', 'cargo test', SRC_TAURI, 'native'],
   ['frontend unit tests (Vitest)', 'npm test', FRONTEND],
   ['frontend lint (ESLint)', runFrontendLint, ROOT],
   ['frontend css (stylelint)', 'npm run stylelint', ROOT],
@@ -48,8 +62,15 @@ const steps: [string, string | (() => Promise<boolean>), string][] = [
   ['e2e smoke (Playwright)', 'npm run e2e', FRONTEND],
 ];
 
+const frontendOnly = process.argv.includes('--frontend');
+const selected = frontendOnly ? steps.filter(([, , , kind]) => kind !== 'native') : steps;
+
+if (frontendOnly) {
+  console.log('Frontend gate: skipping .NET and Rust. Run `npm run verify` before committing.');
+}
+
 let failed: string | null = null;
-for (const [name, cmd, cwd] of steps) {
+for (const [name, cmd, cwd] of selected) {
   console.log(`\n=== ${name} ===`);
   try {
     if (typeof cmd === 'function') {
@@ -68,4 +89,11 @@ if (failed) {
   console.error(`\nVERIFY FAILED at: ${failed}`);
   process.exit(1);
 }
-console.log('\nVERIFY OK - full build, all tests, and catalog freshness are green.');
+// The two gates must never print the same sentence. A frontend run that claimed
+// a "full build" would be a gate lying about what it checked, which is the exact
+// thing this repo's enforcement work exists to stop.
+console.log(
+  frontendOnly
+    ? '\nVERIFY OK (frontend) - .NET and Rust were NOT run. Run `npm run verify` before committing.'
+    : '\nVERIFY OK - full build, all tests, and catalog freshness are green.',
+);
