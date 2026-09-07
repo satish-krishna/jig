@@ -1,7 +1,8 @@
 import { test } from 'node:test';
+import assert from 'node:assert/strict';
 import { RuleTester } from 'eslint';
 import angular from 'angular-eslint';
-import rule from './no-appearance-on-primitive.ts';
+import rule, { EXCEPTIONS } from './no-appearance-on-primitive.ts';
 
 const ruleTester = new RuleTester({ languageOptions: { parser: angular.templateParser } });
 
@@ -36,4 +37,17 @@ test('no-appearance-on-primitive', () => {
       { code: `<hlm-command class="border"></hlm-command>`, filename: 'x.html', errors: [{ messageId: 'appearanceOnPrimitive' }] },
     ],
   });
+});
+
+test('the exception allowlist is pinned', () => {
+  // EXCEPTIONS is hand-maintained, and adding an entry silently widens the rule
+  // while every other test stays green — the shape this branch keeps finding.
+  // Both sibling allowlists are already pinned: the `ignores` array in
+  // config-completeness.test.ts and NATIVE_TO_PRIMITIVE's keys in
+  // vocabulary.test.ts. This is the same object and it was the one left open.
+  //
+  // A new entry needs a documented reason in docs/architecture/rules/
+  // no-appearance-on-primitive.md, and updating this assertion is the step that
+  // makes someone write it.
+  assert.deepEqual([...EXCEPTIONS], ['hlm-spinner:typography']);
 });

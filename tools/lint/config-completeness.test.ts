@@ -54,3 +54,25 @@ test('the ignore list has not been widened', () => {
     assert.ok(allowed.includes(entry), `unexpected ignore entry: ${entry}`);
   }
 });
+
+test('both `files` globs are pinned, because widening them silently disables the ruleset', () => {
+  // The defect this closes, measured by the final whole-branch review: changing
+  // `files: ['**/*.ts']` to `['**/*.tsx']` is one character. It matches two files,
+  // disables all twelve TypeScript rules — every MVVM rule among them — and leaves
+  // the entire suite green with VERIFY OK. The `ignores` array above was pinned from
+  // the start; the `files` arrays were pinned by nothing, and they are the other half
+  // of the same fact: which files the ruleset actually sees.
+  //
+  // The runtime companion is the zero-files check in lint-frontend.ts. That one
+  // catches a config that matches nothing at all; this one catches a config that
+  // matches the wrong thing, which stays above zero and so slips past it.
+  const globs = [...CONFIG.matchAll(/files:\s*\[([^\]]+)\]/g)].map((m) =>
+    [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]),
+  );
+
+  assert.deepEqual(
+    globs,
+    [['**/*.ts'], ['**/*.html']],
+    'frontend/eslint.config.mjs must lint exactly the TypeScript block and the template block',
+  );
+});

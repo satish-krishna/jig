@@ -53,6 +53,28 @@ export async function lintFrontend(targets: string[] = [FRONTEND]): Promise<Lint
 
   const messages = results.flatMap((r) => r.messages);
   const ruleIds = messages.map((m) => m.ruleId).filter((id): id is string => Boolean(id));
+
+  // A run that linted nothing is a FAILURE, not a pass. `results.every(...)` on an
+  // empty array is `true`, so without this the gate goes green having checked no
+  // files at all — the spec asked for this check and it was never built.
+  //
+  // Not theoretical. Changing `files: ['**/*.ts']` to `['**/*.tsx']` in
+  // eslint.config.mjs is one character, matches two files, silently disables all
+  // twelve TypeScript rules including every MVVM rule, and leaves the whole suite
+  // green with VERIFY OK. Measured by the final review. The companion guard lives
+  // in config-completeness.test.ts, which now pins both `files` arrays; this one
+  // catches the runtime shape the test cannot see.
+  if (results.length === 0) {
+    return {
+      ok: false,
+      messageCount: 0,
+      ruleIds: [],
+      output:
+        'ESLint linted ZERO files. The ruleset is not running — check the `files` globs and ' +
+        '`ignores` in frontend/eslint.config.mjs. A gate that checks nothing must never report green.',
+    };
+  }
+
   const ok = results.every((r) => r.errorCount === 0);
 
   return { ok, messageCount: messages.length, ruleIds, output };

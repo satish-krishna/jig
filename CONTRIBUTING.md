@@ -64,6 +64,18 @@ Rust (rustdoc): `/// @capability`, `/// @intent`, `/// @reuse`. C# (XML doc): `<
 - Regenerate: `npm run catalog`
 - Verify freshness: `npm run catalog:check` (this is what the pre-commit hook and CI run; a stale catalog fails the build)
 
+## Architecture rules are lint errors
+
+The design language in `docs/architecture/design.md` and the MVVM boundary are not conventions you remember — they are 26 ESLint rules plus a stylelint config, enabled at `error` and run by `npm run lint` and `npm run stylelint` inside `npm run verify`. See ADR 0012.
+
+Three things follow, and they are the point:
+
+- **There is no disable comment.** `linterOptions.noInlineConfig` is on, and stylelint runs with `--ignore-disables`. A rule you cannot satisfy is a rule to argue with in a reviewed diff, not one to switch off in the file that broke it.
+- **Every rule has a document** at `docs/architecture/rules/<rule-name>.md`, and the error message names it. Read that before changing the code the rule flagged — most of them record what the rule deliberately does NOT catch.
+- **A PostToolUse hook runs the same ruleset on the file you just edited** and hands the violation back with a pointer to its document, so you hear about drift at the edit rather than at the gate. `npm run lint:report` says how often that fired and whether the correction landed.
+
+Writing a new rule: it needs a test that runs it through `RuleTester` (a test that only calls its predicate leaves the rule itself unwired, which shipped once), a document, and registration in `tools/lint/index.ts`. Meta-tests enforce all three.
+
 ## Branching: work on a feature branch, never on main
 
 All work happens on a feature branch. `main` takes no direct commits: it stays linear and integrates feature branches by pull request, so every unit of work reaches `main` as merged pull request. This is a hard gate, enforced by the `pre-commit` hook — a commit on `main`/`master` is refused, and a feature branch whose name breaks the convention is refused too.

@@ -19,7 +19,7 @@ import { attributeSelectors, elementSelectors, appearanceFamiliesOf, appearanceF
  * rather than an accident of how the deriver currently parses one arbitrary
  * value syntax.
  */
-const EXCEPTIONS = new Set(['hlm-spinner:typography']);
+export const EXCEPTIONS = new Set(['hlm-spinner:typography']);
 
 export default {
   meta: {
