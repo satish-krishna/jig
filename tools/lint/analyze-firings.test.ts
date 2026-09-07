@@ -211,6 +211,14 @@ test('the report counts hook firings and verify tallies separately, aggregating 
 });
 
 // --- effectiveness ratio ----------------------------------------------------------
+//
+// Fix round 2: the first version of this ratio mixed units — a raw firing-attempt
+// count in the numerator against a verify-RUN count in the gate term — and produced
+// two contradictions caught by experiment: a file that fired the same violation five
+// times in a row (trend "flat", the exact failure this analyzer exists to surface)
+// reported "100% caught in flight", and four real fixes against one 50-violation
+// verify run reported "80%" two lines below its own "Total violations: 50". Both
+// scenarios are reproduced explicitly below, named for what they are.
 
 test('the effectiveness ratio refuses to report on a handful of events', () => {
   const report = buildReport([record('check-frontend', 'a.ts', 1, ['jig/no-raw-control'])]);
@@ -228,9 +236,65 @@ test('the effectiveness ratio computes once there is enough combined data', () =
     record('verify', 'frontend', 0),
   ];
   const report = buildReport(records);
-  // 4 caught in flight, 1 reached the gate (the second verify record is clean and
-  // does not count) — 5 total observations clears the minimum sample.
+  // 4 episodes corrected in flight, 1 violation reached the gate (the second verify
+  // record is clean and contributes nothing) — 5 total drift events clears the floor.
+  assert.equal(report.effectiveness.correctedInFlight, 4);
+  assert.equal(report.effectiveness.reachedGate, 1);
   assert.equal(report.effectiveness.value, 4 / 5);
+});
+
+test('five identical firings on one file (trend flat) must not report 100% — the hook did its job and nothing was fixed', () => {
+  const records = Array.from({ length: 5 }, () => record('check-frontend', 'a.ts', 2, ['jig/no-raw-control']));
+  const report = buildReport(records);
+
+  // One flat episode of depth 5 — the exact shape this whole analyzer exists to flag.
+  assert.equal(report.hookFirings.episodes.total, 1);
+  assert.equal(report.hookFirings.episodes.byTrend.flat, 1);
+
+  // Five uncorrected firings, zero corrected, zero reached the gate: 5 total drift
+  // events clears the floor, and the ratio must be a flat, honest 0% — not 100%, and
+  // not "not enough data".
+  assert.equal(report.effectiveness.correctedInFlight, 0);
+  assert.equal(report.effectiveness.notCorrected, 5);
+  assert.equal(report.effectiveness.reachedGate, 0);
+  assert.equal(report.effectiveness.value, 0);
+  assert.match(formatReport(report), /0% corrected in flight/);
+});
+
+test('four first-try fixes against one 50-violation verify run must not report 80% off a denominator of 5', () => {
+  const records = [
+    record('check-frontend', 'a.ts', 1),
+    record('check-frontend', 'b.ts', 1),
+    record('check-frontend', 'c.ts', 1),
+    record('check-frontend', 'd.ts', 1),
+    record('verify', 'frontend', 50, ['jig/no-raw-control']),
+  ];
+  const report = buildReport(records);
+
+  assert.equal(report.effectiveness.correctedInFlight, 4);
+  assert.equal(report.effectiveness.reachedGate, 50);
+  // The denominator is 4 + 0 + 50 = 54, never 5 — the verify term is the violation
+  // COUNT, not the number of verify runs (there is exactly one run here).
+  assert.equal(report.effectiveness.value, 4 / 54);
+  assert.match(formatReport(report), /Total violations: 50/);
+});
+
+test('the headline can never contradict the trend breakdown printed beneath it', () => {
+  // At least one flat and one first-try episode, plus enough volume to clear the
+  // floor: if the trend breakdown shows any flat or rising episodes, the effectiveness
+  // figure must read below 100%, full stop. This is the actual defect from fix round
+  // 2 — encoded as an invariant rather than trusted to hold by construction.
+  const records = [
+    record('check-frontend', 'a.ts', 1),
+    record('check-frontend', 'b.ts', 2),
+    record('check-frontend', 'b.ts', 2),
+    record('check-frontend', 'c.ts', 1),
+    record('check-frontend', 'd.ts', 1),
+  ];
+  const report = buildReport(records);
+  assert.ok(report.hookFirings.episodes.byTrend.flat + report.hookFirings.episodes.byTrend.rising > 0);
+  assert.ok(report.effectiveness.value !== null, 'expected enough data to compute a ratio');
+  assert.ok(report.effectiveness.value! < 1, 'effectiveness must read below 100% whenever any episode failed to correct');
 });
 
 // --- --json ---------------------------------------------------------------------

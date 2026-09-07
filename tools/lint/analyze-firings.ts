@@ -147,7 +147,13 @@ export interface VerifyTally {
 }
 
 export interface Effectiveness {
-  /** Fraction of drift events caught in flight, or null when there is not enough data to trust a ratio. */
+  /** Episodes (first-try or improving) whose violation went away without reaching the gate. */
+  correctedInFlight: number;
+  /** Individual firings inside flat, rising, or mixed episodes — drift the hook caught but the agent never fixed. */
+  notCorrected: number;
+  /** Violations summed across verify runs that had any — drift that reached the gate, never caught in flight at all. */
+  reachedGate: number;
+  /** correctedInFlight / (correctedInFlight + notCorrected + reachedGate), or null when there is not enough data to trust a ratio. */
   value: number | null;
   note: string;
 }
@@ -162,26 +168,57 @@ export interface Report {
 
 /**
  * A ratio built from a handful of events is noise wearing a percentage sign. Below
- * this many combined observations, the report says so instead of printing a number
+ * this many combined drift events, the report says so instead of printing a number
  * nobody should act on.
  */
 const MIN_SAMPLE_FOR_RATIO = 5;
 
-function buildEffectiveness(caughtInFlight: number, reachedGate: number): Effectiveness {
-  const total = caughtInFlight + reachedGate;
+/**
+ * Fix round 2's whole point: every term below is the SAME unit, a drift event, so the
+ * ratio cannot mix attempt-counts against violation-counts the way the first version
+ * did (five identical firings in a row on one file — a hook that caught the same
+ * violation and never once saw it fixed — reported "100% caught in flight", and a
+ * report with "Total violations: 50" printed two lines above an "80% caught" headline
+ * that never accounted for those 50 at all).
+ *
+ * `correctedInFlight` counts EPISODES, not firings: a first-try or improving episode
+ * converges — the hook stops firing on that file, so however many firings it took,
+ * the whole lineage is one resolved drift event.
+ *
+ * `notCorrected` counts FIRINGS, not episodes: a flat, rising, or mixed episode never
+ * converges, so there is no single terminal event to collapse it into. Every firing
+ * inside it is its own instance of the hook catching the same drift and the agent's
+ * next edit not fixing it — five flat firings on one file are five uncorrected drift
+ * events, not one. This asymmetry is deliberate, not an inconsistency: it is also
+ * what keeps a stagnant file's failures from being invisibly discounted to a single
+ * episode the way its would-be success is.
+ *
+ * `mixed` lands in `notCorrected`, alongside flat and rising, not in
+ * `correctedInFlight`: an irregular, non-monotonic count sequence never demonstrably
+ * reaches zero either, so it earns no benefit of the doubt.
+ *
+ * `reachedGate` is the violation COUNT from verify runs, not the number of runs — a
+ * clean run contributes nothing, a run with fifty violations contributes fifty.
+ */
+function buildEffectiveness(correctedInFlight: number, notCorrected: number, reachedGate: number): Effectiveness {
+  const total = correctedInFlight + notCorrected + reachedGate;
   const plural = (n: number) => (n === 1 ? '' : 's');
+  const base = { correctedInFlight, notCorrected, reachedGate };
+
   if (total === 0) {
-    return { value: null, note: 'no drift observed yet, in flight or at the gate' };
+    return { ...base, value: null, note: 'no drift observed yet, in flight or at the gate' };
   }
   if (total < MIN_SAMPLE_FOR_RATIO) {
     return {
+      ...base,
       value: null,
-      note: `not enough data to trust a ratio yet (${total} observation${plural(total)} so far; want at least ${MIN_SAMPLE_FOR_RATIO})`,
+      note: `not enough data to trust a ratio yet (${total} drift event${plural(total)} so far; want at least ${MIN_SAMPLE_FOR_RATIO})`,
     };
   }
   return {
-    value: caughtInFlight / total,
-    note: `${caughtInFlight} of ${total} drift event${plural(total)} were caught in flight, before reaching the gate`,
+    ...base,
+    value: correctedInFlight / total,
+    note: `${correctedInFlight} of ${total} drift event${plural(total)} were corrected in flight`,
   };
 }
 
@@ -209,6 +246,13 @@ export function buildReport(records: FiringRecord[]): Report {
   for (const record of runsWithViolations) {
     for (const rule of record.rules) verifyRuleFrequency[rule] = (verifyRuleFrequency[rule] ?? 0) + 1;
   }
+  const totalViolations = runsWithViolations.reduce((sum, r) => sum + r.count, 0);
+
+  // See buildEffectiveness for why these two are counted in different units.
+  const correctedInFlight = details.filter((e) => e.trend === 'first-try' || e.trend === 'improving').length;
+  const notCorrected = details
+    .filter((e) => e.trend === 'flat' || e.trend === 'rising' || e.trend === 'mixed')
+    .reduce((sum, e) => sum + e.depth, 0);
 
   return {
     totalRecords: records.length,
@@ -221,10 +265,10 @@ export function buildReport(records: FiringRecord[]): Report {
     verify: {
       runs: verifyRecords.length,
       runsWithViolations: runsWithViolations.length,
-      totalViolations: runsWithViolations.reduce((sum, r) => sum + r.count, 0),
+      totalViolations,
       ruleFrequency: verifyRuleFrequency,
     },
-    effectiveness: buildEffectiveness(firingRecords.length, runsWithViolations.length),
+    effectiveness: buildEffectiveness(correctedInFlight, notCorrected, totalViolations),
   };
 }
 
@@ -267,10 +311,13 @@ export function formatReport(report: Report): string {
 
   lines.push('');
   lines.push('Effectiveness:');
+  lines.push(`  Corrected in flight: ${report.effectiveness.correctedInFlight}`);
+  lines.push(`  Caught, never corrected: ${report.effectiveness.notCorrected}`);
+  lines.push(`  Reached the gate: ${report.effectiveness.reachedGate}`);
   lines.push(
     report.effectiveness.value === null
       ? `  ${report.effectiveness.note}`
-      : `  ${(report.effectiveness.value * 100).toFixed(0)}% caught in flight (${report.effectiveness.note})`,
+      : `  ${(report.effectiveness.value * 100).toFixed(0)}% corrected in flight (${report.effectiveness.note})`,
   );
 
   return lines.join('\n');

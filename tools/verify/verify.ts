@@ -8,6 +8,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { logFiring } from '../hooks/_hook-log.ts';
 import { lintFrontend } from '../lint/lint-frontend.ts';
+import { VERIFY_HOOK } from '../lint/analyze-firings.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_TAURI = join(ROOT, 'apps', 'desktop', 'src-tauri');
@@ -29,7 +30,7 @@ const FRONTEND = join(ROOT, 'frontend');
 async function runFrontendLint(): Promise<boolean> {
   const result = await lintFrontend();
   if (result.output) console.log(result.output);
-  logFiring('verify', 'frontend', result.messageCount, result.ruleIds);
+  logFiring(VERIFY_HOOK, 'frontend', result.messageCount, result.ruleIds);
   return result.ok;
 }
 
