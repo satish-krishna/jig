@@ -44,6 +44,11 @@ export default [
       'jig/no-restated-validator': 'error',
       'jig/no-legacy-icon-module': 'error',
       'jig/no-unregistered-icon': 'error',
+      'jig/no-state-outside-view-model': 'error',
+      'jig/no-component-subscribe': 'error',
+      'jig/no-root-provided-view-model': 'error',
+      'jig/no-unprovided-view-model': 'error',
+      'jig/no-feature-inject-data': 'error',
     },
   },
   {

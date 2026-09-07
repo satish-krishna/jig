@@ -19,6 +19,11 @@ import noNgModel from './rules/no-ng-model.ts';
 import noOrphanNgSubmit from './rules/no-orphan-ng-submit.ts';
 import noLegacyIconModule from './rules/no-legacy-icon-module.ts';
 import noUnregisteredIcon from './rules/no-unregistered-icon.ts';
+import noStateOutsideViewModel from './rules/no-state-outside-view-model.ts';
+import noComponentSubscribe from './rules/no-component-subscribe.ts';
+import noRootProvidedViewModel from './rules/no-root-provided-view-model.ts';
+import noUnprovidedViewModel from './rules/no-unprovided-view-model.ts';
+import noFeatureInjectData from './rules/no-feature-inject-data.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.
@@ -54,5 +59,10 @@ export default {
     'no-orphan-ng-submit': noOrphanNgSubmit,
     'no-legacy-icon-module': noLegacyIconModule,
     'no-unregistered-icon': noUnregisteredIcon,
+    'no-state-outside-view-model': noStateOutsideViewModel,
+    'no-component-subscribe': noComponentSubscribe,
+    'no-root-provided-view-model': noRootProvidedViewModel,
+    'no-unprovided-view-model': noUnprovidedViewModel,
+    'no-feature-inject-data': noFeatureInjectData,
   },
 };
