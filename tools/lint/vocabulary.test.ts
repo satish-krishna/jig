@@ -1,5 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { attributeSelectors, elementSelectors, NATIVE_TO_PRIMITIVE } from './vocabulary.ts';
 
 test('derives attribute directives from the generated selectors', () => {
@@ -49,4 +52,75 @@ test('the vocabulary is large enough to be real', () => {
   // Guards against a parse failure silently yielding empty sets, which would make
   // every vocabulary rule pass on everything.
   assert.ok(attributeSelectors().size + elementSelectors().size > 200);
+});
+
+test('each primitive in the native map is compatible with its target element', () => {
+  // The map's model is "add this attribute directive to this native HTML element".
+  // Primitives may be qualified to specific tags or unqualified.
+  // - Qualified: "button[hlmBtn], a[hlmBtn]" permits button and a.
+  // - Unqualified: "[hlmAccordion]" permits any tag.
+  // - Element-only: "hlm-native-select" is not an attribute, cannot be in this map.
+  // Assert that each primitive is actually compatible with the native element it
+  // is mapped to.
+  const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const GENERATED = join(
+    ROOT, 'frontend', 'src', 'app', 'showcase', 'component-api.generated.ts',
+  );
+  const src = readFileSync(GENERATED, 'utf8');
+
+  // Build a map of primitive name to its declared selector(s).
+  const primitiveToSelectors = new Map();
+  for (const match of src.matchAll(/"selector":\s*"([^"]+)"/g)) {
+    const selectorString = match[1];
+    for (const part of selectorString.split(',')) {
+      const trimmed = part.trim();
+      // Extract the attribute name if present.
+      const attrMatch = /\[([A-Za-z][\w-]*)\]/.exec(trimmed);
+      if (attrMatch !== null) {
+        const attrName = attrMatch[1];
+        if (!primitiveToSelectors.has(attrName)) {
+          primitiveToSelectors.set(attrName, []);
+        }
+        primitiveToSelectors.get(attrName).push(trimmed);
+      }
+    }
+  }
+
+  for (const [native, primitives] of Object.entries(NATIVE_TO_PRIMITIVE)) {
+    for (const prim of primitives) {
+      const selectorParts = primitiveToSelectors.get(prim);
+      assert.ok(
+        selectorParts && selectorParts.length > 0,
+        `<${native}> suggests "${prim}", which is not a registered attribute primitive`,
+      );
+
+      // Extract the set of tags this primitive is qualified to.
+      const allowedTags = new Set();
+      let isUnqualified = false;
+
+      for (const part of selectorParts) {
+        // Match element-qualified attribute: "tag[attr]"
+        const qualMatch = /^([A-Za-z][\w-]*)\[/.exec(part);
+        if (qualMatch) {
+          allowedTags.add(qualMatch[1]);
+        } else if (/^\[/.test(part)) {
+          // Unqualified attribute: "[attr]"
+          isUnqualified = true;
+        } else {
+          // Element-only form, no bracket. This primitive has no attribute form.
+          assert.fail(
+            `<${native}> suggests "${prim}", which is declared only as an element (${part}), not as an attribute`,
+          );
+        }
+      }
+
+      // If qualified, the native element must be in the allowed set.
+      if (allowedTags.size > 0 && !isUnqualified) {
+        assert.ok(
+          allowedTags.has(native),
+          `<${native}> suggests "${prim}", but "${prim}" is qualified to [${Array.from(allowedTags).join(', ')}], not to <${native}>`,
+        );
+      }
+    }
+  }
 });

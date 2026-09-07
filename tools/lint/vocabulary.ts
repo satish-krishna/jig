@@ -67,9 +67,8 @@ const HEADINGS = ['hlmH1', 'hlmH2', 'hlmH3', 'hlmH4', 'hlmLarge'];
 
 export const NATIVE_TO_PRIMITIVE = {
   button: ['hlmBtn', 'hlmSidebarMenuButton', 'hlmToggle', 'hlmPaginationLink'],
-  input: ['hlmInput', 'hlmInputOtp'],
+  input: ['hlmInput'],
   textarea: ['hlmTextarea'],
-  select: ['hlmSelect'],
   table: ['hlmTable'],
   h1: HEADINGS,
   h2: HEADINGS,
