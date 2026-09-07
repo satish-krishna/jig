@@ -5,6 +5,8 @@ import noRawControl from './rules/no-raw-control.ts';
 import noUnknownPrimitive from './rules/no-unknown-primitive.ts';
 import noAppearanceOnPrimitive from './rules/no-appearance-on-primitive.ts';
 import noStyleAttribute from './rules/no-style-attribute.ts';
+import noRawIcon from './rules/no-raw-icon.ts';
+import noMissingCompositionPart from './rules/no-missing-composition-part.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.
@@ -26,5 +28,7 @@ export default {
     'no-unknown-primitive': noUnknownPrimitive,
     'no-appearance-on-primitive': noAppearanceOnPrimitive,
     'no-style-attribute': noStyleAttribute,
+    'no-raw-icon': noRawIcon,
+    'no-missing-composition-part': noMissingCompositionPart,
   },
 };

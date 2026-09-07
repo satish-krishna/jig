@@ -52,6 +52,8 @@ export default [
       'jig/no-unknown-primitive': 'error',
       'jig/no-appearance-on-primitive': 'error',
       'jig/no-style-attribute': 'error',
+      'jig/no-raw-icon': 'error',
+      'jig/no-missing-composition-part': 'error',
     },
   },
 ];
