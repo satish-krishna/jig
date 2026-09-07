@@ -3,11 +3,30 @@
 // enforcement hooks actually work — not just that they fire, but whether the agent
 // they corrected learned from the correction.
 //
-// The unit of analysis is an EPISODE: a run of consecutive log lines that share the
-// same (hook, file) pair. "Consecutive" means adjacent in the log itself, not merely
-// sharing a key — a firing on the same file separated by a firing on a different file
-// starts a new episode, because the intervening firing means the agent's attention
-// moved elsewhere and came back.
+// The log holds two different populations and they must never be mixed:
+//
+//   - Per-file hook records (hook: "check-frontend", or any future corrective hook):
+//     drift caught IN FLIGHT, right after an edit. These are the only records that
+//     can form an EPISODE — a per-file correction loop where the hook fires, the
+//     agent edits, and the hook fires again on the same file.
+//   - The verify hook's tally (hook: "verify"): one record per gate run, logged
+//     against the whole tree, not a single file. This is drift that REACHED THE GATE.
+//     A whole-tree run is not a correction loop and must never enter episode grouping
+//     — grouping it in would chain consecutive clean gate runs into one long "episode"
+//     with a flat count, which is exactly the shape this file defines as the failure
+//     case, reported against a spotless record. See the fix for this in buildReport.
+//
+// A record with count 0 (a clean verify run) is not a firing — nothing fired. Firing
+// counts, rule frequency, and episodes are all computed only from records where
+// count > 0.
+//
+// The unit of analysis for hook firings is an EPISODE: a run of consecutive
+// FIRING records (verify already excluded, zero-count already excluded) that share
+// the same (hook, file) pair. "Consecutive" is computed AFTER those exclusions, not
+// on the raw log — so a verify record logged between two check-frontend firings on
+// the same file does not split them into separate episodes. The agent's correction
+// loop on that file was never actually interrupted by an unrelated whole-tree lint
+// run happening to log in between; the episode should not look interrupted either.
 //
 // Depth 1 means the correction landed on the first try: the hook fired once on that
 // file and never fired on it again immediately after. Depth > 1 means it fired more
@@ -26,6 +45,9 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { resolveLogPath, type FiringRecord } from '../hooks/_hook-log.ts';
+
+/** The hook name verify.ts logs its whole-tree tally under. Never a per-file episode participant. */
+export const VERIFY_HOOK = 'verify';
 
 /** Parses one log line, or returns undefined if it is not valid JSON in the expected shape. */
 function parseLine(line: string): FiringRecord | undefined {
@@ -68,6 +90,8 @@ export interface Episode {
   trend: Trend;
 }
 
+const TRENDS: Trend[] = ['first-try', 'improving', 'flat', 'rising', 'mixed'];
+
 function classifyTrend(counts: number[]): Trend {
   if (counts.length === 1) return 'first-try';
   const diffs = counts.slice(1).map((count, i) => count - counts[i]);
@@ -77,7 +101,13 @@ function classifyTrend(counts: number[]): Trend {
   return 'mixed';
 }
 
-/** Groups consecutive log entries that share the same (hook, file) pair into episodes. */
+/**
+ * Groups consecutive records that share the same (hook, file) pair into episodes.
+ * Callers are responsible for pre-filtering to the population that can meaningfully
+ * form an episode — buildReport below excludes the verify hook and zero-count records
+ * before calling this, so "consecutive" means adjacent in that filtered sequence, not
+ * in the raw log.
+ */
 export function groupEpisodes(records: FiringRecord[]): Episode[] {
   const episodes: Episode[] = [];
   for (const record of records) {
@@ -95,8 +125,9 @@ export function groupEpisodes(records: FiringRecord[]): Episode[] {
   return episodes;
 }
 
-export interface Report {
-  totalFirings: number;
+export interface HookFirings {
+  /** Records with hook !== "verify" and count > 0. This, not the raw record count, is "how many times a hook fired". */
+  total: number;
   byHook: Record<string, number>;
   ruleFrequency: Record<string, number>;
   episodes: {
@@ -106,48 +137,142 @@ export interface Report {
   };
 }
 
-const TRENDS: Trend[] = ['first-try', 'improving', 'flat', 'rising', 'mixed'];
+export interface VerifyTally {
+  /** Every verify record seen, clean or not. */
+  runs: number;
+  /** Verify records with count > 0 — drift that reached the gate. */
+  runsWithViolations: number;
+  totalViolations: number;
+  ruleFrequency: Record<string, number>;
+}
+
+export interface Effectiveness {
+  /** Fraction of drift events caught in flight, or null when there is not enough data to trust a ratio. */
+  value: number | null;
+  note: string;
+}
+
+export interface Report {
+  /** Raw record count, including clean verify runs. Only used to decide the "nothing recorded yet" case. */
+  totalRecords: number;
+  hookFirings: HookFirings;
+  verify: VerifyTally;
+  effectiveness: Effectiveness;
+}
+
+/**
+ * A ratio built from a handful of events is noise wearing a percentage sign. Below
+ * this many combined observations, the report says so instead of printing a number
+ * nobody should act on.
+ */
+const MIN_SAMPLE_FOR_RATIO = 5;
+
+function buildEffectiveness(caughtInFlight: number, reachedGate: number): Effectiveness {
+  const total = caughtInFlight + reachedGate;
+  const plural = (n: number) => (n === 1 ? '' : 's');
+  if (total === 0) {
+    return { value: null, note: 'no drift observed yet, in flight or at the gate' };
+  }
+  if (total < MIN_SAMPLE_FOR_RATIO) {
+    return {
+      value: null,
+      note: `not enough data to trust a ratio yet (${total} observation${plural(total)} so far; want at least ${MIN_SAMPLE_FOR_RATIO})`,
+    };
+  }
+  return {
+    value: caughtInFlight / total,
+    note: `${caughtInFlight} of ${total} drift event${plural(total)} were caught in flight, before reaching the gate`,
+  };
+}
 
 /** Builds the report object from parsed records. Pure — no file access, no printing. */
 export function buildReport(records: FiringRecord[]): Report {
+  const hookRecords = records.filter((r) => r.hook !== VERIFY_HOOK);
+  const verifyRecords = records.filter((r) => r.hook === VERIFY_HOOK);
+
+  // See the header comment: a record that found nothing did not fire.
+  const firingRecords = hookRecords.filter((r) => r.count > 0);
+
   const byHook: Record<string, number> = {};
   const ruleFrequency: Record<string, number> = {};
-  for (const record of records) {
+  for (const record of firingRecords) {
     byHook[record.hook] = (byHook[record.hook] ?? 0) + 1;
     for (const rule of record.rules) ruleFrequency[rule] = (ruleFrequency[rule] ?? 0) + 1;
   }
 
-  const details = groupEpisodes(records);
+  const details = groupEpisodes(firingRecords);
   const byTrend = Object.fromEntries(TRENDS.map((t) => [t, 0])) as Record<Trend, number>;
   for (const episode of details) byTrend[episode.trend]++;
 
+  const runsWithViolations = verifyRecords.filter((r) => r.count > 0);
+  const verifyRuleFrequency: Record<string, number> = {};
+  for (const record of runsWithViolations) {
+    for (const rule of record.rules) verifyRuleFrequency[rule] = (verifyRuleFrequency[rule] ?? 0) + 1;
+  }
+
   return {
-    totalFirings: records.length,
-    byHook,
-    ruleFrequency,
-    episodes: { total: details.length, byTrend, details },
+    totalRecords: records.length,
+    hookFirings: {
+      total: firingRecords.length,
+      byHook,
+      ruleFrequency,
+      episodes: { total: details.length, byTrend, details },
+    },
+    verify: {
+      runs: verifyRecords.length,
+      runsWithViolations: runsWithViolations.length,
+      totalViolations: runsWithViolations.reduce((sum, r) => sum + r.count, 0),
+      ruleFrequency: verifyRuleFrequency,
+    },
+    effectiveness: buildEffectiveness(firingRecords.length, runsWithViolations.length),
   };
+}
+
+function formatRuleFrequency(ruleFrequency: Record<string, number>, indent: string): string[] {
+  const rules = Object.entries(ruleFrequency).sort((a, b) => b[1] - a[1]);
+  if (rules.length === 0) return [`${indent}(none)`];
+  return rules.map(([rule, count]) => `${indent}${rule}: ${count}`);
 }
 
 /** Human-readable rendering of a report. An empty log gets an honest sentence, not zeros. */
 export function formatReport(report: Report): string {
-  if (report.totalFirings === 0) {
+  if (report.totalRecords === 0) {
     return 'No firings recorded yet.';
   }
 
   const lines: string[] = [];
-  lines.push(`Total firings: ${report.totalFirings}`);
+
+  lines.push('Hook firings (caught in flight):');
+  lines.push(`  Total: ${report.hookFirings.total}`);
+  if (report.hookFirings.total === 0) {
+    lines.push('  (none)');
+  } else {
+    lines.push('  By hook:');
+    for (const [hook, count] of Object.entries(report.hookFirings.byHook)) lines.push(`    ${hook}: ${count}`);
+    lines.push('  Rule frequency:');
+    lines.push(...formatRuleFrequency(report.hookFirings.ruleFrequency, '    '));
+    lines.push(`  Episodes: ${report.hookFirings.episodes.total}`);
+    for (const trend of TRENDS) lines.push(`    ${trend}: ${report.hookFirings.episodes.byTrend[trend]}`);
+  }
+
   lines.push('');
-  lines.push('By hook:');
-  for (const [hook, count] of Object.entries(report.byHook)) lines.push(`  ${hook}: ${count}`);
+  lines.push('Verify tallies (reached the gate):');
+  lines.push(`  Runs: ${report.verify.runs}`);
+  lines.push(`  Runs with violations: ${report.verify.runsWithViolations}`);
+  if (report.verify.runsWithViolations > 0) {
+    lines.push(`  Total violations: ${report.verify.totalViolations}`);
+    lines.push('  Rule frequency:');
+    lines.push(...formatRuleFrequency(report.verify.ruleFrequency, '    '));
+  }
+
   lines.push('');
-  lines.push('Rule frequency:');
-  const rules = Object.entries(report.ruleFrequency).sort((a, b) => b[1] - a[1]);
-  if (rules.length === 0) lines.push('  (none)');
-  for (const [rule, count] of rules) lines.push(`  ${rule}: ${count}`);
-  lines.push('');
-  lines.push(`Episodes: ${report.episodes.total}`);
-  for (const trend of TRENDS) lines.push(`  ${trend}: ${report.episodes.byTrend[trend]}`);
+  lines.push('Effectiveness:');
+  lines.push(
+    report.effectiveness.value === null
+      ? `  ${report.effectiveness.note}`
+      : `  ${(report.effectiveness.value * 100).toFixed(0)}% caught in flight (${report.effectiveness.note})`,
+  );
+
   return lines.join('\n');
 }
 

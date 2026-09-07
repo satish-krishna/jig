@@ -19,7 +19,7 @@
     "codegen": "node tools/codegen/generate.ts",
     "test:tools": "node --test \"tools/**/*.test.ts\"",
     "commitlint": "commitlint",
-    "lint": "eslint frontend --config frontend/eslint.config.mjs",
+    "lint": "node tools/lint/lint-frontend.ts",
     "lint:report": "node tools/lint/analyze-firings.ts",
     "showcase:api": "node tools/showcase-api/showcase-api.ts",
     "stylelint": "stylelint \"frontend/src/**/*.css\" --ignore-pattern \"frontend/src/styles.css\"",

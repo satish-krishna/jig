@@ -6,38 +6,31 @@
 import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ESLint } from 'eslint';
 import { logFiring } from '../hooks/_hook-log.ts';
+import { lintFrontend } from '../lint/lint-frontend.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_TAURI = join(ROOT, 'apps', 'desktop', 'src-tauri');
 const FRONTEND = join(ROOT, 'frontend');
-const FRONTEND_ESLINT_CONFIG = join(FRONTEND, 'eslint.config.mjs');
 
 /**
- * Runs the same ESLint ruleset as `npm run lint`, but via the API instead of the CLI,
- * so the violation count and rule ids are available to log rather than only printed.
+ * Runs the same `lintFrontend()` that backs `npm run lint` — one definition of "lint
+ * the frontend", never two that can quietly drift apart — and logs its own tally.
  *
  * Task 15's whole measurement rests on the distinction between the two places this
  * ruleset runs: `tools/hooks/check-frontend.ts` fires per file, in flight, right after
  * an edit. This step fires once per verify run, at the gate — drift it finds here is
  * drift that reached a commit without the per-file hook catching it first. Logging
  * happens BEFORE the pass/fail decision below, so a run that finds violations still
- * records what they were instead of only recording clean runs.
+ * records what they were instead of only recording clean runs. `file: 'frontend'`
+ * because this is a whole-tree run, not a single file — analyze-firings.ts excludes
+ * the `verify` hook from its per-file episode grouping for exactly this reason.
  */
 async function runFrontendLint(): Promise<boolean> {
-  const eslint = new ESLint({ cwd: ROOT, overrideConfigFile: FRONTEND_ESLINT_CONFIG });
-  const results = await eslint.lintFiles([FRONTEND]);
-
-  const formatter = await eslint.loadFormatter('stylish');
-  const output = await formatter.format(results);
-  if (output) console.log(output);
-
-  const messages = results.flatMap((r) => r.messages);
-  const ruleIds = messages.map((m) => m.ruleId).filter((id): id is string => Boolean(id));
-  logFiring('verify', 'frontend', messages.length, ruleIds);
-
-  return results.every((r) => r.errorCount === 0);
+  const result = await lintFrontend();
+  if (result.output) console.log(result.output);
+  logFiring('verify', 'frontend', result.messageCount, result.ruleIds);
+  return result.ok;
 }
 
 const steps: [string, string | (() => Promise<boolean>), string][] = [
