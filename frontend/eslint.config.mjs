@@ -39,6 +39,9 @@ export default [
     rules: {
       'jig/no-explicit-standalone': 'error',
       'jig/no-hand-set-change-detection': 'error',
+      'jig/no-forms-module': 'error',
+      'jig/no-reactive-form': 'error',
+      'jig/no-restated-validator': 'error',
     },
   },
   {
@@ -59,6 +62,8 @@ export default [
       'jig/no-raw-palette-color': 'error',
       'jig/no-space-utility': 'error',
       'jig/no-nested-flex-grid': 'error',
+      'jig/no-ng-model': 'error',
+      'jig/no-orphan-ng-submit': 'error',
     },
   },
 ];

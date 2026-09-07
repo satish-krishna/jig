@@ -12,6 +12,11 @@ import noNgClassStyle from './rules/no-ng-class-style.ts';
 import noRawPaletteColor from './rules/no-raw-palette-color.ts';
 import noSpaceUtility from './rules/no-space-utility.ts';
 import noNestedFlexGrid from './rules/no-nested-flex-grid.ts';
+import noFormsModule from './rules/no-forms-module.ts';
+import noReactiveForm from './rules/no-reactive-form.ts';
+import noRestatedValidator from './rules/no-restated-validator.ts';
+import noNgModel from './rules/no-ng-model.ts';
+import noOrphanNgSubmit from './rules/no-orphan-ng-submit.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.
@@ -40,5 +45,10 @@ export default {
     'no-raw-palette-color': noRawPaletteColor,
     'no-space-utility': noSpaceUtility,
     'no-nested-flex-grid': noNestedFlexGrid,
+    'no-forms-module': noFormsModule,
+    'no-reactive-form': noReactiveForm,
+    'no-restated-validator': noRestatedValidator,
+    'no-ng-model': noNgModel,
+    'no-orphan-ng-submit': noOrphanNgSubmit,
   },
 };

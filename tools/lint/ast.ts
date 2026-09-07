@@ -29,6 +29,13 @@ export function metadataProperty(metadata, key) {
   return null;
 }
 
+/** True when the @Component metadata lists the named identifier in `imports`. */
+export function componentImports(metadata, name) {
+  const prop = metadataProperty(metadata, 'imports');
+  if (prop?.value?.type !== 'ArrayExpression') return false;
+  return prop.value.elements.some((e) => e?.type === 'Identifier' && e.name === name);
+}
+
 /** The nearest enclosing class declaration or expression, or null. */
 export function classOf(node) {
   for (let n = node; n != null; n = n.parent) {
