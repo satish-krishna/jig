@@ -48,6 +48,17 @@ test('every primitive the native map suggests actually exists', () => {
   }
 });
 
+test('the native map is narrowed to controls, not typography', () => {
+  // A bare <button> is always wrong; a bare <p> is always fine. The two do not
+  // share a predicate, so typography stays out of this map. See the comment on
+  // NATIVE_TO_PRIMITIVE in vocabulary.ts for the full reasoning and the
+  // measurement (97 bare occurrences, 49 of them bare <p>, mostly plain prose)
+  // that backs it. Pinned here so a future edit that widens the map back to
+  // headings, <p>, <ul>, <blockquote>, <code> or <label> fails loudly instead
+  // of drifting in unnoticed.
+  assert.deepEqual(Object.keys(NATIVE_TO_PRIMITIVE).sort(), ['button', 'input', 'table', 'textarea']);
+});
+
 test('the vocabulary is large enough to be real', () => {
   // Guards against a parse failure silently yielding empty sets, which would make
   // every vocabulary rule pass on everything.

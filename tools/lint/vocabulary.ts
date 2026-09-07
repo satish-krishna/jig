@@ -58,25 +58,59 @@ export const elementSelectors = () => selectors().elements;
  * <button hlmSidebarMenuButton> are both acceptable buttons. Any ONE of them
  * satisfies the rule.
  *
- * Headings map to the typography family rather than to a same-numbered primitive.
- * <h1 hlmH3> is correct and is what the showcase already does: the element
- * carries semantics, the directive carries appearance, and hlmH1's text-4xl
- * belongs to a marketing page rather than a compact desktop shell.
+ * Deliberately narrowed to controls, not typography. Three reasons:
+ *
+ * 1. The reference rule this is ported from defines its own scope as "a native
+ *    CONTROL element used where a spartan primitive exists." Headings,
+ *    paragraphs, and lists are not controls.
+ * 2. A bare <button> is always wrong: unstyled and unwired to anything. A bare
+ *    <p> is always fine: it inherits body styling and is exactly what a
+ *    paragraph should be. The two do not share a predicate, so they cannot
+ *    share a rule.
+ * 3. Measured against the app: the wider map (with headings, <p>, <ul>,
+ *    <blockquote>, <code>, <label>) caught 97 bare occurrences, 49 of them
+ *    bare <p>. Sampling those 49 showed a handful of genuine hand-rolled
+ *    primitives against dozens of plain showcase prose. Flagging all of it
+ *    would bury a handful of real defects under dozens of false ones, and a
+ *    rule that noisy is one people switch off.
+ *
+ * Within controls, each list below is exhaustive over every directive that
+ * demonstrably renders its own visual styling onto that native tag — verified
+ * per entry by reading the directive source for either a `classes()` call or a
+ * `hostDirectives` entry composing the tag's base primitive (HlmButton,
+ * HlmInput, or HlmTextarea). This matters because a compound component's own
+ * child directive is frequently the only styling a control needs:
+ * `<button hlmToggleGroupItem>` and `<button hlmTabsTrigger="...">` are both
+ * fully styled with no `hlmBtn` alongside, the same way `<button hlmBtn>` is.
+ * Wiring `no-raw-control` against the earlier, shorter lists (just hlmBtn and
+ * a handful of siblings) flagged 145 elements, not the roughly 14 expected;
+ * every extra hit traced back to one of these compound-component primitives
+ * being absent from the map, not to an actual bare control. A directive that
+ * only wires behaviour and carries no styling of its own — hlmDialogTrigger,
+ * hlmDialogClose, hlmSheetTrigger, hlmSheetClose, hlmDrawerTrigger,
+ * hlmDrawerClose, hlmCollapsibleTrigger, hlmPopoverTrigger,
+ * hlmAlertDialogTrigger — is deliberately excluded: those are always paired
+ * with hlmBtn in this codebase today (see dialog.page.ts, alert-dialog.page.ts),
+ * and a bare `<button hlmDialogTrigger>` alone is a real, uncaught violation,
+ * not a false positive.
+ *
+ * hlmCommandItem and hlmCarouselNext/hlmCarouselPrevious each declare a second,
+ * kebab-case selector alias (`button[hlmCommandItem],button[hlm-command-item]`)
+ * that this codebase's showcase actually uses, so both spellings of the same
+ * directive are listed; leaving either out reproduces the same false positive
+ * as leaving out a whole directive.
  */
-const HEADINGS = ['hlmH1', 'hlmH2', 'hlmH3', 'hlmH4', 'hlmLarge'];
-
 export const NATIVE_TO_PRIMITIVE = {
-  button: ['hlmBtn', 'hlmSidebarMenuButton', 'hlmToggle', 'hlmPaginationLink'],
-  input: ['hlmInput'],
-  textarea: ['hlmTextarea'],
+  button: [
+    'hlmBtn', 'hlmSidebarMenuButton', 'hlmToggle', 'hlmPaginationLink',
+    'hlmToggleGroupItem', 'hlmTabsTrigger', 'hlmDropdownMenuItem', 'hlmDropdownMenuCheckbox',
+    'hlmDropdownMenuRadio', 'hlmDropdownMenuSubTrigger', 'hlmMenubarTrigger', 'hlmNavigationMenuTrigger',
+    'hlmAlertDialogAction', 'hlmAlertDialogCancel', 'hlmSidebarGroupAction', 'hlmSidebarMenuAction',
+    'hlmSidebarMenuSubButton', 'hlmSidebarGroupLabel', 'hlmSidebarRail', 'hlmCommandItem', 'hlm-command-item',
+    'hlmComboboxChipRemove', 'hlmCarouselNext', 'hlm-carousel-next', 'hlmCarouselPrevious', 'hlm-carousel-previous',
+    'hlmInputGroupButton',
+  ],
+  input: ['hlmInput', 'hlmInputGroupInput', 'hlmComboboxChipInput', 'hlmSidebarInput'],
+  textarea: ['hlmTextarea', 'hlmInputGroupTextarea'],
   table: ['hlmTable'],
-  h1: HEADINGS,
-  h2: HEADINGS,
-  h3: HEADINGS,
-  h4: HEADINGS,
-  p: ['hlmP', 'hlmMuted', 'hlmLead', 'hlmSmall', 'hlmAlertDescription'],
-  ul: ['hlmUl'],
-  blockquote: ['hlmBlockquote'],
-  code: ['hlmCode'],
-  label: ['hlmLabel', 'hlmFieldLabel'],
 };

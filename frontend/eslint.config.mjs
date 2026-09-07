@@ -48,6 +48,8 @@ export default [
     linterOptions: { noInlineConfig: true },
     rules: {
       'jig/no-literal-spacing': 'error',
+      'jig/no-raw-control': 'error',
+      'jig/no-unknown-primitive': 'error',
     },
   },
 ];
