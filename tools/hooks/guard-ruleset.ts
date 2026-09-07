@@ -35,21 +35,22 @@ const GUARDED = [
 ];
 
 /**
- * Commands that change a file rather than read one. A guarded file stays freely
- * readable — `cat ArchLayers.txt` and `grep Api ArchLayers.txt` are how anyone
- * reasons about the rules — so only mutation is denied.
+ * Verbs that change a file rather than read one. A guarded file stays freely
+ * readable, because reading it is how anyone reasons about the rules.
  */
-const MUTATORS = [
-  /\bsed\b[^|]*\s-i\b/,
-  /\bperl\b[^|]*\s-i\b/,
-  /\brm\b/,
-  /\bmv\b/,
-  /\bcp\b/,
-  /\btee\b/,
-  /\btruncate\b/,
-  /\bdd\b/,
-  />>?/,
-];
+const MUTATOR = String.raw`(>>?|\brm\b|\bmv\b|\bcp\b|\btee\b|\btruncate\b|\bdd\b|\bsed\b[^|;&]*\s-i\b|\bperl\b[^|;&]*\s-i\b)`;
+
+/**
+ * A mutation that TARGETS the named file: a mutating verb, then no command
+ * separator, then the name.
+ *
+ * The separator class is what makes it precise. `;`, `&` and `|` end a command,
+ * so a mutation of something else followed by a read of a guarded file does not
+ * match, and a redirect that appears AFTER the name is reading it rather than
+ * writing to it.
+ */
+const targeting = (name) =>
+  new RegExp(MUTATOR + String.raw`[^|;&]*` + name.replace(/\./g, String.raw`\.`));
 
 /** True when a write to this path must be denied. */
 export function guardedPath(path) {
@@ -60,15 +61,22 @@ export function guardedPath(path) {
 /**
  * True when a shell command would mutate a guarded file.
  *
- * This is a heuristic over a Turing-complete language and does not pretend
- * otherwise: a path assembled from variables, or a mutation through a language
- * runtime, still gets through. It stops the reach an agent actually makes for
- * when Write and Edit are denied, and CI and the diff cover the rest.
+ * The first cut asked only whether a guarded name appeared anywhere AND a
+ * mutating character appeared anywhere, unrelated to each other. Since `>` counts
+ * as a mutator, that denied pure reads — a stderr redirect, a grep piped to a
+ * scratch file, even prose containing an angle bracket — and it blocked its own
+ * author twice within a minute of shipping, both times on read-only commands.
+ * A guard that noisy trains people to route around it, and a guard people route
+ * around is the suppression dial ADR 0009 spent three pages refusing to build.
+ *
+ * Still a heuristic over a Turing-complete shell, and still not sold as more: a
+ * path assembled from variables, or a mutation through a language runtime, gets
+ * through. It stops the reach an agent actually makes for when Write and Edit are
+ * denied. DR0002 and the diff cover the rest.
  */
 export function guardedCommand(command) {
   if (!command) return false;
-  if (!GUARDED.some((entry) => command.includes(entry.name))) return false;
-  return MUTATORS.some((pattern) => pattern.test(command));
+  return GUARDED.some((entry) => targeting(entry.name).test(command));
 }
 
 function main() {

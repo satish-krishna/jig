@@ -100,6 +100,36 @@ test('allows a bash command that only reads a guarded file', () => {
   }
 });
 
+test('a mutator must TARGET the guarded file, not merely appear somewhere in the command', () => {
+  // The first cut denied when a guarded name appeared anywhere and a mutating
+  // character appeared anywhere, unrelated to each other. Since `>` counts as a
+  // mutator, that denied pure reads: a stderr redirect, a grep piped to a scratch
+  // file, even prose containing an angle bracket. It blocked its own author twice
+  // within a minute of shipping, on read-only commands.
+  //
+  // A guard this noisy trains people to route around it, and a guard people route
+  // around is the suppression dial ADR 0009 spent three pages refusing to build.
+  const NAME = 'tools/analyzers/Jig.Analyzers/ArchLayers.txt';
+
+  // Reads stay allowed even when the command contains a redirect elsewhere.
+  assert.equal(guardedCommand(`grep Api ${NAME} > /tmp/out`), false);
+  assert.equal(guardedCommand(`cat ${NAME} 2>&1`), false);
+  assert.equal(guardedCommand(`echo 'jig/<name>' && cat ${NAME}`), false);
+  assert.equal(guardedCommand(`sed -n '1,5p' ${NAME}`), false);
+
+  // A mutation that actually targets the file is still denied.
+  assert.equal(guardedCommand(`echo "" > ${NAME}`), true);
+  assert.equal(guardedCommand(`cat x >> ${NAME}`), true);
+  assert.equal(guardedCommand(`sed -i 's/a/b/' ${NAME}`), true);
+  assert.equal(guardedCommand(`rm ${NAME}`), true);
+  assert.equal(guardedCommand(`tee ${NAME} < /dev/null`), true);
+
+  // A command separator breaks the span: a mutation of something else, followed
+  // by a read of a guarded file, is two commands and only one of them matters.
+  assert.equal(guardedCommand(`rm /tmp/scratch; cat ${NAME}`), false);
+  assert.equal(guardedCommand(`echo hi > /tmp/x && grep Api ${NAME}`), false);
+});
+
 test('the self-guard pattern is exact, not a wildcard dot', () => {
   // The escape was lost in a sed once. `.` unescaped matches any character, so a
   // file named guard-rulesetXts would have been treated as the guard itself.
