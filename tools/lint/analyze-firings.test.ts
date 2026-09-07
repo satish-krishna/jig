@@ -5,7 +5,7 @@ import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { readFirings, groupEpisodes, buildReport, formatReport, type Report } from './analyze-firings.ts';
+import { readFirings, groupEpisodes, buildReport, formatReport, formatPercent, type Report } from './analyze-firings.ts';
 import type { FiringRecord } from '../hooks/_hook-log.ts';
 
 const SCRIPT = fileURLToPath(new URL('./analyze-firings.ts', import.meta.url));
@@ -279,11 +279,14 @@ test('four first-try fixes against one 50-violation verify run must not report 8
   assert.match(formatReport(report), /Total violations: 50/);
 });
 
-test('the headline can never contradict the trend breakdown printed beneath it', () => {
+test('the headline float can never contradict the trend breakdown (necessary, not sufficient)', () => {
   // At least one flat and one first-try episode, plus enough volume to clear the
   // floor: if the trend breakdown shows any flat or rising episodes, the effectiveness
-  // figure must read below 100%, full stop. This is the actual defect from fix round
-  // 2 — encoded as an invariant rather than trusted to hold by construction.
+  // VALUE must be below 1, full stop. This is the invariant fix round 2 encoded — and
+  // it is real, but round 3 found it insufficient: the float can honestly be 0.995
+  // and the RENDERED string can still say "100%" once toFixed rounds it. This test
+  // stays because the model-level guarantee is still worth pinning; the test below it
+  // is the one that actually catches a renderer that breaks this guarantee.
   const records = [
     record('check-frontend', 'a.ts', 1),
     record('check-frontend', 'b.ts', 2),
@@ -295,6 +298,46 @@ test('the headline can never contradict the trend breakdown printed beneath it',
   assert.ok(report.hookFirings.episodes.byTrend.flat + report.hookFirings.episodes.byTrend.rising > 0);
   assert.ok(report.effectiveness.value !== null, 'expected enough data to compute a ratio');
   assert.ok(report.effectiveness.value! < 1, 'effectiveness must read below 100% whenever any episode failed to correct');
+});
+
+// --- fix round 3: the view can lie even when the model does not --------------------
+//
+// The re-reviewer reproduced both round-2 fixes correctly, then scaled one of them up
+// and broke it: 398 clean episodes plus one 2-deep flat episode is value = 398/400 =
+// 0.995. `(value * 100).toFixed(0)` ROUNDS, and "0.995".toFixed → "100" — the exact
+// contradiction round 2 was supposed to eliminate, reintroduced by the renderer that
+// the model-level invariant above never looks at. These tests assert against the
+// STRING formatReport actually prints, because that is the layer that lied.
+
+test('formatPercent floors below the 100%/0% boundary and never rounds across it', () => {
+  assert.equal(formatPercent(1), '100%');
+  assert.equal(formatPercent(0), '0%');
+  // 0.995 is the exact regression value: toFixed(0) would render "100".
+  assert.equal(formatPercent(0.995), '99%');
+  assert.equal(formatPercent(0.999), '99%');
+  // A nonzero numerator must never read as 0%, even when it floors to 0: "some drift
+  // was corrected" must never render indistinguishably from "none was".
+  assert.equal(formatPercent(0.001), '1%');
+  assert.equal(formatPercent(0.5), '50%');
+});
+
+test('398 clean episodes plus one 2-deep flat episode must not render 100% in the report text', () => {
+  const records = [
+    ...Array.from({ length: 398 }, (_, i) => record('check-frontend', `clean-${i}.ts`, 1)),
+    record('check-frontend', 'flat.ts', 2),
+    record('check-frontend', 'flat.ts', 2),
+  ];
+  const report = buildReport(records);
+  assert.equal(report.effectiveness.correctedInFlight, 398);
+  assert.equal(report.effectiveness.notCorrected, 2);
+  assert.equal(report.effectiveness.value, 398 / 400);
+
+  const text = formatReport(report);
+  assert.match(text, /flat: 1/);
+  // This is the actual defect: assert against the rendered string, not the float —
+  // the float-level invariant above already passes on this exact scenario.
+  assert.doesNotMatch(text, /100%/);
+  assert.match(text, /99% corrected in flight/);
 });
 
 // --- --json ---------------------------------------------------------------------

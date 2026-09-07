@@ -278,6 +278,27 @@ function formatRuleFrequency(ruleFrequency: Record<string, number>, indent: stri
   return rules.map(([rule, count]) => `${indent}${rule}: ${count}`);
 }
 
+/**
+ * Fix round 3: `(value * 100).toFixed(0)` ROUNDS, and rounding crosses a conclusion
+ * boundary a reader cannot see past. 398 corrected episodes against one 2-deep flat
+ * episode is `value = 0.995`; `toFixed(0)` renders `"100"`, printed directly beside a
+ * trend breakdown showing `flat: 1` — the exact contradiction fix round 2 was
+ * supposed to eliminate, reintroduced by the renderer the model itself never touches.
+ *
+ * `100%` and `0%` are claims — "everything was corrected" / "nothing was corrected"
+ * — not roundings, so they are reserved for exactly 1 and exactly 0. Everything
+ * strictly between FLOORS, never rounds, so a value just under 1 renders just under
+ * 100, never AT 100. And a nonzero numerator never renders as `0%`: a value that
+ * floors to 0 (a tiny but real fraction corrected) is clamped up to `1%`, so "some
+ * drift was corrected" is never rendered indistinguishably from "none was" either.
+ */
+export function formatPercent(value: number): string {
+  if (value <= 0) return '0%';
+  if (value >= 1) return '100%';
+  const floored = Math.floor(value * 100);
+  return `${Math.max(1, Math.min(99, floored))}%`;
+}
+
 /** Human-readable rendering of a report. An empty log gets an honest sentence, not zeros. */
 export function formatReport(report: Report): string {
   if (report.totalRecords === 0) {
@@ -311,13 +332,19 @@ export function formatReport(report: Report): string {
 
   lines.push('');
   lines.push('Effectiveness:');
-  lines.push(`  Corrected in flight: ${report.effectiveness.correctedInFlight}`);
-  lines.push(`  Caught, never corrected: ${report.effectiveness.notCorrected}`);
-  lines.push(`  Reached the gate: ${report.effectiveness.reachedGate}`);
+  // The three terms are printed explicitly and separately, with the sum spelled out,
+  // so the ratio below is re-derivable from this report alone — a reader who wants to
+  // check "why 44%, not 80%" never has to trust the arithmetic, only add three numbers.
+  const { correctedInFlight, notCorrected, reachedGate } = report.effectiveness;
+  const total = correctedInFlight + notCorrected + reachedGate;
+  lines.push(`  Corrected in flight: ${correctedInFlight}`);
+  lines.push(`  Caught, never corrected: ${notCorrected}`);
+  lines.push(`  Reached the gate: ${reachedGate}`);
+  lines.push(`  Total drift events: ${total} (${correctedInFlight} + ${notCorrected} + ${reachedGate})`);
   lines.push(
     report.effectiveness.value === null
       ? `  ${report.effectiveness.note}`
-      : `  ${(report.effectiveness.value * 100).toFixed(0)}% corrected in flight (${report.effectiveness.note})`,
+      : `  ${formatPercent(report.effectiveness.value)} corrected in flight (${report.effectiveness.note})`,
   );
 
   return lines.join('\n');
