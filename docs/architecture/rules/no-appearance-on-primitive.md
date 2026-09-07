@@ -14,12 +14,12 @@ Color, typography, decoration, and internal padding are the governed families; l
 
 **Appearance families:**
 
-- **colour** — `bg-*`; `text-*` color (any `text-*` that is not a size keyword or an alignment keyword)
+- **color** — `bg-*`; `text-*` color (any `text-*` that is not a size keyword or an alignment keyword)
 - **typography** — `font-*`, `leading-*`, `tracking-*`; `text-*` size (`text-xs` … `text-9xl`)
 - **decoration** — `border`, `border-*`, `rounded`, `rounded-*`, `shadow`, `shadow-*`, `ring`, `ring-*`
 - **padding** — `p-*`, `px-*`, `py-*`, `pt-*`, `pb-*`, `pl-*`, `pr-*`
 
-**Alignment is layout, not typography.** `text-left`, `text-center`, `text-right`, `text-justify`, `text-start`, `text-end` control where content sits inside a box, not what the text looks like. They are exempt from the `text-*` colour/typography split above and are always allowed.
+**Alignment is layout, not typography.** `text-left`, `text-center`, `text-right`, `text-justify`, `text-start`, `text-end` control where content sits inside a box, not what the text looks like. They are exempt from the `text-*` color/typography split above and are always allowed.
 
 **Layout — always allowed on a primitive.**
 
@@ -30,9 +30,15 @@ Color, typography, decoration, and internal padding are the governed families; l
 
 ## How the check works
 
-A call-site class is a violation only when **the specific primitive present on that element** actually renders something in the same family, derived from that primitive's own `classes()` call in `frontend/libs/ui/**` (never hand-maintained — see `appearanceFamiliesOf` in `vocabulary.ts`). `hlm-resizable-group`'s entire styling is `'group flex h-full w-full data-[panel-group-direction=vertical]:flex-col'` — no decoration, no padding, no colour, no typography — so a call-site `border` or `rounded-lg` on it is not an override of anything, it is the only source of that appearance the element will ever get. `hlmBtn`'s cva base and variants render colour, typography and decoration, so a call-site `bg-muted` genuinely fights it.
+A call-site class is a violation only when **the specific primitive present on that element** actually renders something in the same family, derived from that primitive's own `classes()` call in `frontend/libs/ui/**` (never hand-maintained — see `appearanceFamiliesOf` in `vocabulary.ts`). `hlm-resizable-group`'s entire styling is `'group flex h-full w-full data-[panel-group-direction=vertical]:flex-col'` — no decoration, no padding, no color, no typography — so a call-site `border` or `rounded-lg` on it is not an override of anything, it is the only source of that appearance the element will ever get. `hlmBtn`'s cva base and variants render color, typography and decoration, so a call-site `bg-muted` genuinely fights it.
 
 This replaced the rule's first version, which flagged any class matching a governed family pattern on ANY primitive, regardless of whether that specific primitive rendered anything in that family. That version deleted borders and rounding from `hlm-resizable-group`, `ng-scrollbar[hlm]` and `div[hlmEmpty]`'s outline variant in showcase pages — sites where spartan's own documentation adds exactly those classes at the call site, because the primitive is deliberately shipped bare so it can be framed standalone or composed inside an already-decorated container without doubling up. The class-string comparison did not distinguish "this primitive sets no decoration at all" from "this primitive sets decoration, just not this exact value" — both read as "not an exact duplicate," but only the first is a real addition rather than an override. Family-granular derivation is what makes that distinction: it asks "does this primitive's own styling touch this VISUAL CONCERN at all," not "does it write this exact utility."
+
+### Three states, not two
+
+A directive's own class list is declared one of three ways in `frontend/libs/ui/**`: an inline literal or array right in the `classes(() => ...)` call, a `cva('base', { variants: {...} })` result, or a bare reference to a same-file `export const NAME = '...'` plain string (every typography directive — `hlmH1`, `hlmMuted`, `hlm-separator`, and the rest — uses this third shape). `resolveClassExpr` in `vocabulary.ts` resolves all three, plus the ternaries, `&&` guards, block-bodied arrow functions, and `this.foo()`/`this.foo` runtime accessors that show up inside them.
+
+When a `classes()` call resolves to none of those shapes, that call is UNRESOLVED — a distinct state from "resolved, and happens to render no appearance" (true of `hlm-resizable-group`) and from "no `classes()` call at all" (true of most behaviour-only directives). `appearanceFamiliesOf` never folds UNRESOLVED into an empty `Set`; `unresolvedAppearanceSelectors()` is the only place that state surfaces, and a coverage test in `vocabulary.test.ts` walks every directive under `frontend/libs/ui` with a `classes(` call and asserts that set is empty. This exists because the rule's second version shipped exactly the defect it was meant to prevent: `classes(() => hlmH1)` — a bare reference to a same-file constant, the third shape above — did not resolve, and an empty `Set` from a resolution failure was indistinguishable from an empty `Set` from a primitive that genuinely sets nothing. `<hlm-separator class="bg-red-500">`, `<div hlmBlockquote class="pl-0">` and `<div hlmH1 class="text-sm">` all passed silently under that version, despite each primitive setting the family being overridden. If a future spartan upgrade introduces a fourth way to declare a directive's classes, the coverage test goes red naming the file, instead of the rule quietly going blind on it the way it did here.
 
 ## Known exceptions
 

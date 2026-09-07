@@ -140,7 +140,7 @@ export const NATIVE_TO_PRIMITIVE = {
  * union rather than a free string so a typo in a family name fails the
  * type-check gate instead of silently matching nothing.
  */
-export type AppearanceFamily = 'colour' | 'typography' | 'decoration' | 'padding';
+export type AppearanceFamily = 'color' | 'typography' | 'decoration' | 'padding';
 
 // text-left / text-center / text-right / text-justify / text-start / text-end
 // are alignment (layout), not typography, the same exemption
@@ -186,9 +186,9 @@ export function appearanceFamilyOf(cls) {
   if (u.startsWith('text-')) {
     if (ALIGNMENT.has(u)) return null;
     if (TEXT_SIZE.has(u)) return 'typography';
-    return 'colour';
+    return 'color';
   }
-  if (u.startsWith('bg-')) return 'colour';
+  if (u.startsWith('bg-')) return 'color';
   if (TYPOGRAPHY_PATTERNS.some((re) => re.test(u))) return 'typography';
   if (DECORATION_PATTERNS.some((re) => re.test(u))) return 'decoration';
   if (PADDING_PATTERNS.some((re) => re.test(u))) return 'padding';
@@ -221,11 +221,205 @@ function extractBalancedParen(text, openIdx) {
   return text.slice(openIdx);
 }
 
-const STRING_LITERAL = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g;
+const STRING_LITERAL = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g;
 
 /** The contents (quotes stripped) of every string literal in a chunk of source. */
 function literalsIn(text) {
   return [...text.matchAll(STRING_LITERAL)].map((m) => m[0].slice(1, -1));
+}
+
+/** True when `text` (already trimmed) is exactly one quoted string literal, start to end. */
+function isWholeStringLiteral(text) {
+  const matches = [...text.matchAll(STRING_LITERAL)];
+  return matches.length === 1 && matches[0][0] === text;
+}
+
+/**
+ * A same-length "mask" of `text`: a top-level character (depth 0, not inside a
+ * quoted string) keeps its own value; anything nested inside `(`/`[`/`{` or
+ * inside a string is replaced with NUL. Lets `splitTopLevel` and
+ * `topLevelTernary` below find a real comma or `?`/`:` by position in `text`
+ * without tripping on one buried inside a nested call's own arguments or a
+ * Tailwind arbitrary value's brackets.
+ */
+function topLevelMask(text) {
+  let depth = 0;
+  let inString = null;
+  let mask = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString !== null) {
+      mask += ' ';
+      if (ch === '\\') { i++; mask += ' '; continue; }
+      if (ch === inString) inString = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') { inString = ch; mask += ' '; continue; }
+    if (ch === '(' || ch === '[' || ch === '{') { depth++; mask += ' '; continue; }
+    if (ch === ')' || ch === ']' || ch === '}') { depth--; mask += ' '; continue; }
+    mask += depth === 0 ? ch : ' ';
+  }
+  return mask;
+}
+
+/** Splits `text` on every top-level occurrence of `sep`, ignoring nested and quoted ones. */
+function splitTopLevel(text, sep) {
+  const mask = topLevelMask(text);
+  const parts = [];
+  let start = 0;
+  for (let i = 0; i < mask.length; i++) {
+    if (mask[i] === sep) {
+      parts.push(text.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(text.slice(start));
+  return parts;
+}
+
+/** The `{ cond, then, else }` of a top-level `cond ? then : else`, or null. */
+function topLevelTernary(text) {
+  const mask = topLevelMask(text);
+  const q = mask.indexOf('?');
+  if (q === -1) return null;
+  const c = mask.indexOf(':', q + 1);
+  if (c === -1) return null;
+  return { then: text.slice(q + 1, c), else: text.slice(c + 1) };
+}
+
+/** The right-hand side of a top-level `cond && value`, or null. */
+function topLevelAnd(text) {
+  const mask = topLevelMask(text);
+  const i = mask.indexOf('&&');
+  if (i === -1) return null;
+  return text.slice(i + 2);
+}
+
+/**
+ * Strips `//` and `/* *\/` comments, leaving quoted string contents alone, so
+ * an array element like `// separator classes\n'shrink-0 ...'` still reads as
+ * a whole string literal once the comment ahead of it is gone.
+ */
+function stripComments(text) {
+  let out = '';
+  let inString = null;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString !== null) {
+      out += ch;
+      if (ch === '\\') { i++; if (i < text.length) out += text[i]; continue; }
+      if (ch === inString) inString = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') { inString = ch; out += ch; continue; }
+    if (ch === '/' && text[i + 1] === '/') {
+      while (i < text.length && text[i] !== '\n') i++;
+      continue;
+    }
+    if (ch === '/' && text[i + 1] === '*') {
+      i += 2;
+      while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i++;
+      i++;
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+/**
+ * Resolves one `classes(() => EXPR)` argument to the literal class strings it
+ * can ever render, or marks it UNRESOLVED when `expr` is a shape this deriver
+ * does not recognise. Three states, never conflated:
+ *
+ * - a shape it recognises (literal, array, ternary, `&&`, cva() call,
+ *   same-file plain-string const, a block-bodied arrow function swept for
+ *   every literal it could return, or a `this.foo` / `this.foo()` runtime
+ *   accessor) resolves to `{ literals, unresolved: false }` — `literals` may
+ *   be empty (a `this._additionalClasses()` hook is genuinely dynamic and
+ *   contributes nothing statically; that is a KNOWN empty result, not a guess).
+ * - anything else — a fifth way of declaring classes this deriver was never
+ *   taught — resolves to `{ literals: [], unresolved: true }`, and that flag
+ *   is what makes "we could not tell" visible instead of silently reading as
+ *   "this primitive sets nothing" (the defect a prior version of this file
+ *   shipped: `classes(() => hlmH1)`, a bare reference to a same-file plain
+ *   string const, produced an empty result with no way to tell it apart from
+ *   a directive that legitimately sets no appearance at all).
+ */
+function resolveClassExpr(raw, ctx) {
+  const text = stripComments(raw).trim();
+  if (text === '') return { literals: [], unresolved: false };
+
+  if (isWholeStringLiteral(text)) {
+    return { literals: [text.slice(1, -1)], unresolved: false };
+  }
+
+  if (text.startsWith('[') && text.endsWith(']')) {
+    const literals = [];
+    let unresolved = false;
+    for (const part of splitTopLevel(text.slice(1, -1), ',')) {
+      if (part.trim() === '') continue;
+      const r = resolveClassExpr(part, ctx);
+      literals.push(...r.literals);
+      unresolved = unresolved || r.unresolved;
+    }
+    return { literals, unresolved };
+  }
+
+  // A block-bodied arrow function (`() => { if (...) {...} else {...} }`, as
+  // hlm-sidebar's does) is swept for every string literal it could ever
+  // return rather than traced branch by branch — the same deliberate
+  // over-approximation already used for cva() variants: this only needs to
+  // know a family is EVER possible, not which control-flow path runs.
+  if (text.startsWith('{') && text.endsWith('}')) {
+    return { literals: literalsIn(text), unresolved: false };
+  }
+
+  const ternary = topLevelTernary(text);
+  if (ternary !== null) {
+    const a = resolveClassExpr(ternary.then, ctx);
+    const b = resolveClassExpr(ternary.else, ctx);
+    return { literals: [...a.literals, ...b.literals], unresolved: a.unresolved || b.unresolved };
+  }
+
+  // `cond && value` (hlm-pagination-link, hlm-sidebar-menu-action): the
+  // condition can never be statically known, but the value it gates can be.
+  const and = topLevelAnd(text);
+  if (and !== null) {
+    return resolveClassExpr(and, ctx);
+  }
+
+  // A runtime accessor — `this._additionalClasses()`, `this.variant()` used
+  // bare rather than as a cva() argument, or a plain property read like
+  // `this._dynamicComponentClass` with no call at all — can never be
+  // statically known. That is a real, KNOWN answer ("contributes nothing
+  // statically"), not a parse failure, so it must not be flagged unresolved.
+  if (/^this\.[A-Za-z_$][\w$]*(\([\s\S]*\))?$/.test(text)) {
+    return { literals: [], unresolved: false };
+  }
+
+  // A single call spanning the whole expression: NAME(...). Resolve NAME
+  // against a cva() variants function declared locally, else globally
+  // (composing another module's variants function, e.g. hlmComboboxChipRemove
+  // reusing buttonVariants).
+  const callMatch = /^([A-Za-z_$][\w$]*)\([\s\S]*\)$/.exec(text);
+  if (callMatch !== null) {
+    const name = callMatch[1];
+    const resolved = ctx.localCva.get(name) ?? ctx.globalCva.get(name);
+    if (resolved !== undefined) return { literals: resolved, unresolved: false };
+    return { literals: [], unresolved: true };
+  }
+
+  // A bare identifier spanning the whole expression: `classes(() => hlmH1)`
+  // referencing a plain `export const hlmH1 = '...'` string, resolved the
+  // same way — local file first, then any other file that exports it.
+  if (/^[A-Za-z_$][\w$]*$/.test(text)) {
+    const resolved = ctx.localConst.get(text) ?? ctx.globalConst.get(text);
+    if (resolved !== undefined) return { literals: [resolved], unresolved: false };
+    return { literals: [], unresolved: true };
+  }
+
+  return { literals: [], unresolved: true };
 }
 
 function walkTsFiles(dir) {
@@ -245,53 +439,99 @@ function walkTsFiles(dir) {
  * The primitive vocabulary's appearance side: for each selector name, the set
  * of appearance families its OWN `classes()` call actually renders, derived
  * from libs/ui source rather than hand-maintained (the whole point — see
- * no-appearance-on-primitive.ts). Two directives compose a `cva()` variants
- * function rather than writing a class string directly (hlmBtn, hlmBadge, ...);
- * a `cva('base', { variants: {...} })` call's base string and every variant's
- * string are pooled together, because any of them may render depending on the
- * input the call site never controls — this rule only needs to know whether a
- * family is EVER possible, not which variant is active.
+ * no-appearance-on-primitive.ts).
+ *
+ * A directive's own class list can be declared three ways in this codebase,
+ * and every one of them is resolved before a family set is trusted as known:
+ *
+ * 1. Inline — a string or array literal, ternaries and all, right in the
+ *    `classes(() => ...)` call (hlm-resizable-group, hlm-carousel-content, ...).
+ * 2. A `cva('base', { variants: {...} })` result (hlmBtn, hlmBadge, ...). The
+ *    base string and every variant's string are pooled together, because any
+ *    variant may render depending on an input the call site never controls —
+ *    this only needs to know whether a family is EVER possible, not which
+ *    variant is active.
+ * 3. A bare reference to a same-file `export const NAME = '...'` plain string
+ *    (hlm-separator, hlmH1, and the rest of the typography directives).
+ *
+ * A `classes()` call that resolves to none of the three above is UNRESOLVED,
+ * not empty — see `resolveClassExpr`. `unresolvedAppearanceSelectors()` below
+ * is what makes that state visible; `appearanceFamiliesOf` deliberately does
+ * NOT fall back to treating unresolved as empty, because that fallback is
+ * exactly the defect this file shipped once already.
  */
-let familyCache = null;
+let derivedCache = null;
 
 function deriveAppearanceFamilies() {
-  if (familyCache !== null) return familyCache;
+  if (derivedCache !== null) return derivedCache;
 
   const files = walkTsFiles(LIBS_UI);
   const sources = new Map(files.map((f) => [f, readFileSync(f, 'utf8')]));
 
-  // Pass 1: every `const NAME = cva(...)` (locally, per file) and globally, so
-  // a directive that imports another module's variants function (e.g.
-  // hlmComboboxChipRemove composing buttonVariants) still resolves.
+  // Pass 1: every `const NAME = cva(...)` and every `const NAME = '...'`
+  // plain-string constant, both locally (per file) and globally, so a
+  // directive that imports another module's constant (e.g. hlmComboboxChipRemove
+  // composing buttonVariants) still resolves.
   const globalCva = new Map();
   const localCva = new Map();
+  const globalConst = new Map();
+  const localConst = new Map();
+
   for (const [file, src] of sources) {
-    const perFile = new Map();
+    const perFileCva = new Map();
     for (const match of src.matchAll(/(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*cva\(/g)) {
       const name = match[1];
       const openIdx = match.index + match[0].length - 1;
       const literals = literalsIn(extractBalancedParen(src, openIdx));
-      perFile.set(name, literals);
+      perFileCva.set(name, literals);
       if (!globalCva.has(name)) globalCva.set(name, literals);
     }
-    localCva.set(file, perFile);
+    localCva.set(file, perFileCva);
+
+    const perFileConst = new Map();
+    for (const match of src.matchAll(
+      /(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)/g,
+    )) {
+      const [, name, literal] = match;
+      const value = literal.slice(1, -1);
+      perFileConst.set(name, value);
+      if (!globalConst.has(name)) globalConst.set(name, value);
+    }
+    localConst.set(file, perFileConst);
   }
 
   // Pass 2: every selector, and every `classes(...)` call attributed to the
   // nearest PRECEDING selector in the same file — true for every directive in
   // libs/ui today, one class body (decorator, then constructor) at a time.
+  // Resolved per call via resolveClassExpr; `unresolved` names the selector
+  // AND the file, so a coverage test can point straight at the offending line.
   const pool = new Map(); // raw selector string -> Set<string> of pooled class-list literals
+  const unresolved = new Map(); // raw selector string -> file
 
   for (const [file, src] of sources) {
     const selectorHits = [...src.matchAll(/selector:\s*'([^']*)'/g)]
       .map((m) => ({ pos: m.index, value: m[1] }));
     if (selectorHits.length === 0) continue;
 
-    const perFileCva = localCva.get(file);
+    const ctx = {
+      localCva: localCva.get(file),
+      globalCva,
+      localConst: localConst.get(file),
+      globalConst,
+    };
 
-    for (const call of src.matchAll(/\bclasses\(/g)) {
-      const openIdx = call.index + call[0].length - 1;
+    for (const call of src.matchAll(/\bclasses\(\s*\(\)\s*=>\s*/g)) {
+      const arrowEnd = call.index + call[0].length;
+      const openIdx = src.indexOf('(', call.index);
       const callText = extractBalancedParen(src, openIdx);
+      // callText spans from `classes(` through its matching `)`; the arrow
+      // function's own body is everything after `() =>` up to that same
+      // closing paren, one character short of callText's own trailing `)`.
+      // A multi-line call commonly ends `'...',\n\t\t);` — a trailing comma
+      // after the arrow function's own expression, once an options argument
+      // this codebase has never needed. Stripped before resolving so it is
+      // not mistaken for "not a whole string literal after all".
+      const exprText = src.slice(arrowEnd, openIdx + callText.length - 1).trim().replace(/,\s*$/, '');
 
       let current = null;
       for (const hit of selectorHits) {
@@ -300,14 +540,14 @@ function deriveAppearanceFamilies() {
       }
       if (current === null) continue;
 
-      const literals = literalsIn(callText);
-      for (const [name, ident] of callText.matchAll(/([A-Za-z_$][\w$]*)\(/g)) {
-        const resolved = perFileCva.get(ident) ?? globalCva.get(ident);
-        if (resolved !== undefined) literals.push(...resolved);
+      const result = resolveClassExpr(exprText, ctx);
+      if (result.unresolved) {
+        unresolved.set(current.value, file);
+        continue;
       }
 
       const bucket = pool.get(current.value) ?? new Set();
-      for (const literal of literals) bucket.add(literal);
+      for (const literal of result.literals) bucket.add(literal);
       pool.set(current.value, bucket);
     }
   }
@@ -330,11 +570,31 @@ function deriveAppearanceFamilies() {
     }
   }
 
-  familyCache = families;
-  return familyCache;
+  derivedCache = { families, unresolved };
+  return derivedCache;
 }
 
-/** The appearance families the named primitive's own styling actually sets. */
+/**
+ * The appearance families the named primitive's own styling actually sets.
+ * Returns an empty Set both for a primitive with no `classes()` call at all
+ * (legitimately renders no appearance) and for a name the vocabulary has never
+ * seen — NOT for a primitive whose `classes()` call is unresolved; callers
+ * that need to tell "known empty" apart from "could not tell" must consult
+ * `unresolvedAppearanceSelectors()` too.
+ */
 export function appearanceFamiliesOf(name) {
-  return deriveAppearanceFamilies().get(name) ?? new Set();
+  return deriveAppearanceFamilies().families.get(name) ?? new Set();
+}
+
+/**
+ * Every selector string whose `classes()` call could not be resolved to a
+ * known set of literals, mapped to the file it was found in. Empty is the
+ * only acceptable steady state: a non-empty result means either a real gap in
+ * `resolveClassExpr` (spartan added a fourth way to declare classes) or a
+ * genuine typo, and either way `appearanceFamiliesOf` for that name is
+ * silently wrong until it is fixed — see the coverage test in
+ * vocabulary.test.ts that asserts this stays empty.
+ */
+export function unresolvedAppearanceSelectors() {
+  return deriveAppearanceFamilies().unresolved;
 }

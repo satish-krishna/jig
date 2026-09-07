@@ -1,9 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { attributeSelectors, elementSelectors, appearanceFamiliesOf, NATIVE_TO_PRIMITIVE } from './vocabulary.ts';
+import {
+  attributeSelectors, elementSelectors, appearanceFamiliesOf,
+  unresolvedAppearanceSelectors, NATIVE_TO_PRIMITIVE,
+} from './vocabulary.ts';
 
 test('derives attribute directives from the generated selectors', () => {
   const attrs = attributeSelectors();
@@ -78,9 +81,64 @@ test('derives the appearance families a primitive actually sets, from its own cl
   // typography (text-sm, font-medium) and decoration (rounded-lg, border) — a
   // call-site override of any of those families is a real fight, not an addition.
   const btn = appearanceFamiliesOf('hlmBtn');
-  assert.ok(btn.has('colour'), 'hlmBtn should be derived as setting colour');
+  assert.ok(btn.has('color'), 'hlmBtn should be derived as setting color');
   assert.ok(btn.has('typography'), 'hlmBtn should be derived as setting typography');
   assert.ok(btn.has('decoration'), 'hlmBtn should be derived as setting decoration');
+});
+
+test('resolves classes(() => bareIdentifier) against a same-file plain string const', () => {
+  // hlm-separator: `export const hlmSeparatorClass = 'inline-flex shrink-0
+  // bg-border ...'` then `classes(() => hlmSeparatorClass)`. Resolving a bare
+  // identifier reference, not just a cva() call or an inline literal, is the
+  // gap that let `bg-red-500` on <hlm-separator> pass silently.
+  assert.ok(appearanceFamiliesOf('hlm-separator').has('color'), 'hlm-separator should be derived as setting color');
+
+  // hlmH1: `export const hlmH1 = 'scroll-m-20 text-4xl font-extrabold
+  // tracking-tight lg:text-5xl'` then `classes(() => hlmH1)` — the same
+  // bare-identifier shape, in the typography family this time.
+  assert.ok(appearanceFamiliesOf('hlmH1').has('typography'), 'hlmH1 should be derived as setting typography');
+});
+
+test('a classes() call the deriver cannot resolve is UNRESOLVED, never a silent empty set', () => {
+  // The defect this guards against: a parse failure and a directive that
+  // genuinely renders no appearance both looked like an empty Set<AppearanceFamily>,
+  // so nothing could tell "we could not parse this" apart from "this primitive
+  // sets nothing". A directive with NO classes() call at all is legitimately
+  // empty and must never appear here.
+  const unresolved = unresolvedAppearanceSelectors();
+
+  assert.equal(unresolved.size, 0, () => {
+    const lines = [...unresolved].map(([selector, file]) => `  ${selector} in ${file}`);
+    return `${unresolved.size} classes() call(s) could not be resolved to a known appearance family set:\n${lines.join('\n')}`;
+  });
+});
+
+test('every directive with a classes() call is covered — walking libs/ui directly, not through a hand-picked sample', () => {
+  // Same intent as "the vocabulary is large enough to be real" above, aimed at
+  // the deriver specifically: if a future spartan upgrade introduces a fourth
+  // way of declaring a directive's classes, this walks the real source tree
+  // and must still find nothing unresolved, rather than trusting that today's
+  // three known shapes (inline literal/array, cva(), bare same-file const)
+  // stay the only three forever.
+  const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const LIBS_UI = join(ROOT, 'frontend', 'libs', 'ui');
+
+  const walk = (dir) => {
+    const out = [];
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...walk(path));
+      else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts')) out.push(path);
+    }
+    return out;
+  };
+
+  let sawAClassesCall = false;
+  for (const file of walk(LIBS_UI)) {
+    if (/\bclasses\(/.test(readFileSync(file, 'utf8'))) sawAClassesCall = true;
+  }
+  assert.ok(sawAClassesCall, 'expected at least one classes() call under frontend/libs/ui — the walk found none, so this test would pass on a broken deriver too');
+  assert.equal(unresolvedAppearanceSelectors().size, 0);
 });
 
 test('each primitive in the native map is compatible with its target element', () => {
