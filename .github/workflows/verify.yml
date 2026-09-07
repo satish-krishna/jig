@@ -54,8 +54,10 @@ jobs:
           echo "areas=$areas" >> "$GITHUB_OUTPUT"
           echo "Active areas: ${areas:-none — prose only}"
 
+      # `tools` needs .NET too: the contract freshness step builds and boots the API, and
+      # it runs whenever the generator itself changes.
       - uses: actions/setup-dotnet@v4
-        if: contains(steps.select.outputs.areas, 'dotnet') || contains(steps.select.outputs.areas, 'contracts')
+        if: contains(steps.select.outputs.areas, 'dotnet') || contains(steps.select.outputs.areas, 'contracts') || contains(steps.select.outputs.areas, 'tools')
         with:
           dotnet-version: '10.0.x'
 

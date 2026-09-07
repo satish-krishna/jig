@@ -66,7 +66,11 @@ const steps: Step[] = [
   { name: 'tools typecheck', cmd: 'npm run typecheck', cwd: ROOT, areas: ['tools'] },
   { name: 'tooling tests', cmd: 'node --test "tools/**/*.test.ts"', cwd: ROOT, areas: ['tools'] },
   { name: 'backend tests (.NET)', cmd: 'dotnet test services/api/Jig.sln --nologo -v q', cwd: ROOT, areas: ['dotnet'], native: true },
-  { name: 'contract freshness (codegen)', cmd: 'node tools/codegen/generate.ts --check', cwd: ROOT, areas: ['dotnet', 'contracts'], native: true },
+  // `tools` is in here for the same reason it is in catalog freshness: a change to the
+  // generator is a change that can break what it generates, and the check that guards
+  // generated code has to run when its own generator moves. It costs a dotnet build on
+  // tools changes, which is the cheap direction of a mistake.
+  { name: 'contract freshness (codegen)', cmd: 'node tools/codegen/generate.ts --check', cwd: ROOT, areas: ['dotnet', 'contracts', 'tools'], native: true },
   { name: 'rust tests', cmd: 'cargo test', cwd: SRC_TAURI, areas: ['rust'], native: true },
   { name: 'frontend unit tests (Vitest)', cmd: 'npm test', cwd: FRONTEND, areas: ['frontend', 'contracts'] },
   { name: 'frontend lint (ESLint)', cmd: runFrontendLint, cwd: ROOT, areas: ['frontend', 'tools'] },
