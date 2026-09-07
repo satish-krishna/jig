@@ -61,6 +61,26 @@ for (const route of routes) {
     // reported to the listeners above, which is a coin flip, not a check.
     // Polling either condition also means a genuine failure ends the wait
     // immediately rather than always burning the full timeout.
+    //
+    // KNOWN BOUNDARY, measured rather than assumed. The poll ends as soon as
+    // the marker renders, so an error thrown AFTER a successful render can be
+    // missed. A `setTimeout` throw at 300ms is caught, but only incidentally —
+    // `networkidle` above happens to burn longer than that. The same throw at
+    // 3000ms is NOT caught: the test finishes in roughly 870ms and the timer
+    // never fires. Every failure class this check exists for — a constructor
+    // injecting something unprovided, a throwing `ngOnInit`, a `computed()`
+    // that throws during template render, a child component whose constructor
+    // fails — prevents the marker from rendering at all, so all four are
+    // caught (verified by injecting each one and watching this spec go red
+    // under full parallelism). An exception raised later still, from an async
+    // callback or a subscription that outlives the first render, is outside
+    // this check's reach.
+    //
+    // Closing that gap means waiting a fixed duration after render, which is
+    // the same fixed-sleep guess that made four unit specs flaky until they
+    // were replaced with `waitUntil` polling. A gate that fails at random is a
+    // dial people learn to operate by re-running, so the boundary is the
+    // deliberate trade: this check owns boot-time failure, and nothing else.
     await expect
       .poll(async () => (await page.locator(outletMarker(route)).count()) > 0 || errors.length > 0, {
         timeout: 10_000,
