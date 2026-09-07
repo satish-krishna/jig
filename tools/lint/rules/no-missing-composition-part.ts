@@ -7,9 +7,19 @@ const REQUIRED = {
 /** An AST node is any object with a string `type`; spans and locs are plain data and lack one. */
 const isNode = (value) => value !== null && typeof value === 'object' && typeof value.type === 'string';
 
-// Keys that hold position bookkeeping rather than template structure. Walking
-// into them would not be wrong (they carry no `type`, so isNode already
-// excludes them) but skipping them up front keeps the walk on template nodes.
+// Two different reasons live in this one set, and they are not interchangeable.
+//
+// 'parent' MUST stay. ESLint's traverser sets it, the parent it points to is a
+// real node with a string `.type`, so `isNode` accepts it — and walking into it
+// creates a cycle (container -> parent -> ancestor -> children -> back to
+// container) that recurses forever. Verified, not theorised: removing 'parent'
+// from this set reproduces a `RangeError: Maximum call stack size exceeded` on
+// the invalid test case.
+//
+// The rest — 'sourceSpan', 'startSourceSpan', 'endSourceSpan', 'nameSpan' —
+// are skipped only as an optimization. They hold position bookkeeping, not
+// template structure, and carry no `.type` of their own, so `isNode` already
+// excludes them; listing them here just avoids walking into them at all.
 const SKIP_KEYS = new Set(['parent', 'sourceSpan', 'startSourceSpan', 'endSourceSpan', 'nameSpan']);
 
 /**

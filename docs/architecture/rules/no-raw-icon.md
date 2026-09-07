@@ -8,7 +8,7 @@ A pasted `<svg>` root element anywhere in an app template. Angular's template co
 
 ## Why
 
-This app's icon registry is `provideIcons` plus `<ng-icon name="...">` (see `frontend/src/app/app.config.ts`). Pasting a raw `<svg>...</svg>` blob copied from an icon site bypasses that registry entirely: the glyph is not registered anywhere, cannot be swapped by changing one `provideIcons` call, is not colour- or size-token aware the way `<ng-icon>` is, and is invisible to anything that later wants to enumerate "every icon this app uses." A hand-pasted `<svg>` today is copy-pasted twice tomorrow, and the registry stops being the single source of icons the moment the first exception exists.
+This app's icon registry is `provideIcons` plus `<ng-icon name="...">` (see `frontend/src/app/app.config.ts`). Pasting a raw `<svg>...</svg>` blob copied from an icon site bypasses that registry entirely: the glyph is not registered anywhere, cannot be swapped by changing one `provideIcons` call, is not color- or size-token aware the way `<ng-icon>` is, and is invisible to anything that later wants to enumerate "every icon this app uses." A hand-pasted `<svg>` today is copy-pasted twice tomorrow, and the registry stops being the single source of icons the moment the first exception exists.
 
 ## Accepted form
 
