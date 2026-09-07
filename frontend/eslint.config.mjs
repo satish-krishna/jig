@@ -42,6 +42,8 @@ export default [
       'jig/no-forms-module': 'error',
       'jig/no-reactive-form': 'error',
       'jig/no-restated-validator': 'error',
+      'jig/no-legacy-icon-module': 'error',
+      'jig/no-unregistered-icon': 'error',
     },
   },
   {
