@@ -1,0 +1,75 @@
+/**
+ * Predicates shared by the rules. Each rule stays a handful of lines because the
+ * AST shapes it asks about live here, stated once.
+ */
+
+/** The `@Component({...})` metadata object literal, or null. */
+export function decoratorMetadata(classNode, decoratorName = 'Component') {
+  const decorators = classNode.decorators ?? [];
+  for (const d of decorators) {
+    const call = d.expression;
+    if (call?.type !== 'CallExpression') continue;
+    if (call.callee?.name !== decoratorName) continue;
+    const arg = call.arguments?.[0];
+    if (arg?.type === 'ObjectExpression') return arg;
+  }
+  return null;
+}
+
+/** True when the class carries the named decorator. */
+export const hasDecorator = (classNode, name) => decoratorMetadata(classNode, name) !== null;
+
+/** A property of a decorator metadata object, by key name, or null. */
+export function metadataProperty(metadata, key) {
+  for (const prop of metadata.properties ?? []) {
+    if (prop.type !== 'Property') continue;
+    const name = prop.key?.type === 'Identifier' ? prop.key.name : prop.key?.value;
+    if (name === key) return prop;
+  }
+  return null;
+}
+
+/** The nearest enclosing class declaration or expression, or null. */
+export function classOf(node) {
+  for (let n = node; n != null; n = n.parent) {
+    if (n.type === 'ClassDeclaration' || n.type === 'ClassExpression') return n;
+  }
+  return null;
+}
+
+/**
+ * The tier a file belongs to. Path-based on purpose: a marker or a naming
+ * convention is something an agent can add to escape a rule, and a path is not.
+ * Presentational is the default, so a new folder never silently acquires
+ * container rules.
+ */
+export function tierOf(filename) {
+  const path = filename.replace(/\\/g, '/');
+  if (/\/app\/(features|shell)\//.test(path)) return 'container';
+  return 'presentational';
+}
+
+/** Every module specifier the file imports the given local name from. */
+export function importedFrom(context, localName) {
+  const source = context.sourceCode ?? context.getSourceCode();
+  for (const node of source.ast.body) {
+    if (node.type !== 'ImportDeclaration') continue;
+    for (const spec of node.specifiers) {
+      if (spec.local?.name === localName) return node.source.value;
+    }
+  }
+  return null;
+}
+
+/** The static class list on a template element, or an empty array. */
+export function classAttribute(node) {
+  for (const attr of node.attributes ?? []) {
+    if (attr.name === 'class' && typeof attr.value === 'string') {
+      return attr.value.split(/\s+/).filter(Boolean);
+    }
+  }
+  return [];
+}
+
+/** Strips responsive and state prefixes: `dark:sm:bg-red-500` -> `bg-red-500`. */
+export const baseUtility = (cls) => cls.slice(cls.lastIndexOf(':') + 1);
