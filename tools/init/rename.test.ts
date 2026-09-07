@@ -97,6 +97,44 @@ test('frontend/eslint.config.mjs still contains the exact literals renameContent
   );
 });
 
+test('renaming the real eslint.config.mjs leaves the import, the registration, and every rule key agreeing on one plugin name', () => {
+  // The test above guards the ASSUMPTION that the real config still contains the
+  // literals renameContent matches. This test guards the RESULT: run the real
+  // file (not synthetic snippets) through renameContent once, as a whole, and
+  // check the three coupled forms did not drift apart from each other. A rewrite
+  // that only handles two of the three — e.g. the import and the plugin
+  // registration rewrite, but a rule key like 'jig/no-raw-control' does not —
+  // leaves a config that parses but references a plugin name that does not
+  // exist under the registered key, which ESLint only reports when someone
+  // actually lints inside the cloned app, long after `init` reported success.
+  const config = readFileSync(join(ROOT, 'frontend', 'eslint.config.mjs'), 'utf8');
+  const n = deriveNames('AcmePortal');
+  const rewritten = renameContent(config, n);
+
+  const importMatch = rewritten.match(/import (\w+) from '\.\.\/tools\/lint\/index\.ts';/);
+  assert.ok(importMatch, 'the plugin import binding did not survive the rewrite');
+  const [, importedIdentifier] = importMatch;
+
+  const pluginsMatches = [...rewritten.matchAll(/plugins: \{ '([\w-]+)': (\w+) \}/g)];
+  assert.ok(pluginsMatches.length > 0, 'the plugins registration did not survive the rewrite');
+  for (const [, registeredKey, registeredIdentifier] of pluginsMatches) {
+    assert.equal(
+      registeredIdentifier,
+      importedIdentifier,
+      'the plugins registration must reference the same identifier the import bound',
+    );
+    assert.equal(registeredKey, n.kebab, 'the plugins registration key must match the app\'s kebab-case name');
+  }
+
+  const ruleKeyPrefixes = new Set([...rewritten.matchAll(/'([\w-]+)\/no-[\w-]+':\s*'error'/g)].map((m) => m[1]));
+  assert.ok(ruleKeyPrefixes.size > 0, 'no rule keys survived the rewrite to check');
+  assert.deepEqual(
+    ruleKeyPrefixes,
+    new Set([n.kebab]),
+    'every rule key must share the same plugin-name prefix as the import and the plugins registration',
+  );
+});
+
 test('stripTemplateBlocks removes marked template-only prose, keeps the rest', () => {
   const text = 'keep me\n<!-- template:start -->\ntemplate only\n<!-- template:end -->\nkeep me too\n';
   assert.equal(stripTemplateBlocks(text), 'keep me\nkeep me too\n');

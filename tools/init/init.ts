@@ -22,7 +22,13 @@ const sh = (cmd, opts = {}) => execSync(cmd, { cwd: ROOT, stdio: 'inherit', ...o
 const shOut = (cmd) => execSync(cmd, { cwd: ROOT, encoding: 'utf8' }).trim();
 
 const BINARY = ['.png', '.ico', '.icns', '.jpg', '.jpeg', '.gif', '.woff', '.woff2', '.ttf', '.webp', '.thumbnail'];
-const TEMPLATE_ONLY = ['bootstrap-prompt.md', 'docs/superpowers', 'tools/init'];
+// '.claude/hook-firings.jsonl' is git-ignored, so `renameContent` never sees it and
+// `git ls-files` never lists it for step 1's content rewrite — but this list is what
+// actually deletes files, and without an entry here `init` would leave the template
+// author's firing telemetry on disk for a freshly cloned app to silently inherit as
+// its own enforcement baseline. That is a measurement lying about whose drift it
+// recorded, so it is listed here even though no other step would ever touch it.
+const TEMPLATE_ONLY = ['bootstrap-prompt.md', 'docs/superpowers', 'tools/init', '.claude/hook-firings.jsonl'];
 
 function parseArgs(argv) {
   const args = argv.slice(2);
