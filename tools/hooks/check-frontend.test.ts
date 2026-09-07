@@ -1,8 +1,9 @@
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { writeFileSync, unlinkSync, readFileSync, existsSync } from 'node:fs';
+import { writeFileSync, unlinkSync, readFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { shouldLint } from './check-frontend.ts';
 import { LOG_PATH } from './_hook-log.ts';
@@ -10,7 +11,40 @@ import { LOG_PATH } from './_hook-log.ts';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const HOOK = fileURLToPath(new URL('./check-frontend.ts', import.meta.url));
 
-const run = (stdin: string) => spawnSync(process.execPath, [HOOK], { input: stdin, encoding: 'utf8' });
+// Every run() below spawns the hook as a real child process, and the hook logs
+// through logFiring() on any violation. JIG_HOOK_LOG redirects that write to a
+// throwaway file for the life of this test file, so none of the fixtures here —
+// synthetic by construction — ever touch the production telemetry at LOG_PATH.
+// See Ruling 15A: this is the fix for the log the tools/hooks test suite used to
+// pollute on every run, including runs in the pre-commit hook and CI.
+const TEST_LOG_DIR = mkdtempSync(join(tmpdir(), 'jig-hook-log-'));
+const TEST_LOG_PATH = join(TEST_LOG_DIR, 'hook-firings.jsonl');
+
+const run = (stdin: string) =>
+  spawnSync(process.execPath, [HOOK], {
+    input: stdin,
+    encoding: 'utf8',
+    env: { ...process.env, JIG_HOOK_LOG: TEST_LOG_PATH },
+  });
+
+// The whole point of Ruling 15A: prove the suite leaves the production log alone,
+// not just that a redirect variable exists. Snapshot it before any run() call in
+// this file and diff after the last one.
+let productionLogBefore: string | null = null;
+
+before(() => {
+  productionLogBefore = existsSync(LOG_PATH) ? readFileSync(LOG_PATH, 'utf8') : null;
+});
+
+after(() => {
+  const productionLogAfter = existsSync(LOG_PATH) ? readFileSync(LOG_PATH, 'utf8') : null;
+  assert.equal(
+    productionLogAfter,
+    productionLogBefore,
+    'this test file must never write to the production hook-firings.jsonl — set JIG_HOOK_LOG instead',
+  );
+  rmSync(TEST_LOG_DIR, { recursive: true, force: true });
+});
 
 // --- path filter ----------------------------------------------------------
 //
@@ -93,15 +127,15 @@ test('fails closed on malformed or empty stdin', () => {
   assert.equal(run('').status, 2);
 });
 
-test('a firing is appended to the git-ignored log', () => {
-  const before = existsSync(LOG_PATH) ? readFileSync(LOG_PATH, 'utf8').split('\n').length : 0;
+test('a firing is appended to the redirected log, not the production one', () => {
+  const beforeCount = existsSync(TEST_LOG_PATH) ? readFileSync(TEST_LOG_PATH, 'utf8').split('\n').length : 0;
   withFixture(DIRTY_FIXTURE, '<button>Save</button>\n', () => {
     const result = run(JSON.stringify({ tool_input: { file_path: DIRTY_FIXTURE } }));
     assert.equal(result.status, 2);
   });
-  const after = readFileSync(LOG_PATH, 'utf8').trim().split('\n');
-  assert.ok(after.length > before - 1);
-  const last = JSON.parse(after[after.length - 1]);
+  const lines = readFileSync(TEST_LOG_PATH, 'utf8').trim().split('\n');
+  assert.ok(lines.length > beforeCount - 1);
+  const last = JSON.parse(lines[lines.length - 1]);
   assert.equal(last.hook, 'check-frontend');
   assert.equal(typeof last.count, 'number');
   assert.ok(last.count > 0);
