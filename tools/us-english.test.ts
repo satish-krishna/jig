@@ -4,96 +4,19 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { STEMS, PATTERN_OVERRIDES, FILE_STEM_EXCEPTIONS } from './us-english-stems.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SELF = 'tools/us-english.test.ts';
 
 /**
- * Stems, not whole words, so `colour` also catches `colours` and `coloured`
- * without a separate entry per inflection.
- *
- * `analyse`/`paralyse` — not the `analys`/`paralys` prefix — because `analys`
- * also matches the correctly spelled noun "analysis"/"analyses", whose US and
- * UK spelling is identical; only the verb forms (analyse/analyze) differ. A
- * prefix that flags a correct spelling gets suppressed, not fixed.
- *
- * This list is deliberately not exhaustive English-wide. It lists what this
- * repo has used or would plausibly reach for — see the sweep note on
- * `labell` below — because a word list nobody can read is a word list nobody
- * maintains.
+ * The only file this gate does not scan. Its content is the word list
+ * itself: the strings this gate checks for have to be spelled out somewhere
+ * to be checked against, and that is data, not a violation. See its header
+ * comment for the fuller rationale. Everything else — including this test
+ * file — is scanned like any other tracked text file, so a hit written into
+ * a comment here would be caught the same as a hit anywhere else.
  */
-const STEMS = [
-  'colour',
-  'behaviour',
-  'favour',
-  'labour',
-  'neighbour',
-  'honour',
-  'centre',
-  'metre',
-  'litre',
-  'theatre',
-  'initialis',
-  'organis',
-  'recognis',
-  'customis',
-  'optimis',
-  'summaris',
-  'prioritis',
-  'utilis',
-  'normalis',
-  'serialis',
-  'visualis',
-  'authoris',
-  'categoris',
-  'apologis',
-  'analyse',
-  'paralyse',
-  'licence',
-  'defence',
-  'offence',
-  'pretence',
-  'catalogue',
-  'dialogue',
-  'travelling',
-  'cancelled',
-  'modelling',
-  // Confirmed present in this repo (aspect-ratio.page.ts, sonner.page.spec.ts,
-  // component-registry.ts): "labelled"/"labelling". Other plausible British
-  // forms swept for (grey, whilst, amongst, fulfil, enrol, skilful, practise,
-  // programme, storey, manoeuvre, sceptic) do not occur anywhere in the tree,
-  // so per the "only list what's actually used" rule above they are not added.
-  'labell',
-];
-
-/**
- * Per-stem regex overrides for stems whose plain substring match produces a
- * false positive against a fixed, unrenamable API name.
- *
- * `labell` alone would also match inside `aria-labelledby` — the W3C ARIA
- * attribute name, emitted verbatim by
- * `frontend/src/app/showcase/component-api.generated.ts` (generated from the
- * vendored `frontend/libs/ui` sources, never hand-edited). That is correct
- * text, not a spelling bug, so the fix belongs in the pattern, not in an
- * exception list entry.
- */
-const PATTERN_OVERRIDES: Record<string, RegExp> = {
-  labell: /(?<!aria-)labell/gi,
-};
-
-/**
- * One narrow, named, and commented skip — the only kind Step 3 allows.
- *
- * `run.cancelled` (and its mention two lines later) is not this repo's
- * prose: it is a literal event name from Kata's published wire protocol, an
- * external, sibling project this design doc describes rather than owns
- * ("Both providers emit this exact protocol"). Renaming it to `run.canceled`
- * would make the doc wrong about what the upstream system actually emits.
- * Scoped to this one file and this one stem, not the whole document.
- */
-const FILE_STEM_EXCEPTIONS = new Set([
-  'docs/superpowers/specs/2026-07-03-agent-streaming-design.md:cancelled',
-]);
+const EXCLUDED_FILES = new Set(['tools/us-english-stems.ts']);
 
 /** Binary/asset extensions git tracks that are never worth text-scanning. */
 const BINARY_EXT = new Set([
@@ -131,11 +54,7 @@ function trackedTextFiles(): string[] {
     .filter((path) => !path.startsWith('frontend/libs/'))
     .filter((path) => !LOCKFILE_NAMES.has(path.split('/').pop() ?? path))
     .filter((path) => !BINARY_EXT.has(extensionOf(path).toLowerCase()))
-    // This file is the one legitimate exception: the STEMS list and the
-    // comments explaining each stem's provenance must spell out the actual
-    // British words verbatim, or a reader could not tell what the gate
-    // checks for. That is data and documentation, not a spelling mistake.
-    .filter((path) => path !== SELF);
+    .filter((path) => !EXCLUDED_FILES.has(path));
 }
 
 interface Hit {
@@ -183,4 +102,13 @@ test('every tracked text file uses US English spelling', () => {
       .map((h) => `  ${h.file}:${h.line} — "${h.word}" (stem: ${h.stem})`)
       .join('\n')}`,
   );
+});
+
+/**
+ * The exclusion is meant to stay pinned to the one file whose job requires
+ * it. Widening it is the quiet way this kind of gate rots — a future editor
+ * adds a second path "just for now" and the gate goes blind there forever.
+ */
+test('the scan excludes exactly one file — its own word-list data module', () => {
+  assert.deepEqual([...EXCLUDED_FILES], ['tools/us-english-stems.ts']);
 });
