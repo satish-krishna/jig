@@ -4,7 +4,7 @@
 
 ## 1. Mission
 
-Scaffold **Jig**, a reusable **template repository** for building desktop applications as a **thick client** (Tauri shell with a Rust core, driving an Angular SPA over IPC) that can *also* deploy the same Angular SPA as a **thin client** against a remote **.NET FastEndpoints** web service. One frontend, two wires. The repo is the starting point I clone for every future desktop app, so optimise for **agent-driven development**: every future AI agent that opens this repo must be able to discover what already exists and extend it, rather than reinventing it.
+Scaffold **Jig**, a reusable **template repository** for building desktop applications as a **thick client** (Tauri shell with a Rust core, driving an Angular SPA over IPC) that can *also* deploy the same Angular SPA as a **thin client** against a remote **.NET FastEndpoints** web service. One frontend, two wires. The repo is the starting point I clone for every future desktop app, so optimize for **agent-driven development**: every future AI agent that opens this repo must be able to discover what already exists and extend it, rather than reinventing it.
 
 This is a template, not a product. Build the skeleton, the conventions, the tooling, and one thin vertical slice (`users`) that exercises every layer end to end as a worked example. Do not build speculative features.
 
@@ -12,7 +12,7 @@ This is a template, not a product. Build the skeleton, the conventions, the tool
 
 ## 2. Non-negotiables (these are gates, not preferences)
 
-- **SOLID.** Every unit has one reason to change. Depend on abstractions. Interfaces are small and client-specific. New behaviour arrives by extension, not by editing stable code.
+- **SOLID.** Every unit has one reason to change. Depend on abstractions. Interfaces are small and client-specific. New behavior arrives by extension, not by editing stable code.
 - **YAGNI.** Build only the `users` slice and the shared machinery it proves. No config knobs, no extension points, no "future" abstractions with a single implementation. If an abstraction has exactly one implementer and no second one is imminent, inline it.
 - **DRY, applied to docs too.** No fact is stated in two places by hand. The capability catalog (section 5) is **generated** from code annotations, never authored. If you catch yourself copying a shape, hoist it to a shared contract.
 - **TDD, strict red-green-refactor.** No production line of code exists before a failing test that demands it. Test first, watch it fail, make it pass minimally, refactor under green. This holds in all three languages.

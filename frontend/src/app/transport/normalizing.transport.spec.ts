@@ -5,7 +5,7 @@ import { Transport } from './transport.port';
 import type { OperationName, Req, Res } from '../contracts';
 import type { AppError } from './app-error';
 
-/** A fake wire whose single behaviour is supplied per test. */
+/** A fake wire whose single behavior is supplied per test. */
 class FakeTransport extends Transport {
   constructor(private readonly impl: () => Observable<unknown>) {
     super();

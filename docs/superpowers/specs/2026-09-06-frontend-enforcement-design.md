@@ -193,7 +193,7 @@ The 200ms sidebar collapse in `shell.layout.css` is therefore not a lint failure
 
 The property pattern is `/^(color|.*-color)$/` rather than `/color/`, because the loose form matches `color-scheme`, which is not a color property and whose only legal values are keywords. angular-jig hit exactly this false positive on its own `styles.css`.
 
-`frontend/src/styles.css` is excluded. It is the token definition file, carrying 52 OKLCH literals, and a gate that fails on the definitions it enforces is theatre.
+`frontend/src/styles.css` is excluded. It is the token definition file, carrying 52 OKLCH literals, and a gate that fails on the definitions it enforces is theater.
 
 jig has three CSS files, one of them empty, and no component declares an inline `styles: []` block, so angular-jig's inline-style extraction machinery is not built. `libs/ui` needs no ignore entry at all: it contains zero `.css` files and zero inline styles, because all its styling is Tailwind classes inlined in TypeScript.
 

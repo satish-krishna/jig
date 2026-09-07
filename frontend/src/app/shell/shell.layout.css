@@ -111,7 +111,7 @@
 .hlm-brand__name { font-weight: var(--font-semibold); font-size: var(--text-sm); letter-spacing: var(--tracking-tight); }
 
 .hlm-sidebar__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--spacing-s); }
-/* Anchored at the bottom of the rail and centred once collapsed, so the toggle
+/* Anchored at the bottom of the rail and centered once collapsed, so the toggle
    keeps the same hit target at both widths. */
 .hlm-sidebar__footer {
   flex-shrink: 0;
@@ -198,7 +198,7 @@
 .hlm-shell[data-collapsed="true"] .hlm-nav__sub { display: none; }
 .hlm-shell[data-collapsed="true"] .hlm-nav__item { justify-content: center; padding-inline: 0; }
 /* The brand is no longer in the rail, so it needs no collapsed rule; the footer
-   centres its toggle instead. */
+   centers its toggle instead. */
 .hlm-shell[data-collapsed="true"] .hlm-sidebar__footer { justify-content: center; padding-inline: 0; }
 
 /* ===== Centered layout ===== */

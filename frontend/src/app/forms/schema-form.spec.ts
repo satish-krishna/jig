@@ -28,7 +28,7 @@ describe('SchemaForm (dynamic renderer)', () => {
     return fixture;
   }
 
-  it('renders a control per schema field, honouring the control kind', () => {
+  it('renders a control per schema field, honoring the control kind', () => {
     const fixture = render();
     expect(fixture.nativeElement.querySelectorAll('input, textarea, select').length).toBe(2);
     expect(fixture.nativeElement.querySelector('textarea')).toBeTruthy();

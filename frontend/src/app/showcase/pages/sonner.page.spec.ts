@@ -52,7 +52,7 @@ describe('SonnerPage', () => {
 
   function click(text: string): void {
     const button = [...host.querySelectorAll('button')].find((b) => b.textContent?.trim() === text);
-    expect(button, `no button labelled "${text}"`).toBeTruthy();
+    expect(button, `no button labeled "${text}"`).toBeTruthy();
     (button as HTMLButtonElement).click();
     fixture.detectChanges();
   }

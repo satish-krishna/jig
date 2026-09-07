@@ -106,7 +106,7 @@ export const elementSelectors = () => selectors().elements;
  * a handful of siblings) flagged 145 elements, not the roughly 14 expected;
  * every extra hit traced back to one of these compound-component primitives
  * being absent from the map, not to an actual bare control. A directive that
- * only wires behaviour and carries no styling of its own — hlmDialogTrigger,
+ * only wires behavior and carries no styling of its own — hlmDialogTrigger,
  * hlmDialogClose, hlmSheetTrigger, hlmSheetClose, hlmDrawerTrigger,
  * hlmDrawerClose, hlmCollapsibleTrigger, hlmPopoverTrigger,
  * hlmAlertDialogTrigger — is deliberately excluded: those are always paired
@@ -330,9 +330,9 @@ function stripComments(text) {
 /**
  * Resolves one `classes(() => EXPR)` argument to the literal class strings it
  * can ever render, or marks it UNRESOLVED when `expr` is a shape this deriver
- * does not recognise. Three states, never conflated:
+ * does not recognize. Three states, never conflated:
  *
- * - a shape it recognises (literal, array, ternary, `&&`, cva() call,
+ * - a shape it recognizes (literal, array, ternary, `&&`, cva() call,
  *   same-file plain-string const, a block-bodied arrow function swept for
  *   every literal it could return, or a `this.foo` / `this.foo()` runtime
  *   accessor) resolves to `{ literals, unresolved: false }` — `literals` may

@@ -66,7 +66,7 @@ export class ThemeService {
   }
 
   // Storage is best-effort: private browsing and blocked storage must not take
-  // the app down over a colour preference.
+  // the app down over a color preference.
   private read(): string | null {
     try {
       return this.document.defaultView?.localStorage.getItem(THEME_STORAGE_KEY) ?? null;

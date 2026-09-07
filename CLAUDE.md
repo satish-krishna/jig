@@ -18,7 +18,7 @@ This is a template, not a product. The `users` slice is the one worked example t
 
 ## The non-negotiables (gates, not preferences)
 
-- **SOLID:** one reason to change; depend on abstractions; small client-specific interfaces; new behaviour by extension, not by editing stable code.
+- **SOLID:** one reason to change; depend on abstractions; small client-specific interfaces; new behavior by extension, not by editing stable code.
 - **YAGNI:** build only the `users` slice and the machinery it proves. One implementer and no second one imminent means inline it.
 - **DRY, docs included:** no fact stated twice by hand. The catalog is generated; form models are `z.infer`; DTOs are generated from OpenAPI.
 - **KISS:** the code you do write is the plainest version that works — straight-line over clever, obvious over compact. If a tired reader cannot trace it at 3AM without a comment explaining *how* it works, it is too clever; rewrite it simpler. (YAGNI decides whether to build it; KISS decides that what you build stays simple.)
@@ -83,7 +83,7 @@ frontend/src/app/
   shell/               app shell: CSS Grid layout, sidebar, header, footer
   showcase/            live examples of every libs/ui component, routed at /showcase
 frontend/libs/ui/       GENERATED spartan helm components (never hand-edit; add with the CLI — ADR 0010)
-frontend/src/styles.css theme tokens: colour AND radius (OKLCH, light + dark). Control size and
+frontend/src/styles.css theme tokens: color AND radius (OKLCH, light + dark). Control size and
                         spacing (h-8, px-2.5) is inlined into libs/ui at generation time — ADR 0010.
 .claude/skills/jig-design/  design-language skill: mocks/previews + the feel spec (downstream mirror of the app, ADR 0007)
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure

@@ -59,7 +59,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
 
   // Forms
   { slug: 'field', name: 'Field', category: 'Forms', blurb: 'Label, control, description and error anatomy.' },
-  { slug: 'label', name: 'Label', category: 'Forms', blurb: 'Control labelling.' },
+  { slug: 'label', name: 'Label', category: 'Forms', blurb: 'Control labeling.' },
   { slug: 'input', name: 'Input', category: 'Forms', blurb: 'Single-line text entry.' },
   { slug: 'textarea', name: 'Textarea', category: 'Forms', blurb: 'Multi-line text entry.' },
   { slug: 'native-select', name: 'Native select', category: 'Forms', blurb: 'The platform select, styled.' },

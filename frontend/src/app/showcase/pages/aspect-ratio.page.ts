@@ -10,7 +10,7 @@ import { Usage } from '../usage';
  * `ratio` input (aliased to the directive name) sets a `--ratio` CSS custom
  * property — there is no host template and no projected slot, so it is just
  * a `<div>` constrained to `aspect-(--ratio)` around whatever content it
- * wraps. No image assets are vendored into this template repo, so a labelled
+ * wraps. No image assets are vendored into this template repo, so a labeled
  * gradient block stands in for the media every example constrains.
  */
 @Component({
