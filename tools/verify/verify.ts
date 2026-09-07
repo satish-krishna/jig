@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { logFiring } from '../hooks/_hook-log.ts';
 import { lintFrontend } from '../lint/lint-frontend.ts';
 import { VERIFY_HOOK } from '../lint/analyze-firings.ts';
+import { activeAreas, selectSteps, type Area } from './select.ts';
+import { changedSince } from './areas.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_TAURI = join(ROOT, 'apps', 'desktop', 'src-tauri');
@@ -48,29 +50,63 @@ async function runFrontendLint(): Promise<boolean> {
  * Commits and CI use the full gate; this is the same split CLAUDE.md already
  * draws between `npm run dev` and `npm run verify`.
  */
-const steps: [string, string | (() => Promise<boolean>), string, 'native'?][] = [
-  ['catalog freshness', 'node tools/catalog/catalog.ts --check', ROOT],
-  ['showcase api freshness', 'node tools/showcase-api/showcase-api.ts --check', ROOT],
-  ['tools typecheck', 'npm run typecheck', ROOT],
-  ['tooling tests', 'node --test "tools/**/*.test.ts"', ROOT],
-  ['backend tests (.NET)', 'dotnet test services/api/Jig.sln --nologo -v q', ROOT, 'native'],
-  ['rust tests', 'cargo test', SRC_TAURI, 'native'],
-  ['frontend unit tests (Vitest)', 'npm test', FRONTEND],
-  ['frontend lint (ESLint)', runFrontendLint, ROOT],
-  ['frontend css (stylelint)', 'npm run stylelint', ROOT],
-  ['frontend build (Angular AOT)', 'npm run build', FRONTEND],
-  ['e2e smoke (Playwright)', 'npm run e2e', FRONTEND],
+interface Step {
+  name: string;
+  cmd: string | (() => Promise<boolean>);
+  cwd: string;
+  /** The subsystems that can break this step. See tools/verify/select.ts. */
+  areas: readonly Area[];
+  /** Needs the .NET or Rust toolchain, so `--frontend` drops it. */
+  native?: true;
+}
+
+const steps: Step[] = [
+  { name: 'catalog freshness', cmd: 'node tools/catalog/catalog.ts --check', cwd: ROOT, areas: ['dotnet', 'rust', 'frontend', 'tools'] },
+  { name: 'showcase api freshness', cmd: 'node tools/showcase-api/showcase-api.ts --check', cwd: ROOT, areas: ['frontend', 'tools'] },
+  { name: 'tools typecheck', cmd: 'npm run typecheck', cwd: ROOT, areas: ['tools'] },
+  { name: 'tooling tests', cmd: 'node --test "tools/**/*.test.ts"', cwd: ROOT, areas: ['tools'] },
+  { name: 'backend tests (.NET)', cmd: 'dotnet test services/api/Jig.sln --nologo -v q', cwd: ROOT, areas: ['dotnet'], native: true },
+  // `tools` is in here for the same reason it is in catalog freshness: a change to the
+  // generator is a change that can break what it generates, and the check that guards
+  // generated code has to run when its own generator moves. It costs a dotnet build on
+  // tools changes, which is the cheap direction of a mistake.
+  { name: 'contract freshness (codegen)', cmd: 'node tools/codegen/generate.ts --check', cwd: ROOT, areas: ['dotnet', 'contracts', 'tools'], native: true },
+  { name: 'rust tests', cmd: 'cargo test', cwd: SRC_TAURI, areas: ['rust'], native: true },
+  { name: 'frontend unit tests (Vitest)', cmd: 'npm test', cwd: FRONTEND, areas: ['frontend', 'contracts'] },
+  { name: 'frontend lint (ESLint)', cmd: runFrontendLint, cwd: ROOT, areas: ['frontend', 'tools'] },
+  { name: 'frontend css (stylelint)', cmd: 'npm run stylelint', cwd: ROOT, areas: ['frontend', 'tools'] },
+  { name: 'frontend build (Angular AOT)', cmd: 'npm run build', cwd: FRONTEND, areas: ['frontend', 'contracts'] },
+  { name: 'e2e smoke (Playwright)', cmd: 'npm run e2e', cwd: FRONTEND, areas: ['frontend'] },
 ];
 
+// `--since=<ref>` narrows the run to the steps the diff against `<ref>` can actually break.
+// CI passes it; a local `npm run verify` does not, and with no flag every step still runs.
+//
+// This is the one place the gate is allowed to do less, so it says out loud what it chose.
+// A gate that silently skips is a gate nobody trusts, and an untrusted gate gets routed
+// around — the same reasoning ADR 0009 applies to suppression dials.
 const frontendOnly = process.argv.includes('--frontend');
-const selected = frontendOnly ? steps.filter(([, , , kind]) => kind !== 'native') : steps;
+const since = (process.argv.find((a) => a.startsWith('--since=')) ?? '').split('=')[1];
+
+let selected = steps;
+
+if (since) {
+  const paths = changedSince(since);
+  const active = activeAreas(paths);
+  selected = selectSteps(selected, active);
+  console.log(`Changed since ${since}: ${paths.length} file(s).`);
+  console.log(`Active areas: ${active.size ? [...active].join(', ') : 'none — prose only'}`);
+  const skipped = steps.filter((s) => !selected.includes(s)).map((s) => s.name);
+  if (skipped.length) console.log(`Skipping: ${skipped.join(', ')}`);
+}
 
 if (frontendOnly) {
+  selected = selected.filter((s) => !s.native);
   console.log('Frontend gate: skipping .NET and Rust. Run `npm run verify` before committing.');
 }
 
 let failed: string | null = null;
-for (const [name, cmd, cwd] of selected) {
+for (const { name, cmd, cwd } of selected) {
   console.log(`\n=== ${name} ===`);
   try {
     if (typeof cmd === 'function') {

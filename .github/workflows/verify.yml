@@ -1,10 +1,21 @@
 name: verify
 
 # The green gate, machine-enforced. The pre-commit hook only runs the fast
-# checks (catalog freshness + tooling tests); this runs the full `npm run verify`
-# (build + all tests across .NET, Rust, and the frontend) on every push and PR.
+# checks (catalog freshness + tooling tests); this runs `npm run verify`.
+#
+# One job, not one job per subsystem. Splitting into parallel .NET/Rust/frontend jobs
+# was the obvious shape and the wrong one: each job re-pays the ~2.5 minutes of
+# checkout and toolchain setup, and a job filtered out by `paths-ignore` reports as
+# *pending* rather than passing, so a required check never goes green and the pull
+# request can never merge. A single job that selects its steps has neither problem —
+# nothing is ever skipped from GitHub's point of view, and setup is paid once.
+#
+# Pull requests run only the steps their diff can break (tools/verify/select.ts decides).
+# Pushes to main always run everything, because two pull requests can each pass their own
+# narrowed gate and still break main together once both have landed.
 on:
   push:
+    branches: [main]
   pull_request:
 
 concurrency:
@@ -18,29 +29,67 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the selector diffs against the merge base
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24' # latest 24.x, within the supported Node range
 
+      # Runs before every expensive install, and needs no dependencies of its own —
+      # it imports node builtins and select.ts, nothing else. A prose-only pull request
+      # stops here, having spent about twenty seconds.
+      - name: Select the areas this change can break
+        id: select
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="origin/${{ github.base_ref }}"
+            areas=$(node tools/verify/areas.ts "$base")
+            echo "since=--since=$base" >> "$GITHUB_OUTPUT"
+          else
+            areas="dotnet,rust,frontend,tools,contracts"
+            echo "since=" >> "$GITHUB_OUTPUT"
+          fi
+          echo "areas=$areas" >> "$GITHUB_OUTPUT"
+          echo "Active areas: ${areas:-none — prose only}"
+
+      # `tools` needs .NET too: the contract freshness step builds and boots the API, and
+      # it runs whenever the generator itself changes.
       - uses: actions/setup-dotnet@v4
+        if: contains(steps.select.outputs.areas, 'dotnet') || contains(steps.select.outputs.areas, 'contracts') || contains(steps.select.outputs.areas, 'tools')
         with:
           dotnet-version: '10.0.x'
 
       - uses: dtolnay/rust-toolchain@stable
+        if: contains(steps.select.outputs.areas, 'rust')
 
       - uses: Swatinem/rust-cache@v2
+        if: contains(steps.select.outputs.areas, 'rust')
         with:
           workspaces: apps/desktop/src-tauri
 
       - name: Install root tooling
+        if: steps.select.outputs.areas != ''
         run: npm install
 
-      - name: Install frontend deps and Playwright browser
+      - name: Install frontend deps
+        if: contains(steps.select.outputs.areas, 'frontend') || contains(steps.select.outputs.areas, 'contracts') || contains(steps.select.outputs.areas, 'tools')
         working-directory: frontend
-        run: |
-          npm install
-          npx playwright install chromium
+        run: npm install
 
-      - name: Verify (full build, all tests, catalog freshness)
-        run: npm run verify
+      # The single most expensive setup step at ~1.5 minutes, and only the e2e smoke
+      # needs it. A .NET contract change type-checks the frontend without ever opening
+      # a browser, so it does not pay for one.
+      - name: Install Playwright browser
+        if: contains(steps.select.outputs.areas, 'frontend')
+        working-directory: frontend
+        run: npx playwright install chromium
+
+      - name: Verify
+        if: steps.select.outputs.areas != ''
+        run: npm run verify -- ${{ steps.select.outputs.since }}
+
+      - name: Nothing to verify
+        if: steps.select.outputs.areas == ''
+        run: echo "Prose-only change; no gate step can be broken by it."
