@@ -41,7 +41,7 @@ import { Usage } from '../usage';
               <h3 hlmDrawerTitle>Edit profile</h3>
               <p hlmDrawerDescription>Make changes to your profile here. Click save when you're done.</p>
             </hlm-drawer-header>
-            <div hlmField class="px-l">
+            <div hlmField>
               <label hlmFieldLabel for="drawer-name">Name</label>
               <input hlmInput id="drawer-name" value="Pedro Duarte" />
             </div>

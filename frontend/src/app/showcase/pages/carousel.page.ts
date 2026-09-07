@@ -27,7 +27,7 @@ import { Usage } from '../usage';
               <hlm-carousel-item>
                 <div class="p-xs">
                   <section hlmCard>
-                    <p hlmCardContent class="flex aspect-square items-center justify-center p-xl">
+                    <p hlmCardContent class="flex aspect-square items-center justify-center">
                       <span class="text-4xl font-semibold">{{ item }}</span>
                     </p>
                   </section>
@@ -51,7 +51,7 @@ import { Usage } from '../usage';
               <hlm-carousel-item>
                 <div class="p-xs">
                   <section hlmCard>
-                    <p hlmCardContent class="flex items-center justify-center p-xl">
+                    <p hlmCardContent class="flex items-center justify-center">
                       <span class="text-3xl font-semibold">{{ item }}</span>
                     </p>
                   </section>
@@ -75,7 +75,7 @@ import { Usage } from '../usage';
               <hlm-carousel-item class="basis-1/2">
                 <div class="p-xs">
                   <section hlmCard>
-                    <p hlmCardContent class="flex aspect-square items-center justify-center p-xl">
+                    <p hlmCardContent class="flex aspect-square items-center justify-center">
                       <span class="text-2xl font-semibold">{{ item }}</span>
                     </p>
                   </section>
@@ -100,7 +100,7 @@ import { Usage } from '../usage';
               <hlm-carousel-item>
                 <div class="p-xs">
                   <section hlmCard>
-                    <div hlmCardContent class="flex flex-col gap-s p-l">
+                    <div hlmCardContent class="flex flex-col gap-s">
                       <p class="text-sm">&ldquo;{{ t.quote }}&rdquo;</p>
                       <p class="text-muted-foreground text-xs font-medium">{{ t.name }}</p>
                     </div>

@@ -62,7 +62,7 @@ import { Usage } from '../usage';
         <button hlmBtn variant="outline" size="icon" class="relative" (click)="bump()" aria-label="Notifications">
           <ng-icon name="lucideBell" />
           @if (count() > 0) {
-            <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4 px-xs">
+            <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4">
               {{ count() }}
             </span>
           }

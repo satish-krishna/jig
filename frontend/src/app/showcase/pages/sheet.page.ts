@@ -29,7 +29,7 @@ import { Usage } from '../usage';
               <h3 hlmSheetTitle>Edit profile</h3>
               <p hlmSheetDescription>Make changes to your profile here. Click save when you're done.</p>
             </hlm-sheet-header>
-            <div hlmField class="px-l">
+            <div hlmField>
               <label hlmFieldLabel for="sheet-name">Name</label>
               <input hlmInput id="sheet-name" value="Pedro Duarte" />
             </div>

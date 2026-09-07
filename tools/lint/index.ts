@@ -3,6 +3,8 @@ import noExplicitStandalone from './rules/no-explicit-standalone.ts';
 import noHandSetChangeDetection from './rules/no-hand-set-change-detection.ts';
 import noRawControl from './rules/no-raw-control.ts';
 import noUnknownPrimitive from './rules/no-unknown-primitive.ts';
+import noAppearanceOnPrimitive from './rules/no-appearance-on-primitive.ts';
+import noStyleAttribute from './rules/no-style-attribute.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.
@@ -22,5 +24,7 @@ export default {
     'no-hand-set-change-detection': noHandSetChangeDetection,
     'no-raw-control': noRawControl,
     'no-unknown-primitive': noUnknownPrimitive,
+    'no-appearance-on-primitive': noAppearanceOnPrimitive,
+    'no-style-attribute': noStyleAttribute,
   },
 };

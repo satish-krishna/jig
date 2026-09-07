@@ -50,6 +50,8 @@ export default [
       'jig/no-literal-spacing': 'error',
       'jig/no-raw-control': 'error',
       'jig/no-unknown-primitive': 'error',
+      'jig/no-appearance-on-primitive': 'error',
+      'jig/no-style-attribute': 'error',
     },
   },
 ];

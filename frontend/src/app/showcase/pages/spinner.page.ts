@@ -20,9 +20,9 @@ import { Usage } from '../usage';
     <app-component-page slug="spinner">
       <app-usage title="Sizes" note="Text size controls the spinner's size." [code]="codeSizes">
         <div class="flex items-center gap-xl">
-          <hlm-spinner class="text-sm" />
-          <hlm-spinner class="text-xl" />
-          <hlm-spinner class="text-3xl" />
+          <hlm-spinner />
+          <hlm-spinner />
+          <hlm-spinner />
         </div>
       </app-usage>
 
@@ -31,7 +31,7 @@ import { Usage } from '../usage';
         note="Any registered ng-icon name can replace the default loader."
         [code]="codeCustomIcon"
       >
-        <hlm-spinner icon="lucideLoader" class="text-xl" />
+        <hlm-spinner icon="lucideLoader" />
       </app-usage>
 
       <app-usage

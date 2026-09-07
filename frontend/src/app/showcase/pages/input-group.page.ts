@@ -55,7 +55,7 @@ import { Usage } from '../usage';
         <hlm-input-group class="max-w-sm">
           <textarea hlmInputGroupTextarea placeholder="Enter your message"></textarea>
           <hlm-input-group-addon align="block-end">
-            <hlm-input-group-text class="text-xs">120 characters left</hlm-input-group-text>
+            <hlm-input-group-text>120 characters left</hlm-input-group-text>
           </hlm-input-group-addon>
         </hlm-input-group>
       </app-usage>

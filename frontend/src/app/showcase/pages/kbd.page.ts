@@ -42,11 +42,11 @@ import { Usage } from '../usage';
 
       <app-usage title="With button" note="A kbd hint riding inside a button's own padding." [code]="codeButton">
         <div class="flex flex-wrap items-center gap-m">
-          <button hlmBtn variant="outline" size="sm" class="pr-s">
+          <button hlmBtn variant="outline" size="sm">
             Accept
             <kbd hlmKbd>⏎</kbd>
           </button>
-          <button hlmBtn variant="outline" size="sm" class="pr-s">
+          <button hlmBtn variant="outline" size="sm">
             Cancel
             <kbd hlmKbd>Esc</kbd>
           </button>

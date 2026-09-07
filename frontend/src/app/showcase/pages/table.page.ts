@@ -38,7 +38,7 @@ import { Usage } from '../usage';
             <tbody hlmTableBody>
               @for (invoice of invoices; track invoice.id) {
                 <tr hlmTableRow>
-                  <td hlmTableCell class="font-medium">{{ invoice.id }}</td>
+                  <td hlmTableCell>{{ invoice.id }}</td>
                   <td hlmTableCell>{{ invoice.status }}</td>
                   <td hlmTableCell class="text-right">{{ invoice.amount }}</td>
                 </tr>
@@ -64,7 +64,7 @@ import { Usage } from '../usage';
             <tbody hlmTableBody>
               @for (invoice of invoices; track invoice.id) {
                 <tr hlmTableRow>
-                  <td hlmTableCell class="font-medium">{{ invoice.id }}</td>
+                  <td hlmTableCell>{{ invoice.id }}</td>
                   <td hlmTableCell class="text-right">{{ invoice.amount }}</td>
                 </tr>
               }
@@ -102,7 +102,7 @@ import { Usage } from '../usage';
                   [attr.data-state]="selected() === invoice.id ? 'selected' : null"
                   (click)="toggleSelected(invoice.id)"
                 >
-                  <td hlmTableCell class="font-medium">{{ invoice.id }}</td>
+                  <td hlmTableCell>{{ invoice.id }}</td>
                   <td hlmTableCell>{{ invoice.status }}</td>
                 </tr>
               }
@@ -128,7 +128,7 @@ import { Usage } from '../usage';
             <tbody hlmTableBody>
               @for (product of products(); track product.id) {
                 <tr hlmTableRow>
-                  <td hlmTableCell class="font-medium">{{ product.name }}</td>
+                  <td hlmTableCell>{{ product.name }}</td>
                   <td hlmTableCell>{{ product.price }}</td>
                   <td hlmTableCell class="text-right">
                     <button hlmBtn variant="ghost" size="icon-sm" (click)="removeProduct(product.id)">
@@ -139,7 +139,7 @@ import { Usage } from '../usage';
                 </tr>
               } @empty {
                 <tr hlmTableRow>
-                  <td hlmTableCell colspan="3" class="text-muted-foreground text-center">
+                  <td hlmTableCell colspan="3" class="text-center">
                     No products left.
                   </td>
                 </tr>

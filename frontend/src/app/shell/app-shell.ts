@@ -49,7 +49,7 @@ import { SidebarNavItem } from './sidebar-nav-item';
           >
             <ng-icon [name]="theme.mode() === 'dark' ? 'lucideSun' : 'lucideMoon'" />
           </button>
-          <div data-region="header" style="display: contents">
+          <div data-region="header" class="contents">
             @for (cmd of header(); track cmd.id) {
               <button hlmBtn size="sm" [disabled]="!cmd.canExecute()" (click)="cmd.execute()">
                 @if (cmd.icon; as icon) { <ng-icon [name]="icon" /> }

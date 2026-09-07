@@ -46,7 +46,7 @@ import { Usage } from '../usage';
         note="hlmEmpty works as a plain attribute on a div too, styled here with an explicit dashed border."
         [code]="codeOutline"
       >
-        <div hlmEmpty class="w-full max-w-md border border-dashed">
+        <div hlmEmpty class="w-full max-w-md">
           <div hlmEmptyHeader>
             <div hlmEmptyMedia variant="icon">
               <ng-icon name="lucideFolderCode" />

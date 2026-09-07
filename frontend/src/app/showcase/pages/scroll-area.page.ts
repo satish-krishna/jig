@@ -28,7 +28,7 @@ import { Usage } from '../usage';
         note="A fixed-height ng-scrollbar with content taller than the box — vertical scrolling is the default orientation."
         [code]="codeVertical"
       >
-        <ng-scrollbar hlm class="h-56 w-48 border">
+        <ng-scrollbar hlm class="h-56 w-48">
           <div class="p-l">
             <h4 class="mb-l text-sm leading-none font-medium">Tags</h4>
             @for (tag of tags; track tag) {
@@ -46,7 +46,7 @@ import { Usage } from '../usage';
         note="whitespace-nowrap on the container keeps the row from wrapping, so it overflows sideways instead."
         [code]="codeHorizontal"
       >
-        <ng-scrollbar hlm class="w-80 border whitespace-nowrap">
+        <ng-scrollbar hlm class="w-80 whitespace-nowrap">
           <div class="flex w-max gap-m p-l">
             @for (swatch of swatches; track swatch.label) {
               <div
@@ -65,7 +65,7 @@ import { Usage } from '../usage';
         note="appearance='compact' overlays the scrollbar instead of reserving track space for it."
         [code]="codeCompact"
       >
-        <ng-scrollbar hlm class="h-32 w-64 border" appearance="compact">
+        <ng-scrollbar hlm class="h-32 w-64" appearance="compact">
           <p class="p-l text-sm">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium architecto, asperiores beatae
             consequuntur dolor ducimus et exercitationem facilis fugiat magni nisi officiis quibusdam rem repellat
@@ -79,7 +79,7 @@ import { Usage } from '../usage';
         note="Clicking a row updates a real signal that drives the checkmark — nothing here is hand-set."
         [code]="codeComposition"
       >
-        <ng-scrollbar hlm class="h-56 w-64 border">
+        <ng-scrollbar hlm class="h-56 w-64">
           <div class="grid p-s">
             @for (member of members; track member; let i = $index) {
               <button
