@@ -9,6 +9,9 @@ import noRawIcon from './rules/no-raw-icon.ts';
 import noMissingCompositionPart from './rules/no-missing-composition-part.ts';
 import noLegacyControlFlow from './rules/no-legacy-control-flow.ts';
 import noNgClassStyle from './rules/no-ng-class-style.ts';
+import noRawPaletteColor from './rules/no-raw-palette-color.ts';
+import noSpaceUtility from './rules/no-space-utility.ts';
+import noNestedFlexGrid from './rules/no-nested-flex-grid.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.
@@ -34,5 +37,8 @@ export default {
     'no-missing-composition-part': noMissingCompositionPart,
     'no-legacy-control-flow': noLegacyControlFlow,
     'no-ng-class-style': noNgClassStyle,
+    'no-raw-palette-color': noRawPaletteColor,
+    'no-space-utility': noSpaceUtility,
+    'no-nested-flex-grid': noNestedFlexGrid,
   },
 };

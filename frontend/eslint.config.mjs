@@ -56,6 +56,9 @@ export default [
       'jig/no-missing-composition-part': 'error',
       'jig/no-legacy-control-flow': 'error',
       'jig/no-ng-class-style': 'error',
+      'jig/no-raw-palette-color': 'error',
+      'jig/no-space-utility': 'error',
+      'jig/no-nested-flex-grid': 'error',
     },
   },
 ];
