@@ -54,7 +54,7 @@ export function deriveNames(rawName: string, bundleId?: string): Names {
  *
  * The ESLint plugin name is a special case: `'jig/no-literal-spacing'` is a
  * quoted string, so it rewrites fine to kebab-case, but `import jig from
- * '../tools/lint/index.mjs'` and the `plugins: { jig }` shorthand bind and
+ * '../tools/lint/index.ts'` and the `plugins: { jig }` shorthand bind and
  * reference a JS identifier, not a string. Kebab-case is not a valid
  * identifier, so a blind kebab pass would leave `import acme-portal from ...`
  * and `plugins: { acme-portal }` — both syntax errors. These two forms are

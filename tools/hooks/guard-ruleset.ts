@@ -20,29 +20,64 @@
 // inside the repo. This file still guards itself, because changing WHAT the guard protects is
 // a policy change and should pass through a human, not an agent editing its own leash.
 //
-// This closes one door and is honest about the rest: deletion is neither Write nor Edit,
-// so `rm` walks straight past this. DR0002 covers a deleted ruleset from inside the
-// compiler; CI and the diff cover the rest. See ADR 0009.
+// It watches Write, Edit AND Bash. Matching only Write|Edit left `sed -i` and `rm` walking
+// straight past, which was found the hard way: an agent renamed this file and rewrote this
+// very list with sed, and nothing fired — the guard objected only when the Edit tool was
+// reached for afterwards. Covering Bash also closes the deletion door ADR 0009 recorded as
+// unclosable from a hook, since `rm` is a shell command like any other. See ADR 0009.
 
 import { readFileSync } from 'node:fs';
 
 const GUARDED = [
-  /ArchLayers\.txt$/i,
-  /tools[\\/]hooks[\\/]guard-ruleset\.mjs$/i,
-  /services[\\/]api[\\/]src[\\/]Directory\.Build\.props$/i,
+  { name: 'ArchLayers.txt', path: /ArchLayers\.txt$/i },
+  { name: 'guard-ruleset.ts', path: /tools[\\/]hooks[\\/]guard-ruleset\.ts$/i },
+  { name: 'Directory.Build.props', path: /services[\\/]api[\\/]src[\\/]Directory\.Build\.props$/i },
+];
+
+/**
+ * Commands that change a file rather than read one. A guarded file stays freely
+ * readable — `cat ArchLayers.txt` and `grep Api ArchLayers.txt` are how anyone
+ * reasons about the rules — so only mutation is denied.
+ */
+const MUTATORS = [
+  /\bsed\b[^|]*\s-i\b/,
+  /\bperl\b[^|]*\s-i\b/,
+  /\brm\b/,
+  /\bmv\b/,
+  /\bcp\b/,
+  /\btee\b/,
+  /\btruncate\b/,
+  /\bdd\b/,
+  />>?/,
 ];
 
 /** True when a write to this path must be denied. */
 export function guardedPath(path) {
   if (!path) return false;
-  return GUARDED.some((pattern) => pattern.test(path));
+  return GUARDED.some((entry) => entry.path.test(path));
+}
+
+/**
+ * True when a shell command would mutate a guarded file.
+ *
+ * This is a heuristic over a Turing-complete language and does not pretend
+ * otherwise: a path assembled from variables, or a mutation through a language
+ * runtime, still gets through. It stops the reach an agent actually makes for
+ * when Write and Edit are denied, and CI and the diff cover the rest.
+ */
+export function guardedCommand(command) {
+  if (!command) return false;
+  if (!GUARDED.some((entry) => command.includes(entry.name))) return false;
+  return MUTATORS.some((pattern) => pattern.test(command));
 }
 
 function main() {
   let path = '';
+  let command = '';
   try {
     const input = JSON.parse(readFileSync(0, 'utf8'));
     path = input?.tool_input?.file_path ?? '';
+    command = input?.tool_input?.command ?? '';
   } catch {
     // A guard that cannot read its input cannot vouch for the write, so it fails CLOSED:
     // deny with a clear message rather than throwing an exit-1 stack trace, which Claude
@@ -55,10 +90,12 @@ function main() {
     process.exit(2);
   }
 
-  if (!guardedPath(path)) process.exit(0);
+  const target = guardedPath(path) ? path : guardedCommand(command) ? command : '';
+  if (!target) process.exit(0);
 
   console.error(
-    `Denied: ${path} is architecture ruleset, guarded by ADR 0009.\n` +
+    `Denied: ${target}\n` +
+      `This touches architecture ruleset, guarded by ADR 0009.\n` +
       `Fix the code the analyzer flagged, not the rule that flagged it.\n` +
       `If the rule is genuinely wrong, say so and let a human change it in a reviewed diff.`,
   );

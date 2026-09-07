@@ -19,8 +19,8 @@ This is a template, not a product. It ships one worked vertical slice, `users`, 
 3. **Rename to your app** (PascalCase name):
 
    ```
-   node tools/init/init.mjs AcmePortal
-   node tools/init/init.mjs AcmePortal --bundle-id=io.acme.desktop
+   node tools/init/init.ts AcmePortal
+   node tools/init/init.ts AcmePortal --bundle-id=io.acme.desktop
    ```
 
    This rewrites every `Jig`/`jig` identifier in the right form (`AcmePortal` for .NET, `acme-portal` for npm/Angular, `acme_portal` for the Rust lib, `com.acmeportal.app` for the bundle), strips the template-only files (this section, the bootstrap prompt, the design specs, and the init tooling), re-inits git with clean history, regenerates the catalog, runs `npm run verify`, and commits. When it finishes, `AcmePortal` is a fresh app with no trace of Jig.
@@ -33,11 +33,11 @@ Everything below this line is the app's own documentation and survives the renam
 
 If you only want the web pairing — the Angular SPA against the .NET API over HTTP — you do not touch the application code. The transport already decides the wire at bootstrap: `provideTransport()` calls `isTauri()`, which is `false` in a browser, so a web build runs HTTP-only on its own. Point `API_BASE_URL` in `frontend/src/app/app.config.ts` at your API and the running app is done. There is no registration to flip.
 
-What actually assumes Rust is the **toolchain**, and it fails hard without it: `npm run setup` lists `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer` as required, `npm run verify` runs `cargo test`, and CI installs the Rust toolchain. Do this rip-out **before** `node tools/init/init.mjs`, because init ends by running `npm run verify` — leave the Rust step in and init will demand a toolchain you are removing.
+What actually assumes Rust is the **toolchain**, and it fails hard without it: `npm run setup` lists `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer` as required, `npm run verify` runs `cargo test`, and CI installs the Rust toolchain. Do this rip-out **before** `node tools/init/init.ts`, because init ends by running `npm run verify` — leave the Rust step in and init will demand a toolchain you are removing.
 
 1. **Delete the desktop shell:** remove `apps/desktop/`.
-2. **`tools/setup/setup.mjs`** — drop the `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer (LSP)` entries from the toolchain-check list, and the `cargo fetch` step.
-3. **`tools/verify/verify.mjs`** — remove the `['rust tests', 'cargo test', SRC_TAURI]` entry from the `steps` array (and the now-unused `SRC_TAURI` constant).
+2. **`tools/setup/setup.ts`** — drop the `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer (LSP)` entries from the toolchain-check list, and the `cargo fetch` step.
+3. **`tools/verify/verify.ts`** — remove the `['rust tests', 'cargo test', SRC_TAURI]` entry from the `steps` array (and the now-unused `SRC_TAURI` constant).
 4. **`.github/workflows/verify.yml`** — remove the `dtolnay/rust-toolchain`, `Swatinem/rust-cache`, and `cargo test` steps.
 5. **Prerequisites** — drop the Rust toolchain, Tauri CLI, and `rust-analyzer` from the list below.
 
