@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideExternalLink } from '@ng-icons/lucide';
 import { COMPONENT_API } from './component-api.generated';
@@ -14,8 +14,6 @@ import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
  */
 @Component({
   selector: 'app-component-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgIcon],
   providers: [provideIcons({ lucideExternalLink })],
   template: `

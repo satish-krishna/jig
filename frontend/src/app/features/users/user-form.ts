@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output, signal } from '@angular/core';
+import { Component, output, signal } from '@angular/core';
 import { FormField, form, submit, validateStandardSchema } from '@angular/forms/signals';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
@@ -15,8 +15,6 @@ import { userFormSchema, type UserFormModel } from './user-form.schema';
  */
 @Component({
   selector: 'app-user-form',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormField, HlmFieldImports, HlmInputImports, HlmButtonImports],
   template: `
     <!-- hlmFieldGroup is spartan's own field stack; hlm-field lays out one field

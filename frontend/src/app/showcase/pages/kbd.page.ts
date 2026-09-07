@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmKbdImports } from '@spartan-ng/helm/kbd';
 import { ComponentPage } from '../component-page';
@@ -12,8 +12,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-kbd-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmKbdImports, HlmButtonImports],
   template: `
     <app-component-page slug="kbd">

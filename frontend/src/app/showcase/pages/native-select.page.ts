@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
@@ -14,8 +14,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-native-select-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, ComponentPage, Usage, HlmNativeSelectImports, HlmFieldImports],
   template: `
     <app-component-page slug="native-select">

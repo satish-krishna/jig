@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -15,8 +15,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-popover-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmPopoverImports, HlmButtonImports, HlmFieldImports, HlmInputImports],
   template: `
     <app-component-page slug="popover">

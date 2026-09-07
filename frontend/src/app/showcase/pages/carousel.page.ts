@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmCarouselImports } from '@spartan-ng/helm/carousel';
 import { ComponentPage } from '../component-page';
@@ -13,8 +13,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-carousel-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmCarouselImports, HlmCardImports],
   template: `
     <app-component-page slug="carousel">

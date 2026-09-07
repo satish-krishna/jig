@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
@@ -15,8 +15,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-drawer-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmDrawerImports, HlmButtonImports, HlmFieldImports, HlmInputImports],
   template: `
     <app-component-page slug="drawer">

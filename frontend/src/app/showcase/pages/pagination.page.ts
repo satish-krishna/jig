@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronsLeft, lucideChevronsRight } from '@ng-icons/lucide';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
@@ -17,8 +17,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-pagination-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmPaginationImports, NgIcon],
   providers: [provideIcons({ lucideChevronsLeft, lucideChevronsRight })],
   template: `

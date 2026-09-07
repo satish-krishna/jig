@@ -1,4 +1,6 @@
 import noLiteralSpacing from './rules/no-literal-spacing.ts';
+import noExplicitStandalone from './rules/no-explicit-standalone.ts';
+import noHandSetChangeDetection from './rules/no-hand-set-change-detection.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.
@@ -14,5 +16,7 @@ import noLiteralSpacing from './rules/no-literal-spacing.ts';
 export default {
   rules: {
     'no-literal-spacing': noLiteralSpacing,
+    'no-explicit-standalone': noExplicitStandalone,
+    'no-hand-set-change-detection': noHandSetChangeDetection,
   },
 };

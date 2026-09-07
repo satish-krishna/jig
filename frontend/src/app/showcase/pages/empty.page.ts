@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideFolderCode, lucideRefreshCcw } from '@ng-icons/lucide';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
@@ -17,8 +17,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-empty-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmEmptyImports, HlmButtonImports, HlmAvatarImports, NgIcon],
   providers: [provideIcons({ lucideFolderCode, lucideRefreshCcw })],
   template: `

@@ -34,7 +34,12 @@ export default [
       parserOptions: { project: false },
     },
     processor: angular.processInlineTemplates,
+    plugins: { jig },
     linterOptions: { noInlineConfig: true },
+    rules: {
+      'jig/no-explicit-standalone': 'error',
+      'jig/no-hand-set-change-detection': 'error',
+    },
   },
   {
     files: ['**/*.html'],

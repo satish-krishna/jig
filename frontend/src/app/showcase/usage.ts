@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 
 /**
@@ -15,8 +15,6 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
  */
 @Component({
   selector: 'app-usage',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [HlmButtonImports],
   template: `
     <section class="border-border overflow-hidden rounded-lg border">

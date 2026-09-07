@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { ComponentPage } from '../component-page';
 import { Usage } from '../usage';
@@ -11,8 +11,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-separator-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmSeparatorImports],
   template: `
     <app-component-page slug="separator">

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ComponentPage } from '../component-page';
@@ -14,8 +14,6 @@ import { COMPONENTS } from '../component-registry';
  */
 @Component({
   selector: 'app-undocumented-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, RouterLink],
   template: `
     @if (known()) {

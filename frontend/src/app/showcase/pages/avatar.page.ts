@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { ComponentPage } from '../component-page';
@@ -19,8 +19,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-avatar-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmAvatarImports, HlmButtonImports],
   template: `
     <app-component-page slug="avatar">

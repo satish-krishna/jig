@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Directive, signal } from '@angular/core';
+import { Component, Directive, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArchive, lucideInbox, lucideLayoutGrid, lucidePlus, lucideSend, lucideSettings } from '@ng-icons/lucide';
 import { HlmSidebarImports, HlmSidebarService } from '@spartan-ng/helm/sidebar';
@@ -35,8 +35,6 @@ class SidebarDemoScope {}
  */
 @Component({
   selector: 'app-sidebar-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmSidebarImports, NgIcon, SidebarDemoScope],
   providers: [provideIcons({ lucideInbox, lucideSend, lucideArchive, lucidePlus, lucideLayoutGrid, lucideSettings })],
   template: `

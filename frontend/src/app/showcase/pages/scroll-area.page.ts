@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCheck } from '@ng-icons/lucide';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
@@ -18,8 +18,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-scroll-area-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmScrollAreaImports, HlmSeparatorImports, NgScrollbarModule, NgIcon],
   providers: [provideIcons({ lucideCheck })],
   template: `

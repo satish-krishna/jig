@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmProgressImports } from '@spartan-ng/helm/progress';
@@ -13,8 +13,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-progress-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmProgressImports, HlmButtonImports, HlmLabelImports],
   template: `
     <app-component-page slug="progress">

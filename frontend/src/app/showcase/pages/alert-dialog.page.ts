@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideTrash2 } from '@ng-icons/lucide';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
@@ -16,8 +16,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-alert-dialog-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmAlertDialogImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ lucideTrash2 })],
   template: `

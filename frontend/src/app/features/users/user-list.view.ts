@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmTypographyImports } from '@spartan-ng/helm/typography';
 import { MenuService } from '../../menu';
@@ -14,8 +14,6 @@ import { newUserCommand } from './users.commands';
  */
 @Component({
   selector: 'app-user-list',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserForm, HlmTypographyImports, HlmAlertImports],
   providers: [UserListViewModel],
   // Composed from the helm vocabulary, not from hand-rolled class names. The

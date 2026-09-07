@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmAspectRatioImports } from '@spartan-ng/helm/aspect-ratio';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { ComponentPage } from '../component-page';
@@ -15,8 +15,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-aspect-ratio-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmAspectRatioImports, HlmButtonImports],
   template: `
     <app-component-page slug="aspect-ratio">

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd } from '@angular/router';
@@ -8,8 +8,6 @@ import type { Command } from '../menu';
 
 @Component({
   selector: 'app-sidebar-nav-item',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgIcon],
   template: `
     <button

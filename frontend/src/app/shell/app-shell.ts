@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewEncapsulation, inject, signal } from '@angular/core';
+import { Component, ViewEncapsulation, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -9,8 +9,6 @@ import { SidebarNavItem } from './sidebar-nav-item';
 
 @Component({
   selector: 'app-shell',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None, // uses the global .hlm-shell* classes
   imports: [RouterOutlet, NgIcon, HlmButtonImports, SidebarNavItem],
   template: `

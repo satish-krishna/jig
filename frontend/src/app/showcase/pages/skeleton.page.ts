@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { ComponentPage } from '../component-page';
@@ -11,8 +11,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-skeleton-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmSkeletonImports, HlmButtonImports],
   template: `
     <app-component-page slug="skeleton">

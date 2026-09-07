@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSlash } from '@ng-icons/lucide';
 import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
@@ -17,8 +17,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-breadcrumb-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmBreadcrumbImports, NgIcon],
   providers: [provideIcons({ lucideSlash })],
   template: `
