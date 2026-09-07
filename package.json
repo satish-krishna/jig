@@ -16,7 +16,7 @@
     "catalog": "node tools/catalog/catalog.ts",
     "catalog:check": "node tools/catalog/catalog.ts --check",
     "codegen": "node tools/codegen/generate.mjs",
-    "test:tools": "node --test \"tools/**/*.test.ts\" \"tools/**/*.test.mjs\"",
+    "test:tools": "node --test \"tools/**/*.test.ts\"",
     "commitlint": "commitlint",
     "lint": "eslint frontend --config frontend/eslint.config.mjs",
     "showcase:api": "node tools/showcase-api/showcase-api.ts",

@@ -1,4 +1,4 @@
-import noLiteralSpacing from './rules/no-literal-spacing.mjs';
+import noLiteralSpacing from './rules/no-literal-spacing.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.

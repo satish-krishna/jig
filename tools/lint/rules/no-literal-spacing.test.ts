@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isLiteralSpacingClass } from './no-literal-spacing.mjs';
+import { isLiteralSpacingClass } from './no-literal-spacing.ts';
 
 test('flags a numeric spacing utility', () => {
   for (const cls of ['gap-2', 'p-6', 'px-4', 'mt-1.5', 'gap-x-4', 'mb-0.5']) {

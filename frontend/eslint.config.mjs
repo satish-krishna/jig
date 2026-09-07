@@ -1,6 +1,6 @@
 import angular from 'angular-eslint';
 import tseslint from 'typescript-eslint';
-import jig from '../tools/lint/index.mjs';
+import jig from '../tools/lint/index.ts';
 
 // The frontend gate. eslint-disable comments are switched off wholesale via
 // noInlineConfig, because a rule with a suppression dial is not a rule — the same
