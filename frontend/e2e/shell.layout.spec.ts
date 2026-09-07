@@ -9,6 +9,15 @@ import { test, expect } from '@playwright/test';
 // resized to) and 1280 (a typical desktop width). No 375: Jig is a Tauri
 // desktop app, not a phone target, and a responsive auditor that goes flaky on
 // a viewport nobody ships is worse than one never written.
+//
+// The shell's CSS has no breakpoints today, so five of these six assertions
+// produce byte-identical results at both widths — only "header and footer
+// span the full viewport width" actually discriminates on the current
+// stylesheet. The loop is not six distinct behaviors doubled into twelve; it
+// is a regression guard: if someone later adds a breakpoint that narrows or
+// reflows the desktop layout, this is what catches it breaking at one width
+// but not the other, which is a real failure mode for a resizable desktop
+// window even though nothing exercises it yet.
 for (const width of [768, 1280]) {
   test.describe(`app shell layout at ${width}px`, () => {
     test.beforeEach(async ({ page }) => {
