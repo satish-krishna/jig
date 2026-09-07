@@ -4,9 +4,18 @@ import { hasDecorator, tierOf } from '../ast.ts';
 // for why: it is derived, never owned, state.
 const OWNED_STATE = new Set(['signal', 'linkedSignal', 'form']);
 
-/** The name a `form(...)` call's first argument refers to, or null. */
+/**
+ * The name of the class property a `form(...)` call wraps, or null.
+ *
+ * `this.model` ONLY. A bare `Identifier` was accepted here once and it was a
+ * hole, not a convenience: inside a class field initializer a bare name can
+ * never resolve to a sibling property, only `this.X` can. So the branch could
+ * match nothing legitimate, while a module-scope `const draft = signal(...)`
+ * sitting beside a component property of the same name silenced that property's
+ * real violation. The rule's own suite passed throughout, which is the tell —
+ * a branch no valid input reaches is a branch no test covers.
+ */
 function backingModelName(arg) {
-  if (arg?.type === 'Identifier') return arg.name;
   if (arg?.type === 'MemberExpression' && arg.object?.type === 'ThisExpression' && arg.property?.type === 'Identifier') {
     return arg.property.name;
   }

@@ -49,7 +49,7 @@ const SUGGESTION = SPACING_STEPS.map((s) => `${s.name} (${s.px}px)`).join(', ');
 
 export default {
   meta: {
-    type: 'problem',
+    type: 'problem' as const,
     docs: {
       description: 'Spacing utilities must use a named token step, not a literal.',
       url: 'docs/architecture/rules/no-literal-spacing.md',

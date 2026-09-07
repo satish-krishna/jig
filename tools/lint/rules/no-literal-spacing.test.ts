@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isLiteralSpacingClass } from './no-literal-spacing.ts';
+import { RuleTester } from 'eslint';
+import angular from 'angular-eslint';
+import rule, { isLiteralSpacingClass } from './no-literal-spacing.ts';
 
 test('flags a numeric spacing utility', () => {
   for (const cls of ['gap-2', 'p-6', 'px-4', 'mt-1.5', 'gap-x-4', 'mb-0.5']) {
@@ -52,4 +54,53 @@ test('does not touch classes that merely start with a spacing prefix', () => {
   for (const cls of ['pointer-events-none', 'max-w-2', 'grid-cols-3', 'text-sm', 'ps-0']) {
     assert.equal(isLiteralSpacingClass(cls), false, `${cls} should pass`);
   }
+});
+
+// --- the rule itself, not just its predicate ---------------------------------
+//
+// Every test above exercises `isLiteralSpacingClass` directly. None of them ran
+// `create()`, so this was the one rule of 26 that survived being hollowed out:
+// with the body replaced by `return {}` the whole suite stayed green while
+// `npm run lint` reported zero on a template carrying three real violations.
+// Found by the final whole-branch review. A predicate test proves the predicate;
+// only a RuleTester case proves the rule is wired to it.
+const ruleTester = new RuleTester({ languageOptions: { parser: angular.templateParser } });
+
+test('no-literal-spacing', () => {
+  ruleTester.run('no-literal-spacing', rule, {
+    valid: [
+      { code: `<div class="gap-m p-l">x</div>`, filename: 'x.html' },
+      { code: `<div class="flex items-center">x</div>`, filename: 'x.html' },
+      { code: `<div class="gap-0 p-px m-auto">x</div>`, filename: 'x.html' },
+      // A class that merely starts with a spacing prefix is not a spacing utility.
+      { code: `<div class="grid place-items-center">x</div>`, filename: 'x.html' },
+    ],
+    invalid: [
+      {
+        code: `<div class="gap-4">x</div>`,
+        filename: 'x.html',
+        errors: [{ messageId: 'literalSpacing' }],
+      },
+      {
+        code: `<div class="p-[13px]">x</div>`,
+        filename: 'x.html',
+        errors: [{ messageId: 'literalSpacing' }],
+      },
+      {
+        code: `<div class="-mt-3">x</div>`,
+        filename: 'x.html',
+        errors: [{ messageId: 'literalSpacing' }],
+      },
+      // Several literals in one attribute report once each, not once per attribute.
+      {
+        code: `<div class="gap-4 p-2 mt-6">x</div>`,
+        filename: 'x.html',
+        errors: [
+          { messageId: 'literalSpacing' },
+          { messageId: 'literalSpacing' },
+          { messageId: 'literalSpacing' },
+        ],
+      },
+    ],
+  });
 });

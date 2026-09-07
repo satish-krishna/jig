@@ -103,7 +103,7 @@ test('different hooks on the same file do not merge into one episode', () => {
 const TEST_DIR = mkdtempSync(join(tmpdir(), 'jig-analyze-firings-'));
 
 test('a missing log file reads as no firings', () => {
-  assert.deepEqual(readFirings(join(TEST_DIR, 'does-not-exist.jsonl')), []);
+  assert.deepEqual(readFirings(join(TEST_DIR, 'does-not-exist.jsonl')), { records: [], skipped: 0 });
 });
 
 test('an unparseable trailing line is skipped, not thrown', () => {
@@ -116,15 +116,18 @@ test('an unparseable trailing line is skipped, not thrown', () => {
 
   assert.doesNotThrow(() => readFirings(path));
   const result = readFirings(path);
-  assert.equal(result.length, 2);
-  assert.equal(result[1].file, 'b.ts');
+  assert.equal(result.records.length, 2);
+  assert.equal(result.records[1].file, 'b.ts');
+  assert.equal(result.skipped, 1, 'the truncated fragment must be counted, not silently dropped');
 });
 
 test('a blank line in the middle of the log is skipped', () => {
   const path = join(TEST_DIR, 'blank-line.jsonl');
   const good = JSON.stringify(record('check-frontend', 'a.ts', 1));
   writeFileSync(path, `${good}\n\n${good}\n`);
-  assert.equal(readFirings(path).length, 2);
+  const blank = readFirings(path);
+  assert.equal(blank.records.length, 2);
+  assert.equal(blank.skipped, 0, 'a blank line is not an unreadable line');
 });
 
 test.after(() => rmSync(TEST_DIR, { recursive: true, force: true }));
@@ -397,4 +400,30 @@ test('the CLI reports honestly against an empty redirected log', () => {
   });
   assert.equal(result.status, 0);
   assert.match(result.stdout, /no firings recorded yet/i);
+});
+
+test('an unreadable log never prints the same sentence as an empty one', () => {
+  // Layer five, found by the final whole-branch review. Three well-formed records
+  // with one renamed field parsed as nothing, and the report printed "No firings
+  // recorded yet." — byte-identical to a genuinely empty log, with totalRecords 0
+  // in the JSON. Silence meant both "nothing happened" and "I could not read any
+  // of this". This file's whole argument is that a report which cannot be wrong is
+  // a report that gets quoted; the same defect kept reappearing one layer lower.
+  const path = join(TEST_DIR, 'renamed-field.jsonl');
+  const bad = JSON.stringify({ hook: 'check-frontend', path: 'a.ts', count: 1, rules: [] });
+  writeFileSync(path, `${bad}
+${bad}
+${bad}
+`);
+
+  const { records, skipped } = readFirings(path);
+  assert.equal(records.length, 0);
+  assert.equal(skipped, 3);
+
+  const unreadable = formatReport(buildReport(records, skipped));
+  const empty = formatReport(buildReport([], 0));
+
+  assert.notEqual(unreadable, empty, 'an unreadable log and an empty one must read differently');
+  assert.match(unreadable, /could not be parsed/i);
+  assert.match(empty, /no firings recorded yet/i);
 });

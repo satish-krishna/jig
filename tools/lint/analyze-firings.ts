@@ -65,19 +65,37 @@ function parseLine(line: string): FiringRecord | undefined {
   }
 }
 
+export interface ReadResult {
+  records: FiringRecord[];
+  /** Non-blank lines that did not parse into a record. */
+  skipped: number;
+}
+
 /**
  * Reads a firings log, skipping any line that fails to parse. A missing file reads as
  * no firings rather than an error — a report has to run before the log exists at all.
+ *
+ * Skipped lines are COUNTED, not merely dropped, and the count reaches the report. The
+ * defect that forced this, found by the final review: a log holding three well-formed
+ * records with one renamed field printed "No firings recorded yet." — byte-identical to
+ * an empty log, with `totalRecords: 0` in the JSON. Silence meant both "nothing has
+ * happened" and "I could not read any of this", and nothing could tell them apart. That
+ * is this file's own founding complaint — a report that cannot be wrong is a report that
+ * gets quoted — surfacing one layer below where it was last fixed.
  */
-export function readFirings(path: string): FiringRecord[] {
-  if (!existsSync(path)) return [];
+export function readFirings(path: string): ReadResult {
+  if (!existsSync(path)) return { records: [], skipped: 0 };
+
   const lines = readFileSync(path, 'utf8').split('\n');
   const records: FiringRecord[] = [];
+  let skipped = 0;
   for (const line of lines) {
+    if (!line.trim()) continue;
     const record = parseLine(line);
     if (record) records.push(record);
+    else skipped++;
   }
-  return records;
+  return { records, skipped };
 }
 
 export type Trend = 'first-try' | 'improving' | 'flat' | 'rising' | 'mixed';
@@ -161,6 +179,8 @@ export interface Effectiveness {
 export interface Report {
   /** Raw record count, including clean verify runs. Only used to decide the "nothing recorded yet" case. */
   totalRecords: number;
+  /** Non-blank log lines that could not be parsed. Never folded into totalRecords. */
+  skippedLines: number;
   hookFirings: HookFirings;
   verify: VerifyTally;
   effectiveness: Effectiveness;
@@ -223,7 +243,7 @@ function buildEffectiveness(correctedInFlight: number, notCorrected: number, rea
 }
 
 /** Builds the report object from parsed records. Pure — no file access, no printing. */
-export function buildReport(records: FiringRecord[]): Report {
+export function buildReport(records: FiringRecord[], skippedLines = 0): Report {
   const hookRecords = records.filter((r) => r.hook !== VERIFY_HOOK);
   const verifyRecords = records.filter((r) => r.hook === VERIFY_HOOK);
 
@@ -256,6 +276,7 @@ export function buildReport(records: FiringRecord[]): Report {
 
   return {
     totalRecords: records.length,
+    skippedLines,
     hookFirings: {
       total: firingRecords.length,
       byHook,
@@ -302,6 +323,11 @@ export function formatPercent(value: number): string {
 /** Human-readable rendering of a report. An empty log gets an honest sentence, not zeros. */
 export function formatReport(report: Report): string {
   if (report.totalRecords === 0) {
+    // An unreadable log and an empty one are different facts and must never print the
+    // same sentence. See readFirings for the case that forced this.
+    if (report.skippedLines > 0) {
+      return `No firings recorded yet — but ${report.skippedLines} log line(s) could not be parsed, so this may be wrong.`;
+    }
     return 'No firings recorded yet.';
   }
 
@@ -314,7 +340,7 @@ export function formatReport(report: Report): string {
   } else {
     lines.push('  By hook:');
     for (const [hook, count] of Object.entries(report.hookFirings.byHook)) lines.push(`    ${hook}: ${count}`);
-    lines.push('  Rule frequency:');
+    lines.push('  Rules seen (records mentioning each, not violation counts):');
     lines.push(...formatRuleFrequency(report.hookFirings.ruleFrequency, '    '));
     lines.push(`  Episodes: ${report.hookFirings.episodes.total}`);
     for (const trend of TRENDS) lines.push(`    ${trend}: ${report.hookFirings.episodes.byTrend[trend]}`);
@@ -351,8 +377,8 @@ export function formatReport(report: Report): string {
 }
 
 function main() {
-  const records = readFirings(resolveLogPath());
-  const report = buildReport(records);
+  const { records, skipped } = readFirings(resolveLogPath());
+  const report = buildReport(records, skipped);
   console.log(process.argv.includes('--json') ? JSON.stringify(report) : formatReport(report));
 }
 

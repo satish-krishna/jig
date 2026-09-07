@@ -67,6 +67,21 @@ test('no-state-outside-view-model', () => {
         filename: '/app/features/users/x.ts',
         errors: [{ messageId: 'stateOutsideVm' }],
       },
+      // A module-scope const of the same name must NOT silence the component's
+      // own property. The exemption resolves `this.model`; a bare identifier can
+      // never reach a sibling property from a field initializer, so accepting one
+      // only ever matched an out-of-scope binding and suppressed a real hit. All
+      // three declarations here are violations: the component's `draft`, its
+      // `other`, and the form.
+      {
+        code: `const draft = signal({}); @Component({}) class X { readonly draft = signal(0); readonly other = signal(0); readonly f = form(draft); }`,
+        filename: '/app/features/users/x.ts',
+        errors: [
+          { messageId: 'stateOutsideVm' },
+          { messageId: 'stateOutsideVm' },
+          { messageId: 'stateOutsideVm' },
+        ],
+      },
       // The backing-model exemption is precise, not a blanket "any signal in a
       // class that also has a form()". A signal unrelated to the form still reports.
       {

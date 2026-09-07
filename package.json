@@ -23,7 +23,7 @@
     "lint": "node tools/lint/lint-frontend.ts",
     "lint:report": "node tools/lint/analyze-firings.ts",
     "showcase:api": "node tools/showcase-api/showcase-api.ts",
-    "stylelint": "stylelint \"frontend/src/**/*.css\" --ignore-pattern \"frontend/src/styles.css\"",
+    "stylelint": "node tools/lint/stylelint-frontend.ts",
     "ui:style": "node tools/ui-style/ui-style.ts"
   },
   "devDependencies": {
