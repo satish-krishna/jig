@@ -7,6 +7,8 @@ import noAppearanceOnPrimitive from './rules/no-appearance-on-primitive.ts';
 import noStyleAttribute from './rules/no-style-attribute.ts';
 import noRawIcon from './rules/no-raw-icon.ts';
 import noMissingCompositionPart from './rules/no-missing-composition-part.ts';
+import noLegacyControlFlow from './rules/no-legacy-control-flow.ts';
+import noNgClassStyle from './rules/no-ng-class-style.ts';
 
 /**
  * The `jig` ESLint plugin. Rules are added here as they are written.
@@ -30,5 +32,7 @@ export default {
     'no-style-attribute': noStyleAttribute,
     'no-raw-icon': noRawIcon,
     'no-missing-composition-part': noMissingCompositionPart,
+    'no-legacy-control-flow': noLegacyControlFlow,
+    'no-ng-class-style': noNgClassStyle,
   },
 };

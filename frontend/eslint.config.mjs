@@ -54,6 +54,8 @@ export default [
       'jig/no-style-attribute': 'error',
       'jig/no-raw-icon': 'error',
       'jig/no-missing-composition-part': 'error',
+      'jig/no-legacy-control-flow': 'error',
+      'jig/no-ng-class-style': 'error',
     },
   },
 ];
