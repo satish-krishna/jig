@@ -13,6 +13,10 @@ interface TestForm {
   name: () => TestField;
   email: () => TestField;
 }
+interface TestViewModel {
+  form: TestForm;
+  model: { set: (v: unknown) => void };
+}
 
 describe('UserForm', () => {
   function render() {
@@ -39,7 +43,7 @@ describe('UserForm', () => {
 
   it('surfaces the zod validation on the matching field (Standard Schema bridge)', () => {
     const fixture = render();
-    const form = (fixture.componentInstance as unknown as { form: TestForm }).form;
+    const form = (fixture.componentInstance as unknown as { vm: TestViewModel }).vm.form;
 
     // The initial empty model violates the zod schema; validation runs natively.
     const nameErrors = form.name().errors();
@@ -58,9 +62,9 @@ describe('UserForm', () => {
 
   it('shows the validation message to the user once the field is touched', () => {
     const fixture = render();
-    const inst = fixture.componentInstance as unknown as { form: TestForm };
+    const inst = fixture.componentInstance as unknown as { vm: TestViewModel };
 
-    inst.form.name().markAsTouched();
+    inst.vm.form.name().markAsTouched();
     fixture.detectChanges();
 
     const error = fixture.nativeElement.querySelector('hlm-field-error[data-error-for="name"]');
@@ -73,13 +77,13 @@ describe('UserForm', () => {
     const fixture = render();
     const inst = fixture.componentInstance as unknown as {
       saved: { subscribe: (fn: (v: unknown) => void) => void };
-      model: { set: (v: unknown) => void };
+      vm: TestViewModel;
       onSubmit: (e: Event) => Promise<void>;
     };
     let emitted: unknown;
     inst.saved.subscribe((v) => (emitted = v));
 
-    inst.model.set({ name: 'Ada', email: 'ada@example.io' });
+    inst.vm.model.set({ name: 'Ada', email: 'ada@example.io' });
     fixture.detectChanges();
     await inst.onSubmit(new Event('submit'));
 
