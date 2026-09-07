@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TooltipPage } from './tooltip.page';
+import { waitUntil } from './wait-until';
 
 /**
  * `hlmTooltip` has no structural portal directive to project into — it is a
@@ -28,23 +29,29 @@ describe('TooltipPage', () => {
     return el as T;
   }
 
-  // Real focus/blur, waiting out the actual (zeroed) delay — BrnTooltip pipes
-  // show/hide through its own delay mechanism, so nothing renders until that
-  // macrotask actually fires. Focus (not mouseenter) also works for the
+  // Real focus/blur, polling for the actual (zeroed) delay to elapse — BrnTooltip
+  // pipes show/hide through its own delay mechanism, so nothing renders until
+  // that macrotask actually fires. Focus (not mouseenter) also works for the
   // disabled-button-wrapper pattern, where the tooltip lives on a wrapping div.
   async function focusOpen(el: HTMLElement): Promise<void> {
     el.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
     fixture.detectChanges();
-    await new Promise((resolve) => setTimeout(resolve, 30));
-    fixture.detectChanges();
+    await waitUntil(
+      () => document.body.querySelector('[role="tooltip"]') !== null,
+      () => fixture.detectChanges(),
+      { describe: 'tooltip to appear after focus' },
+    );
     await fixture.whenStable();
   }
 
   async function blurClose(el: HTMLElement): Promise<void> {
     el.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
     fixture.detectChanges();
-    await new Promise((resolve) => setTimeout(resolve, 30));
-    fixture.detectChanges();
+    await waitUntil(
+      () => document.body.querySelector('[role="tooltip"]') === null,
+      () => fixture.detectChanges(),
+      { describe: 'tooltip to disappear after blur' },
+    );
     await fixture.whenStable();
   }
 
@@ -124,7 +131,12 @@ describe('TooltipPage', () => {
     expect(host.textContent).toContain('Tooltip disabled.');
     expect(wrapper.querySelector('button')?.disabled).toBe(false);
 
-    await focusOpen(wrapper);
+    // Not focusOpen: `tooltipDisabled` makes `_show()` bail synchronously (see
+    // BrnTooltip) regardless of how long the zeroed delay pipeline takes to
+    // fire, so absence holds from the instant of focus onward — there is no
+    // async outcome to poll for here.
+    wrapper.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
+    fixture.detectChanges();
     expect(document.body.querySelector('[role="tooltip"]'), 'tooltip opened while disabled').toBeNull();
   });
 

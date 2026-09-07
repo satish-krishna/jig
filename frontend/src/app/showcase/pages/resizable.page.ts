@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmResizableImports } from '@spartan-ng/helm/resizable';
 import { ComponentPage } from '../component-page';
@@ -13,8 +13,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-resizable-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmResizableImports, HlmButtonImports],
   template: `
     <app-component-page slug="resizable">

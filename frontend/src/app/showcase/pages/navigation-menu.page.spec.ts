@@ -2,14 +2,15 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { NavigationMenuPage } from './navigation-menu.page';
+import { waitUntil } from './wait-until';
 
 /**
  * Navigation menu content lives behind `*hlmNavigationMenuPortal`, so — like
  * dialog — the CDK overlay attaches it to `document.body` rather than under
  * the fixture host. Unlike dialog, opening runs through an rxjs
  * `debounceTime(0)` + `delay(0)` pipeline that `fixture.whenStable()` does not
- * reliably wait out here, so every open/close assertion follows a real (short)
- * timer instead — confirmed empirically against this component.
+ * reliably wait out here, so every open/close assertion polls for the content
+ * to attach instead of guessing how long the pipeline takes.
  */
 describe('NavigationMenuPage', () => {
   let fixture: ReturnType<typeof TestBed.createComponent<NavigationMenuPage>>;
@@ -30,8 +31,11 @@ describe('NavigationMenuPage', () => {
     expect(trigger, `no trigger matching "${text}"`).toBeTruthy();
     trigger.click();
     fixture.detectChanges();
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    fixture.detectChanges();
+    await waitUntil(
+      () => document.body.querySelector('hlm-navigation-menu-content') !== null,
+      () => fixture.detectChanges(),
+      { describe: `navigation menu content to attach after clicking "${text}"` },
+    );
     return trigger;
   }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
 import { z } from 'zod';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -60,8 +60,6 @@ const serverSchema = z.object({
  */
 @Component({
   selector: 'app-schema-form-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [JsonPipe, ComponentPage, Usage, SchemaForm, HlmButtonImports],
   template: `
     <app-component-page slug="schema-form">

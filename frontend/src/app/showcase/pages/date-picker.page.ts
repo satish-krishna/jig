@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { provideNativeDateAdapter } from '@spartan-ng/brain/date-time';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
@@ -24,8 +24,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-date-picker-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [provideNativeDateAdapter()],
   imports: [ReactiveFormsModule, ComponentPage, Usage, HlmDatePickerImports, HlmFieldImports],
   template: `

@@ -81,7 +81,7 @@ Four usages, each a live form driven by a real schema declared in the page compo
 
 **Every control kind.** One schema exercising all six `ControlKind` values. The `@switch` in `schema-form.ts` has four branches — `textarea`, `select`, `checkbox`, and a default that renders `<input [type]>` — so `text`, `email`, and `number` share the default branch. The usage makes that mapping visible in one place, since it is the only thing a reader needs in order to know what a control kind will produce.
 
-**Validation folds back onto fields.** Submitting an empty required form runs `safeParse`, and `applyZodIssues` writes each zod message onto the matching control. The usage shows the messages appearing under their own fields, which is the behaviour that distinguishes this from a form that reports one error at the top.
+**Validation folds back onto fields.** Submitting an empty required form runs `safeParse`, and `applyZodIssues` writes each zod message onto the matching control. The usage shows the messages appearing under their own fields, which is the behavior that distinguishes this from a form that reports one error at the top.
 
 **The schema is an input.** A toggle swaps between two different schemas on the same rendered component. This is the usage that justifies the component existing: a static example is indistinguishable from a hand-written form, and the runtime-schema case is the whole reason `SchemaForm` is not signal-forms.
 

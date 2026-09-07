@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideClipboardPaste, lucideCopy, lucidePencil, lucideScissors, lucideShare, lucideTrash } from '@ng-icons/lucide';
 import { HlmContextMenuImports } from '@spartan-ng/helm/context-menu';
@@ -19,8 +19,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-context-menu-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmContextMenuImports, HlmDropdownMenuImports, NgIcon],
   providers: [provideIcons({ lucideClipboardPaste, lucideCopy, lucidePencil, lucideScissors, lucideShare, lucideTrash })],
   template: `

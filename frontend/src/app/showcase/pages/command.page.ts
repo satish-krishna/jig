@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCalendar, lucideCircleHelp, lucideCog, lucideCreditCard, lucideHouse, lucideInbox, lucideUser } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -24,8 +24,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-command-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmCommandImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ lucideCalendar, lucideCircleHelp, lucideCog, lucideCreditCard, lucideHouse, lucideInbox, lucideUser })],
   template: `
@@ -35,7 +33,7 @@ import { Usage } from '../usage';
         [note]="note()"
         [code]="codeDefault"
       >
-        <hlm-command class="w-full max-w-xs border">
+        <hlm-command class="w-full max-w-xs">
           <hlm-command-input placeholder="Type a command or search..." />
           <hlm-command-list>
             <div *hlmCommandEmptyState hlmCommandEmpty>No results found.</div>
@@ -100,7 +98,7 @@ import { Usage } from '../usage';
             <button hlmBtn size="sm" variant="outline" (click)="query.set('play')">Playback</button>
             <button hlmBtn size="sm" variant="outline" (click)="query.set('vol')">Volume</button>
           </div>
-          <hlm-command [search]="query()" (searchChange)="query.set($event)" class="border">
+          <hlm-command [search]="query()" (searchChange)="query.set($event)">
             <hlm-command-input placeholder="Type a command or search..." />
             <hlm-command-list>
               <div *hlmCommandEmptyState hlmCommandEmpty>No results found.</div>

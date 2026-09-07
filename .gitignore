@@ -45,3 +45,6 @@ docs/superpowers/plans/
 
 # SDD scratch workspace (ledger, briefs, review packages) — never committed
 .superpowers/
+
+# Hook firing telemetry — accumulates every session; never checked in
+.claude/hook-firings.jsonl

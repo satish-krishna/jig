@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSearch } from '@ng-icons/lucide';
@@ -17,8 +17,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-input-group-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, ComponentPage, Usage, HlmInputGroupImports, HlmFieldImports, NgIcon],
   providers: [provideIcons({ lucideSearch })],
   template: `
@@ -57,7 +55,7 @@ import { Usage } from '../usage';
         <hlm-input-group class="max-w-sm">
           <textarea hlmInputGroupTextarea placeholder="Enter your message"></textarea>
           <hlm-input-group-addon align="block-end">
-            <hlm-input-group-text class="text-xs">120 characters left</hlm-input-group-text>
+            <hlm-input-group-text>120 characters left</hlm-input-group-text>
           </hlm-input-group-addon>
         </hlm-input-group>
       </app-usage>

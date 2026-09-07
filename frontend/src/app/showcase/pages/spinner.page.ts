@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideLoader, lucideX } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -14,8 +14,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-spinner-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmSpinnerImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ lucideLoader, lucideX })],
   template: `

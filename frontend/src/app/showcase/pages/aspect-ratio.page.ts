@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmAspectRatioImports } from '@spartan-ng/helm/aspect-ratio';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { ComponentPage } from '../component-page';
@@ -10,13 +10,11 @@ import { Usage } from '../usage';
  * `ratio` input (aliased to the directive name) sets a `--ratio` CSS custom
  * property — there is no host template and no projected slot, so it is just
  * a `<div>` constrained to `aspect-(--ratio)` around whatever content it
- * wraps. No image assets are vendored into this template repo, so a labelled
+ * wraps. No image assets are vendored into this template repo, so a labeled
  * gradient block stands in for the media every example constrains.
  */
 @Component({
   selector: 'app-aspect-ratio-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmAspectRatioImports, HlmButtonImports],
   template: `
     <app-component-page slug="aspect-ratio">

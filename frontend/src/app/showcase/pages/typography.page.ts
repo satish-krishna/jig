@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { HlmTypographyImports } from '@spartan-ng/helm/typography';
 import { ComponentPage } from '../component-page';
 import { Usage } from '../usage';
@@ -18,8 +18,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-typography-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmTypographyImports],
   template: `
     <app-component-page slug="typography">

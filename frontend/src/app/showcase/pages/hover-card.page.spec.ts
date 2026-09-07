@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { HoverCardPage } from './hover-card.page';
+import { waitUntil } from './wait-until';
 
 /**
  * Hover card content sits behind `*hlmHoverCardPortal`, so it renders nothing
@@ -29,14 +30,17 @@ describe('HoverCardPage', () => {
     return button as HTMLButtonElement;
   }
 
-  // Real mouseenter/mouseleave events, waiting out the actual (zeroed) delay —
+  // Real mouseenter/mouseleave events, polling out the actual (zeroed) delay —
   // the underlying BrnHoverCardTrigger pipes hover state through RxJS `delay()`,
   // so nothing renders until that macrotask actually fires.
   async function hover(button: HTMLButtonElement, entering: boolean): Promise<void> {
     button.dispatchEvent(new MouseEvent(entering ? 'mouseenter' : 'mouseleave', { bubbles: true }));
     fixture.detectChanges();
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    fixture.detectChanges();
+    await waitUntil(
+      () => (document.body.querySelector('hlm-hover-card-content') !== null) === entering,
+      () => fixture.detectChanges(),
+      { describe: `hover card content to ${entering ? 'appear' : 'disappear'} after ${entering ? 'mouseenter' : 'mouseleave'}` },
+    );
     await fixture.whenStable();
   }
 

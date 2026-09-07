@@ -1,6 +1,6 @@
 //! Tauri command adapters for the users operations. These are deliberately thin:
 //! they deref the managed store and stringify errors into a rejected invoke. All
-//! behaviour is in users.rs and tested there. Command names match COMMANDS in the
+//! behavior is in users.rs and tested there. Command names match COMMANDS in the
 //! frontend operation registry (users_list, users_get, users_save).
 
 use crate::users::{User, UserStore};

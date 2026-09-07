@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePlus } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -18,8 +18,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-tooltip-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmTooltipImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ lucidePlus })],
   template: `

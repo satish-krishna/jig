@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -14,8 +14,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-sheet-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmSheetImports, HlmButtonImports, HlmFieldImports, HlmInputImports],
   template: `
     <app-component-page slug="sheet">
@@ -31,7 +29,7 @@ import { Usage } from '../usage';
               <h3 hlmSheetTitle>Edit profile</h3>
               <p hlmSheetDescription>Make changes to your profile here. Click save when you're done.</p>
             </hlm-sheet-header>
-            <div hlmField class="px-l">
+            <div hlmField>
               <label hlmFieldLabel for="sheet-name">Name</label>
               <input hlmInput id="sheet-name" value="Pedro Duarte" />
             </div>

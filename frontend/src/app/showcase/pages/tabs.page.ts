@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCreditCard, lucideSettings, lucideUser } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -22,8 +22,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-tabs-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ComponentPage,
     Usage,
@@ -48,13 +46,13 @@ import { Usage } from '../usage';
             <button hlmTabsTrigger="analytics">Analytics</button>
             <button hlmTabsTrigger="reports">Reports</button>
           </hlm-tabs-list>
-          <div hlmTabsContent="overview" class="text-muted-foreground text-sm">
+          <div hlmTabsContent="overview">
             A snapshot of activity across your workspace.
           </div>
-          <div hlmTabsContent="analytics" class="text-muted-foreground text-sm">
+          <div hlmTabsContent="analytics">
             Traffic, conversion, and retention trends.
           </div>
-          <div hlmTabsContent="reports" class="text-muted-foreground text-sm">
+          <div hlmTabsContent="reports">
             Scheduled and one-off exports.
           </div>
         </hlm-tabs>
@@ -80,9 +78,9 @@ import { Usage } from '../usage';
               Settings
             </button>
           </hlm-tabs-list>
-          <div hlmTabsContent="profile" class="text-muted-foreground text-sm">Name, avatar, and bio.</div>
-          <div hlmTabsContent="billing" class="text-muted-foreground text-sm">Plan, payment method, invoices.</div>
-          <div hlmTabsContent="settings" class="text-muted-foreground text-sm">Notifications and preferences.</div>
+          <div hlmTabsContent="profile">Name, avatar, and bio.</div>
+          <div hlmTabsContent="billing">Plan, payment method, invoices.</div>
+          <div hlmTabsContent="settings">Notifications and preferences.</div>
         </hlm-tabs>
       </app-usage>
 
@@ -98,9 +96,9 @@ import { Usage } from '../usage';
               <button hlmTabsTrigger="activity">Activity</button>
               <button hlmTabsTrigger="invoice">Invoice</button>
             </hlm-tabs-list>
-            <div hlmTabsContent="summary" class="text-muted-foreground text-sm">Summary panel.</div>
-            <div hlmTabsContent="activity" class="text-muted-foreground text-sm">Activity panel.</div>
-            <div hlmTabsContent="invoice" class="text-muted-foreground text-sm">Invoice panel.</div>
+            <div hlmTabsContent="summary">Summary panel.</div>
+            <div hlmTabsContent="activity">Activity panel.</div>
+            <div hlmTabsContent="invoice">Invoice panel.</div>
           </hlm-tabs>
           <div class="flex items-center gap-s">
             <button hlmBtn size="sm" variant="outline" (click)="activeTab.set('invoice')">Jump to invoice</button>

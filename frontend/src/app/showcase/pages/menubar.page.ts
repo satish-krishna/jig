@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCircleHelp, lucideFile, lucideFolder, lucideSave, lucideSettings, lucideTrash } from '@ng-icons/lucide';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
@@ -19,8 +19,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-menubar-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmMenubarImports, HlmDropdownMenuImports, NgIcon],
   providers: [provideIcons({ lucideCircleHelp, lucideFile, lucideFolder, lucideSave, lucideSettings, lucideTrash })],
   template: `

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
@@ -22,8 +22,6 @@ function minVolume(min: number) {
  */
 @Component({
   selector: 'app-slider-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, ComponentPage, Usage, HlmSliderImports, HlmLabelImports, HlmFieldImports],
   template: `
     <app-component-page slug="slider">

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import type { z } from 'zod';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -30,8 +30,6 @@ function defaultFor(meta: FormFieldMeta): unknown {
  */
 @Component({
   selector: 'app-schema-form',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     HlmFieldImports,

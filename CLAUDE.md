@@ -18,7 +18,7 @@ This is a template, not a product. The `users` slice is the one worked example t
 
 ## The non-negotiables (gates, not preferences)
 
-- **SOLID:** one reason to change; depend on abstractions; small client-specific interfaces; new behaviour by extension, not by editing stable code.
+- **SOLID:** one reason to change; depend on abstractions; small client-specific interfaces; new behavior by extension, not by editing stable code.
 - **YAGNI:** build only the `users` slice and the machinery it proves. One implementer and no second one imminent means inline it.
 - **DRY, docs included:** no fact stated twice by hand. The catalog is generated; form models are `z.infer`; DTOs are generated from OpenAPI.
 - **KISS:** the code you do write is the plainest version that works — straight-line over clever, obvious over compact. If a tired reader cannot trace it at 3AM without a comment explaining *how* it works, it is too clever; rewrite it simpler. (YAGNI decides whether to build it; KISS decides that what you build stays simple.)
@@ -39,6 +39,8 @@ This file is tier one. Everything below is disclosed on demand: open the file th
 | Touch the transport seam (IPC or HTTP) | `docs/architecture/conduit.md` |
 | Build or change a form | `docs/architecture/forms.md` |
 | Build UI, style a component, or make a mock | `docs/architecture/design.md` |
+| Hit a lint error you do not understand | `docs/architecture/rules/<rule-name>.md` — every rule has one, and its message names it |
+| Write or change a lint rule | `.bob/adr/0012-frontend-design-rules-are-lint-errors.md`, then any existing rule in `tools/lint/rules/` as the pattern |
 | Add or change a component showcase page | `frontend/src/app/showcase/pages/checkbox.page.ts` (the pattern) |
 | Add a whole feature | `.bob/prompts/new-feature.md` |
 | Understand a past decision | `.bob/adr/` |
@@ -53,7 +55,12 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 |---|---|
 | `npm run setup` | One-command environment bootstrap for a fresh clone |
 | `npm run dev` | Frontend HMR + backend hot-reload together; monitor it for compile errors |
-| `npm run verify` | Full build, all tests, catalog and showcase-API freshness (the green gate) |
+| `npm run verify` | The green gate: full build, all tests, typecheck, lint, stylelint, catalog and showcase-API freshness |
+| `npm run verify:frontend` | The same gate minus .NET and Rust, for the inner loop. Never a substitute — the frontend consumes generated DTOs, so only the full run proves the fixture holds |
+| `npm run lint` | The 26-rule architecture ruleset over `frontend/` (`tools/lint/`). Enabled at error; there is no disable comment |
+| `npm run stylelint` | The CSS half of the same gate — spacing and colour literals must be tokens |
+| `npm run typecheck` | Type-check everything under `tools/` |
+| `npm run lint:report` | How often the edit-time hook fired and whether the correction landed. Reads the git-ignored firing log |
 | `npm run catalog` | Regenerate the capability catalog after annotating code |
 | `npm run codegen` | Emit OpenAPI from the API and generate the TypeScript DTOs |
 | `npm run showcase:api` | Regenerate the showcase API tables from `libs/ui` (verify checks freshness) |
@@ -83,12 +90,15 @@ frontend/src/app/
   shell/               app shell: CSS Grid layout, sidebar, header, footer
   showcase/            live examples of every libs/ui component, routed at /showcase
 frontend/libs/ui/       GENERATED spartan helm components (never hand-edit; add with the CLI — ADR 0010)
-frontend/src/styles.css theme tokens: colour AND radius (OKLCH, light + dark). Control size and
+frontend/eslint.config.mjs  the one rule list; noInlineConfig is on, so eslint-disable does nothing
+frontend/stylelint.config.mjs the CSS half; run with --ignore-disables, so its comments do nothing either
+frontend/src/styles.css theme tokens: color AND radius (OKLCH, light + dark). Control size and
                         spacing (h-8, px-2.5) is inlined into libs/ui at generation time — ADR 0010.
 .claude/skills/jig-design/  design-language skill: mocks/previews + the feel spec (downstream mirror of the app, ADR 0007)
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure
 contracts/openapi/     OpenAPI spec emitted by the API (source for TS codegen)
 tools/                 setup, init (template rename), catalog, codegen, showcase-api, ui-style,
+  lint/                the frontend ruleset: 26 ESLint rules + stylelint, one doc each (ADR 0012)
                        analyzers (Roslyn layer rules, ADR 0009), hooks, verify (the gate)
 ```
 

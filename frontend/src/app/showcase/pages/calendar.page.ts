@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { provideNativeDateAdapter } from '@spartan-ng/brain/date-time';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCalendarImports } from '@spartan-ng/helm/calendar';
@@ -21,8 +21,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-calendar-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [provideNativeDateAdapter()],
   imports: [ComponentPage, Usage, HlmCalendarImports, HlmButtonImports],
   template: `

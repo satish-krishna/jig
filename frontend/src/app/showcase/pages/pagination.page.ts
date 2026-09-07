@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronsLeft, lucideChevronsRight } from '@ng-icons/lucide';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
@@ -17,8 +17,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-pagination-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmPaginationImports, NgIcon],
   providers: [provideIcons({ lucideChevronsLeft, lucideChevronsRight })],
   template: `
@@ -49,7 +47,7 @@ import { Usage } from '../usage';
         <nav hlmPagination>
           <ul hlmPaginationContent>
             <li hlmPaginationItem>
-              <button type="button" class="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center">
+              <button type="button" hlmPaginationLink>
                 <ng-icon name="lucideChevronsLeft" />
               </button>
             </li>
@@ -57,7 +55,7 @@ import { Usage } from '../usage';
             <li hlmPaginationItem><a hlmPaginationLink [isActive]="true">4</a></li>
             <li hlmPaginationItem><hlm-pagination-next iconOnly /></li>
             <li hlmPaginationItem>
-              <button type="button" class="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center">
+              <button type="button" hlmPaginationLink>
                 <ng-icon name="lucideChevronsRight" />
               </button>
             </li>

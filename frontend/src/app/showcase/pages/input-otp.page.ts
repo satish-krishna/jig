@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BrnInputOtpImports } from '@spartan-ng/brain/input-otp';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -16,8 +16,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-input-otp-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     ComponentPage,

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { ComponentPage } from '../component-page';
@@ -11,8 +11,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-skeleton-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmSkeletonImports, HlmButtonImports],
   template: `
     <app-component-page slug="skeleton">
@@ -20,7 +18,7 @@ import { Usage } from '../usage';
         <!-- avatar beside a stack of lines: two dimensions, so one grid rather
              than a flex row wrapping a flex column -->
         <div class="grid grid-cols-[auto_1fr] items-center gap-x-l gap-y-s">
-          <hlm-skeleton class="row-span-2 size-12 rounded-full" />
+          <hlm-skeleton class="row-span-2 size-12" />
           <hlm-skeleton class="h-4 w-48" />
           <hlm-skeleton class="h-4 w-36" />
         </div>

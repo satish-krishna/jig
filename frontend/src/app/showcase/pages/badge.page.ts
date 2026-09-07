@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBadgeCheck, lucideBell } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -15,8 +15,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-badge-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmBadgeImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ lucideBadgeCheck, lucideBell })],
   template: `
@@ -64,7 +62,7 @@ import { Usage } from '../usage';
         <button hlmBtn variant="outline" size="icon" class="relative" (click)="bump()" aria-label="Notifications">
           <ng-icon name="lucideBell" />
           @if (count() > 0) {
-            <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4 px-xs">
+            <span hlmBadge variant="destructive" class="absolute -top-2 -right-2 h-4 min-w-4">
               {{ count() }}
             </span>
           }

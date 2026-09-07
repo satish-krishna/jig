@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { groupedByCategory } from './component-registry';
@@ -17,8 +17,6 @@ import { groupedByCategory } from './component-registry';
  */
 @Component({
   selector: 'app-showcase-layout',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, HlmInputImports],
   host: { class: 'block h-full' },
   template: `

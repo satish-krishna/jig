@@ -18,7 +18,7 @@ describe('MenuService', () => {
 
   it('auto-unregisters when the caller DestroyRef fires', () => {
     const svc = TestBed.inject(MenuService);
-    @Component({ standalone: true, template: '' })
+    @Component({ template: '' })
     class Host {
       constructor() { svc.register('header', cmd('scoped')); }
     }

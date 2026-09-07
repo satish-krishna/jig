@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideX } from '@ng-icons/lucide';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmInputImports } from '@spartan-ng/helm/input';
 import { ComponentPage } from '../component-page';
 import { Usage } from '../usage';
 
@@ -15,9 +16,7 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-alert-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, ComponentPage, Usage, HlmAlertImports, HlmButtonImports, NgIcon],
+  imports: [ReactiveFormsModule, ComponentPage, Usage, HlmAlertImports, HlmButtonImports, HlmInputImports, NgIcon],
   providers: [provideIcons({ lucideX })],
   template: `
     <app-component-page slug="alert">
@@ -75,7 +74,7 @@ import { Usage } from '../usage';
       >
         <div class="flex max-w-md flex-col gap-m">
           <input
-            class="border-border rounded-md border px-m py-xs text-sm"
+            hlmInput
             placeholder="you@example.com"
             [formControl]="email"
           />

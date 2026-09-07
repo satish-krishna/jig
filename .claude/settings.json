@@ -20,6 +20,15 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/angular-service-guide.ts\""
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/check-frontend.ts\""
+          }
+        ]
       }
     ]
   }

@@ -16,7 +16,9 @@ export const SPACING_PREFIXES = [
   'm', 'mx', 'my', 'mt', 'mb', 'ml', 'mr', 'ms', 'me',
 ];
 
-const NAMED = new Set(SPACING_STEPS.map((s) => s.name));
+// Widened to Set<string>: the value under test is a regex capture group, a
+// plain string, never one of the literal step names on its own account.
+const NAMED = new Set<string>(SPACING_STEPS.map((s) => s.name));
 
 /** Values that are not a step on any scale and therefore need no token. */
 const EXEMPT = new Set(['0', 'auto', 'px']);
@@ -47,8 +49,11 @@ const SUGGESTION = SPACING_STEPS.map((s) => `${s.name} (${s.px}px)`).join(', ');
 
 export default {
   meta: {
-    type: 'problem',
-    docs: { description: 'Spacing utilities must use a named token step, not a literal.' },
+    type: 'problem' as const,
+    docs: {
+      description: 'Spacing utilities must use a named token step, not a literal.',
+      url: 'docs/architecture/rules/no-literal-spacing.md',
+    },
     schema: [],
     messages: {
       literalSpacing:

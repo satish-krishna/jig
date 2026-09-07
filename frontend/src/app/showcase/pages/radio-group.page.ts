@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
@@ -16,8 +16,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-radio-group-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, ComponentPage, Usage, HlmRadioGroupImports, HlmLabelImports, HlmFieldImports],
   template: `
     <app-component-page slug="radio-group">

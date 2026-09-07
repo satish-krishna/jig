@@ -1,0 +1,7 @@
+/* stylelint-disable */
+.suppressed {
+  gap: 13px;
+  padding: 7px;
+  margin-left: 3px;
+  border-radius: 5px;
+}

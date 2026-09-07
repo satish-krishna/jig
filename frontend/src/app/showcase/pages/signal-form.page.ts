@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormField, form, submit, validateStandardSchema } from '@angular/forms/signals';
 import { z } from 'zod';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -40,8 +40,6 @@ const EMPTY: Profile = { displayName: '', email: '' };
  */
 @Component({
   selector: 'app-signal-form-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormField, ComponentPage, Usage, HlmFieldImports, HlmInputImports, HlmButtonImports],
   template: `
     <app-component-page slug="signal-form">

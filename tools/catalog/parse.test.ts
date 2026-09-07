@@ -79,3 +79,44 @@ test('languageFor maps extensions and rejects the unknown', () => {
   assert.equal(languageFor('a.cs'), 'csharp');
   assert.equal(languageFor('a.md'), null);
 });
+
+test('a wrapped @intent or @reuse keeps its continuation lines', () => {
+  // The generator used to read only the line carrying the tag, so a wrapped
+  // annotation lost everything after it — silently, into a document CLAUDE.md
+  // tells every agent to trust. It shipped `- **Intent:** ... a predicate poll
+  // that` in CATALOG.md, stopping mid-clause, and was caught by reading the
+  // diff rather than by any gate. Continuation lines join with one space so the
+  // source comment's wrapping does not leak into the rendered output.
+  const src = `/**
+ * @capability testing.wrapped
+ * @intent Replace a fixed-duration sleep with a predicate poll that
+ *   fails loudly, by name, on a genuine timeout.
+ * @reuse Any spec waiting out an async overlay: pass a predicate
+ *   and a tick.
+ */
+export function waitUntil() {}
+`;
+  const [entry] = parseAnnotations(src, 'tools/x.ts');
+
+  assert.equal(
+    entry.intent,
+    'Replace a fixed-duration sleep with a predicate poll that fails loudly, by name, on a genuine timeout.',
+  );
+  assert.equal(entry.reuse, 'Any spec waiting out an async overlay: pass a predicate and a tick.');
+});
+
+test('a continuation stops at the next tag, never swallowing it', () => {
+  // The failure mode of a naive fix: consume until the block ends, and @reuse
+  // gets absorbed into @intent, which loses a field instead of truncating one.
+  const src = `/**
+ * @capability testing.adjacent
+ * @intent First line only.
+ * @reuse Second field, must survive.
+ */
+export function x() {}
+`;
+  const [entry] = parseAnnotations(src, 'tools/x.ts');
+
+  assert.equal(entry.intent, 'First line only.');
+  assert.equal(entry.reuse, 'Second field, must survive.');
+});

@@ -1,20 +1,19 @@
-import { ChangeDetectionStrategy, Component, ViewEncapsulation, inject, signal } from '@angular/core';
+import { Component, ViewEncapsulation, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { MenuService } from '../menu';
 import { ThemeService } from '../theme/theme.service';
-import { WIRE } from '../transport';
+import { AppShellViewModel } from './app-shell.view-model';
 import { SidebarNavItem } from './sidebar-nav-item';
 
 @Component({
   selector: 'app-shell',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None, // uses the global .hlm-shell* classes
   imports: [RouterOutlet, NgIcon, HlmButtonImports, SidebarNavItem],
+  providers: [AppShellViewModel],
   template: `
-    <div class="hlm-shell" [attr.data-collapsed]="collapsed()">
+    <div class="hlm-shell" [attr.data-collapsed]="vm.collapsed()">
       <aside class="hlm-sidebar">
         <nav class="hlm-sidebar__body" data-region="sidebar">
           @for (cmd of sidebar(); track cmd.id) {
@@ -25,7 +24,7 @@ import { SidebarNavItem } from './sidebar-nav-item';
              reachable in the rail: a toggle that collapses itself out of reach
              would be a one-way door. -->
         <div class="hlm-sidebar__footer">
-          <button hlmBtn variant="ghost" size="icon" (click)="toggle()" aria-label="Toggle sidebar">
+          <button hlmBtn variant="ghost" size="icon" (click)="vm.toggle()" aria-label="Toggle sidebar">
             <ng-icon name="lucidePanelLeft" />
           </button>
         </div>
@@ -51,7 +50,7 @@ import { SidebarNavItem } from './sidebar-nav-item';
           >
             <ng-icon [name]="theme.mode() === 'dark' ? 'lucideSun' : 'lucideMoon'" />
           </button>
-          <div data-region="header" style="display: contents">
+          <div data-region="header" class="contents">
             @for (cmd of header(); track cmd.id) {
               <button hlmBtn size="sm" [disabled]="!cmd.canExecute()" (click)="cmd.execute()">
                 @if (cmd.icon; as icon) { <ng-icon [name]="icon" /> }
@@ -66,16 +65,14 @@ import { SidebarNavItem } from './sidebar-nav-item';
         <router-outlet />
       </main>
 
-      <footer class="hlm-shell__footer">jig{{ wire ? ' · ' + wire : '' }}</footer>
+      <footer class="hlm-shell__footer">jig{{ vm.wire ? ' · ' + vm.wire : '' }}</footer>
     </div>
   `,
 })
 export class AppShell {
   private readonly menu = inject(MenuService);
-  protected readonly wire = inject(WIRE, { optional: true });
+  protected readonly vm = inject(AppShellViewModel);
   protected readonly theme = inject(ThemeService);
   protected readonly sidebar = this.menu.items('sidebar');
   protected readonly header = this.menu.items('header');
-  protected readonly collapsed = signal(false);
-  protected toggle(): void { this.collapsed.update((v) => !v); }
 }

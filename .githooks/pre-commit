@@ -27,6 +27,18 @@ echo "pre-commit: checking capability catalog freshness…"
 node tools/catalog/catalog.ts --check
 
 echo "pre-commit: running tooling tests…"
-node --test "tools/**/*.test.ts" >/dev/null
+# Quiet on green, loud on red: a gate that blocks without saying what it
+# wants trains people to reach for --no-verify, which this repo forbids.
+# The `if !` form is deliberate — under `set -e` a bare failing command here
+# would abort the script before the `cat` ever ran, burying the failure in
+# the same /dev/null this replaces.
+tooling_test_log=$(mktemp)
+if ! node --test "tools/**/*.test.ts" >"$tooling_test_log" 2>&1; then
+  echo "pre-commit: tooling tests failed —" >&2
+  cat "$tooling_test_log" >&2
+  rm -f "$tooling_test_log"
+  exit 1
+fi
+rm -f "$tooling_test_log"
 
 echo "pre-commit: ok"

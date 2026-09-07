@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronsUpDown, lucidePlus, lucideTrash2 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -16,8 +16,6 @@ const NAMES = ['Olivia Martin', 'Jackson Lee', 'Isabella Nguyen', 'William Kim',
  */
 @Component({
   selector: 'app-collapsible-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmCollapsibleImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ lucideChevronsUpDown, lucidePlus, lucideTrash2 })],
   template: `

@@ -6,7 +6,7 @@ This is how you work inside Jig. `CLAUDE.md` is the always-on constitution and r
 
 Each gate below comes with the smell that means you are breaking it. When you catch the smell, stop.
 
-- **SOLID.** Every unit has one reason to change; depend on abstractions; interfaces are small and client-specific; new behaviour arrives by extension, not by editing stable code.
+- **SOLID.** Every unit has one reason to change; depend on abstractions; interfaces are small and client-specific; new behavior arrives by extension, not by editing stable code.
   - Smell: a class that changes for two unrelated reasons; a fat interface whose one caller uses one method.
 - **YAGNI.** Build only the `users` slice and the machinery it proves. No config knobs, extension points, or "future" abstractions with a single implementation.
   - Smell: an abstraction with exactly one implementer and no second one imminent. Inline it.
@@ -37,7 +37,7 @@ The `users` slice ships with tests at all three levels as the reference pattern 
 
 - **Error handling.** Backend expected failures travel as a `Result` envelope, never thrown exceptions. Frontend failures fold to one `AppError` at the `NormalizingTransport` seam; nothing above it branches on the wire. See `docs/architecture/conduit.md`.
 - **Types are generated, not hand-written.** Frontend DTOs come from the OpenAPI spec (`npm run codegen`); form model types are `z.infer<typeof schema>`. If you are typing a shape by hand that already exists at a boundary, stop and generate it.
-- **UI follows the design system, tokens are not hand-written.** Production UI composes spartan helm components (`frontend/libs/ui/*`) and reads colour and radius from the `frontend/src/styles.css` custom properties (`--primary`, `--border`, `--radius`, …). Control size and spacing is not a token — the spartan style inlines `h-8`/`px-2.5` into `libs/ui` at generation time, so it changes with `npm run ui:style`, not with CSS. A literal hex or px in a component is the smell — the same DRY-at-a-boundary rule as types. For mocks, previews, and prototypes, use the `jig-design` skill (portable, buildless). The skill is a downstream mirror of the app, not a second source of truth: change the theme in `styles.css`, never fork the skill's CSS into production. See `docs/architecture/design.md` and ADR 0007.
+- **UI follows the design system, tokens are not hand-written.** Production UI composes spartan helm components (`frontend/libs/ui/*`) and reads color and radius from the `frontend/src/styles.css` custom properties (`--primary`, `--border`, `--radius`, …). Control size and spacing is not a token — the spartan style inlines `h-8`/`px-2.5` into `libs/ui` at generation time, so it changes with `npm run ui:style`, not with CSS. A literal hex or px in a component is the smell — the same DRY-at-a-boundary rule as types. For mocks, previews, and prototypes, use the `jig-design` skill (portable, buildless). The skill is a downstream mirror of the app, not a second source of truth: change the theme in `styles.css`, never fork the skill's CSS into production. See `docs/architecture/design.md` and ADR 0007.
 - **Naming mirrors the app.** The .NET projects are `Jig.Api`, `Jig.Application`, `Jig.Domain`, `Jig.Infrastructure`; the Rust crate and Tauri identifier are `jig`; spartan helm components sit under the `@spartan-ng/helm/*` alias. `tools/init` rewrites all of these when the template is renamed to a new app.
 - **Match the surrounding code.** Comment density, naming, and idiom follow the file you are editing, not your defaults.
 
@@ -63,6 +63,18 @@ Rust (rustdoc): `/// @capability`, `/// @intent`, `/// @reuse`. C# (XML doc): `<
 
 - Regenerate: `npm run catalog`
 - Verify freshness: `npm run catalog:check` (this is what the pre-commit hook and CI run; a stale catalog fails the build)
+
+## Architecture rules are lint errors
+
+The design language in `docs/architecture/design.md` and the MVVM boundary are not conventions you remember — they are 26 ESLint rules plus a stylelint config, enabled at `error` and run by `npm run lint` and `npm run stylelint` inside `npm run verify`. See ADR 0012.
+
+Three things follow, and they are the point:
+
+- **There is no disable comment.** `linterOptions.noInlineConfig` is on, and stylelint runs with `--ignore-disables`. A rule you cannot satisfy is a rule to argue with in a reviewed diff, not one to switch off in the file that broke it.
+- **Every rule has a document** at `docs/architecture/rules/<rule-name>.md`, and the error message names it. Read that before changing the code the rule flagged — most of them record what the rule deliberately does NOT catch.
+- **A PostToolUse hook runs the same ruleset on the file you just edited** and hands the violation back with a pointer to its document, so you hear about drift at the edit rather than at the gate. `npm run lint:report` says how often that fired and whether the correction landed.
+
+Writing a new rule: it needs a test that runs it through `RuleTester` (a test that only calls its predicate leaves the rule itself unwired, which shipped once), a document, and registration in `tools/lint/index.ts`. Meta-tests enforce all three.
 
 ## Branching: work on a feature branch, never on main
 

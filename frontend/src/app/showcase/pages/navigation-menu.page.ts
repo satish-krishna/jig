@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBookOpen, lucideBox, lucideLayers } from '@ng-icons/lucide';
 import { HlmNavigationMenuImports } from '@spartan-ng/helm/navigation-menu';
@@ -20,8 +20,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-navigation-menu-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmNavigationMenuImports, NgIcon],
   providers: [provideIcons({ lucideBox, lucideLayers, lucideBookOpen })],
   template: `

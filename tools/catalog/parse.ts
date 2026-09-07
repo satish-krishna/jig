@@ -104,8 +104,36 @@ export function parseAnnotations(text: string, filePath: string): CapabilityEntr
     }
 
     const joined = body.join('\n');
-    const tag = (name: string) =>
-      body.map((l) => l.match(new RegExp(`@${name}\\s+(.+)`))?.[1]?.trim()).find(Boolean);
+    /**
+     * The value of an `@name` tag, including any continuation lines.
+     *
+     * The first cut read only the line carrying the tag and silently dropped
+     * the rest, so a wrapped annotation lost everything after its first line.
+     * That is not hypothetical: `@intent Replace fixed-duration sleeps in specs
+     * with a predicate poll that / fails loudly, by name, on a genuine timeout`
+     * rendered in CATALOG.md as "…with a predicate poll that" and stopped
+     * mid-clause. Silent truncation into a GENERATED document that CLAUDE.md
+     * tells every agent to trust as the discovery index is worse than a terse
+     * entry, because a half-sentence reads as corruption and casts doubt on
+     * every other row.
+     *
+     * A continuation is any following line that neither starts a new `@tag`
+     * nor is blank, joined with a single space so the wrapping in the source
+     * comment does not leak into the rendered output.
+     */
+    const tag = (name: string) => {
+      const pattern = new RegExp(`@${name}\\s+(.+)`);
+      const start = body.findIndex((l) => pattern.test(l));
+      if (start === -1) return undefined;
+
+      const parts = [body[start].match(pattern)![1].trim()];
+      for (let k = start + 1; k < body.length; k++) {
+        const line = body[k].trim();
+        if (line === '' || line.startsWith('@')) break;
+        parts.push(line);
+      }
+      return parts.join(' ').trim();
+    };
     const xml = (name: string) =>
       joined.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`))?.[1];
 

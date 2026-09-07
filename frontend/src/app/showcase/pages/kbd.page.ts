@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmKbdImports } from '@spartan-ng/helm/kbd';
 import { ComponentPage } from '../component-page';
@@ -12,8 +12,6 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-kbd-page',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ComponentPage, Usage, HlmKbdImports, HlmButtonImports],
   template: `
     <app-component-page slug="kbd">
@@ -44,11 +42,11 @@ import { Usage } from '../usage';
 
       <app-usage title="With button" note="A kbd hint riding inside a button's own padding." [code]="codeButton">
         <div class="flex flex-wrap items-center gap-m">
-          <button hlmBtn variant="outline" size="sm" class="pr-s">
+          <button hlmBtn variant="outline" size="sm">
             Accept
             <kbd hlmKbd>⏎</kbd>
           </button>
-          <button hlmBtn variant="outline" size="sm" class="pr-s">
+          <button hlmBtn variant="outline" size="sm">
             Cancel
             <kbd hlmKbd>Esc</kbd>
           </button>
