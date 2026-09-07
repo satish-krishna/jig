@@ -1,3 +1,19 @@
+# ADR 0000 — The origin prompt (historical record, not a decision)
+
+- Status: superseded by `CLAUDE.md` and `CONTRIBUTING.md`
+- Date: 2026-07-02
+- Scope: `repo`
+
+## What this is
+
+This is the prompt that scaffolded Jig, kept verbatim for provenance. It states no decision and is not an ADR in shape; it is filed here because `.bob/adr/` is where this repo keeps what it decided and why, and this is the record of where all of it came from.
+
+It is **not instructions**. Everything it says about how to work here is superseded, and where it disagrees with `CLAUDE.md` or `CONTRIBUTING.md`, those win. It restates the non-negotiables in older wording and describes scaffolding for a repo that now exists, so following it would be building the fixture a second time.
+
+It lives under `TEMPLATE_ONLY` in `tools/init/init.ts`, so `npm run init` deletes it and no cloned app inherits it. If this file ever moves again, that list moves with it.
+
+---
+
 # Jig — Bootstrap Prompt (AI-Native Desktop Template: Tauri + Angular SPA + .NET FastEndpoints)
 
 ---

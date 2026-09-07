@@ -103,6 +103,8 @@ Examples:
 - **The gate, one command:** `npm run verify` — the full build, all tests across .NET, Rust, and the frontend, plus catalog freshness. Green here is the definition of done, and commits land only here.
 - **Fresh-clone bootstrap:** `npm run setup` (idempotent; checks the toolchain and all three language servers, installs dependencies, wires git hooks, generates the catalog).
 - **Individual checks** when you want one slice: `npm run test:tools`, `npm run catalog:check`, `dotnet test services/api/Jig.sln`, `cargo test` (in `apps/desktop/src-tauri`), `npm --prefix frontend test` (Vitest), `npm --prefix frontend run e2e` (Playwright).
+- **What CI actually runs:** everything, on every push to `main`. On a pull request it runs only the steps the diff can break — `tools/verify/select.ts` maps changed paths to subsystem areas, each gate step declares the areas that can break it, and prose activates none of them. The selector fails safe in both directions that matter: a path it cannot classify, or an empty diff, activates every area. Locally you always get the full gate; the narrowing needs `--since=<ref>` and only CI passes it.
+- **Generated contracts are gated too:** `npm run codegen -- --check` regenerates `openapi.json` and `api-types.ts` into a temp directory and fails if the committed copies differ. Freshness is not compatibility — this proves the generated files match the API, while the Angular build proves the code consuming them still type-checks. A contract change needs both, which is why a `contracts` diff runs the frontend build but not ESLint or the e2e smoke.
 
 ## Development loop
 
