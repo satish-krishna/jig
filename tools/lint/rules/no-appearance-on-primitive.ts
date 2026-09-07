@@ -1,26 +1,25 @@
-import { classAttribute, baseUtility } from '../ast.ts';
-import { attributeSelectors, elementSelectors } from '../vocabulary.ts';
+import { classAttribute } from '../ast.ts';
+import { attributeSelectors, elementSelectors, appearanceFamiliesOf, appearanceFamilyOf } from '../vocabulary.ts';
 
 /**
- * Appearance is color, typography, decoration, and INTERNAL padding. Layout,
- * dimensions, margin and position are deliberately absent: spartan's own styling
- * doc draws this line, and this rule enforces that line rather than inventing one.
+ * Documented exceptions: a `primitive:family` pair where overriding the
+ * primitive's own class is not a fight, it is the ONLY API spartan exposes for
+ * that concern, so forbidding the override would forbid the only way to use
+ * the primitive. See "Known exceptions" in the doc before adding a second
+ * entry — a growing list here is how a gate like this rots.
+ *
+ * hlm-spinner has no size input. It sizes its icon entirely through its own
+ * `text-[length:--spacing(4)]`, and spartan's own Sizes example overrides that
+ * exact class (`text-xs`, `text-base`, `text-2xl`, ...) to resize it. The
+ * appearance-family deriver in vocabulary.ts does not detect this on its own
+ * — `text-[length:...]` embeds a colon inside its own brackets, which defeats
+ * baseUtility's prefix stripping, so hlm-spinner derives as setting no
+ * families at all. That gap happens to agree with the exception below, but
+ * this entry exists to make the exemption a deliberate, written decision
+ * rather than an accident of how the deriver currently parses one arbitrary
+ * value syntax.
  */
-const APPEARANCE = [
-  /^bg-/, /^font-/, /^leading-/, /^tracking-/,
-  /^border$/, /^border-/, /^rounded$/, /^rounded-/,
-  /^shadow$/, /^shadow-/, /^ring$/, /^ring-/,
-  /^p[xytblre]?-/,
-];
-
-/** text-left / text-center / text-right / text-justify are alignment, not typography. */
-const ALIGNMENT = new Set(['text-left', 'text-center', 'text-right', 'text-justify', 'text-start', 'text-end']);
-const isText = (u: string) => /^text-/.test(u) && !ALIGNMENT.has(u);
-
-const isAppearance = (cls: string) => {
-  const u = baseUtility(cls);
-  return isText(u) || APPEARANCE.some((re) => re.test(u));
-};
+const EXCEPTIONS = new Set(['hlm-spinner:typography']);
 
 export default {
   meta: {
@@ -44,13 +43,28 @@ export default {
 
     return {
       Element(node) {
-        const carriesPrimitive =
-          els.has(node.name) ||
-          (node.attributes ?? []).some((a) => attrs.has(a.name));
-        if (!carriesPrimitive) return;
+        const primitiveNames = [];
+        if (els.has(node.name)) primitiveNames.push(node.name);
+        for (const a of node.attributes ?? []) {
+          if (attrs.has(a.name)) primitiveNames.push(a.name);
+        }
+        if (primitiveNames.length === 0) return;
 
         for (const cls of classAttribute(node)) {
-          if (isAppearance(cls)) {
+          const family = appearanceFamilyOf(cls);
+          if (family === null) continue;
+
+          // A call-site class overrides a primitive only when THAT primitive's
+          // own classes() call actually sets the same family — not merely the
+          // same exact class. hlm-command sets decoration via `rounded-xl`;
+          // a call-site `border` still fights it, even though `border` itself
+          // is not the exact class hlm-command writes. hlm-resizable-group
+          // sets no decoration at all, so a call-site `border` there is pure
+          // addition, not a fight, and is exempt.
+          const overridden = primitiveNames.some(
+            (name) => appearanceFamiliesOf(name).has(family) && !EXCEPTIONS.has(`${name}:${family}`),
+          );
+          if (overridden) {
             context.report({ node, messageId: 'appearanceOnPrimitive', data: { cls } });
           }
         }

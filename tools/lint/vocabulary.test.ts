@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { attributeSelectors, elementSelectors, NATIVE_TO_PRIMITIVE } from './vocabulary.ts';
+import { attributeSelectors, elementSelectors, appearanceFamiliesOf, NATIVE_TO_PRIMITIVE } from './vocabulary.ts';
 
 test('derives attribute directives from the generated selectors', () => {
   const attrs = attributeSelectors();
@@ -63,6 +63,24 @@ test('the vocabulary is large enough to be real', () => {
   // Guards against a parse failure silently yielding empty sets, which would make
   // every vocabulary rule pass on everything.
   assert.ok(attributeSelectors().size + elementSelectors().size > 200);
+});
+
+test('derives the appearance families a primitive actually sets, from its own classes() call', () => {
+  // hlm-resizable-group is `classes(() => 'group flex h-full w-full
+  // data-[panel-group-direction=vertical]:flex-col')` — no border, no rounded, no
+  // padding, no color. A call-site border/rounded on it is pure addition, not an
+  // override, and no-appearance-on-primitive must not treat it as one.
+  const resizableGroup = appearanceFamiliesOf('hlm-resizable-group');
+  assert.ok(!resizableGroup.has('decoration'), 'hlm-resizable-group should not be derived as setting decoration');
+  assert.ok(!resizableGroup.has('padding'), 'hlm-resizable-group should not be derived as setting padding');
+
+  // hlmBtn's own cva base and variants set color (bg-primary, text-destructive, ...),
+  // typography (text-sm, font-medium) and decoration (rounded-lg, border) — a
+  // call-site override of any of those families is a real fight, not an addition.
+  const btn = appearanceFamiliesOf('hlmBtn');
+  assert.ok(btn.has('colour'), 'hlmBtn should be derived as setting colour');
+  assert.ok(btn.has('typography'), 'hlmBtn should be derived as setting typography');
+  assert.ok(btn.has('decoration'), 'hlmBtn should be derived as setting decoration');
 });
 
 test('each primitive in the native map is compatible with its target element', () => {
