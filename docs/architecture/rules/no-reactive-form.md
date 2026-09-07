@@ -41,4 +41,4 @@ So `no-reactive-form` (and its sibling `no-forms-module`) reuse the existing `ti
 
 ## Known blind spots
 
-The `FormGroup` check matches the bare identifier `new FormGroup(...)` only: a `FormGroup` reached through a namespace import (`forms.FormGroup`) or reassigned to a local alias would not match `node.callee?.name`. The `imports` check reads the decorator metadata's array literal only, the same blind spot `no-forms-module` documents for `FormsModule`. Neither gap has a real instance in this app today.
+The `FormGroup` check matches the bare identifier `new FormGroup(...)` only: a `FormGroup` reached through a namespace import (`forms.FormGroup`) or reassigned to a local alias would not match `node.callee?.name`. The `imports` check reads the decorator metadata's array literal only, via `componentImports`, which matches the bare `ReactiveFormsModule` identifier and the configured call form `ReactiveFormsModule.withConfig({ ... })` but not a spread or an alias — the same blind spot `no-forms-module` documents for `FormsModule`. Neither gap has a real instance in this app today.

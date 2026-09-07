@@ -33,7 +33,29 @@ export function metadataProperty(metadata, key) {
 export function componentImports(metadata, name) {
   const prop = metadataProperty(metadata, 'imports');
   if (prop?.value?.type !== 'ArrayExpression') return false;
-  return prop.value.elements.some((e) => e?.type === 'Identifier' && e.name === name);
+  return prop.value.elements.some((e) => importedName(e) === name);
+}
+
+/**
+ * The name an `imports:` array entry brings in, or null.
+ *
+ * Two shapes count, because an NgModule is entered both ways. A bare
+ * `NgIconsModule` is an Identifier; a configured one is `NgIconsModule.withIcons({...})`,
+ * a CallExpression over a MemberExpression, and that is the form anybody actually
+ * writes — `withIcons`, `forRoot`, `withConfig`. Matching only the Identifier meant
+ * the three banned-module rules each missed the shape most likely to reintroduce the
+ * thing they ban. Found by review on no-legacy-icon-module and fixed here rather than
+ * in that one rule, because all three share this helper and so shared the blind spot.
+ *
+ * A spread (`...ICONS`) still returns null: what it holds is not decidable from the
+ * decorator, and the rules' documents record it as a known blind spot.
+ */
+function importedName(element) {
+  if (element?.type === 'Identifier') return element.name;
+  if (element?.type === 'CallExpression' && element.callee?.type === 'MemberExpression') {
+    return element.callee.object?.type === 'Identifier' ? element.callee.object.name : null;
+  }
+  return null;
 }
 
 /** The nearest enclosing class declaration or expression, or null. */

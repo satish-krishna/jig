@@ -34,6 +34,11 @@ test('no-reactive-form', () => {
         errors: [{ messageId: 'reactiveForm' }],
       },
       {
+        code: `@Component({ imports: [ReactiveFormsModule.withConfig({})] }) export class X {}`,
+        filename: '/repo/frontend/src/app/features/users/x.ts',
+        errors: [{ messageId: 'reactiveForm' }],
+      },
+      {
         code: `@Component({}) export class X { f = new FormGroup({}); }`,
         filename: '/repo/frontend/src/app/shell/x.ts',
         errors: [{ messageId: 'reactiveForm' }],

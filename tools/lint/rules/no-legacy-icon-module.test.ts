@@ -22,6 +22,14 @@ test('no-legacy-icon-module', () => {
       },
     ],
     invalid: [
+      // The call form is the one anybody actually reintroduces. The legacy API is
+      // reached for as NgIconsModule.withIcons({ ... }), not as a bare identifier,
+      // so a rule that matched only the identifier missed its own primary target.
+      {
+        code: `@Component({ imports: [NgIconsModule.withIcons({ lucideUsers })] }) export class X {}`,
+        filename: '/repo/frontend/src/app/features/users/x.ts',
+        errors: [{ messageId: 'legacyIconModule' }],
+      },
       {
         code: `@Component({ imports: [NgIconsModule] }) export class X {}`,
         filename: '/repo/frontend/src/app/features/users/x.ts',

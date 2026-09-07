@@ -29,4 +29,4 @@ Any `@Component` whose `imports` array lists `NgIconsModule`. The check reuses `
 
 ## Known blind spots
 
-It reads the decorator metadata's `imports` array literal only, via `componentImports`. `NgIconsModule` reached through a spread, a computed reference, or re-exported under a local alias is invisible to it. It also has no opinion on whether a component actually needs icons at all — it only stops the legacy registration path once a component reaches for icons.
+It reads the decorator metadata's `imports` array literal only, via `componentImports`. Both entry shapes count: the bare `NgIconsModule` identifier and the configured call `NgIconsModule.withIcons({ ... })`, which is the form anybody actually writes and which an earlier cut of this rule missed. `NgIconsModule` reached through a spread, a computed reference, or re-exported under a local alias is still invisible to it, because what a spread holds is not decidable from the decorator. It also has no opinion on whether a component actually needs icons at all — it only stops the legacy registration path once a component reaches for icons.

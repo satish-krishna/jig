@@ -28,6 +28,13 @@ test('no-forms-module', () => {
         filename: '/repo/frontend/src/app/features/users/x.ts',
         errors: [{ messageId: 'formsModule' }],
       },
+      // Same member-call shape the icon rule missed. All three banned-module rules
+      // share componentImports, so all three share its blind spots.
+      {
+        code: `@Component({ imports: [FormsModule.withConfig({})] }) export class X {}`,
+        filename: '/repo/frontend/src/app/features/users/x.ts',
+        errors: [{ messageId: 'formsModule' }],
+      },
       {
         code: `@Component({ imports: [FormsModule] }) export class X {}`,
         filename: '/repo/frontend/src/app/shell/x.ts',
