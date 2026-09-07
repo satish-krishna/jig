@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 22,
+  "count": 23,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -113,6 +113,14 @@
       "file": "apps/desktop/src-tauri/src/users.rs",
       "language": "rust",
       "symbol": "UserStore"
+    },
+    {
+      "capability": "testing.wait-until",
+      "intent": "Replace a fixed-duration sleep in a spec with a predicate poll that fails loudly, by name, on a genuine timeout instead of racing a guess.",
+      "reuse": "Any spec waiting out an async CDK overlay: pass a predicate for the DOM state you want and a tick, e.g. `() => fixture.detectChanges()`.",
+      "file": "frontend/src/app/showcase/pages/wait-until.ts",
+      "language": "typescript",
+      "symbol": "waitUntil"
     },
     {
       "capability": "transport.app-error",
