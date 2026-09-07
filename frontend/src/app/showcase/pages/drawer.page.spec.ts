@@ -82,9 +82,13 @@ describe('DrawerPage', () => {
 
     await clickButton('Filters (12)');
     const content = document.body.querySelector('hlm-drawer-content');
-    const starred = [...content!.querySelectorAll('label')].find((l) => l.textContent?.includes('Starred'));
-    const checkbox = starred!.querySelector('input[type="checkbox"]') as HTMLInputElement;
-    expect(checkbox.checked).toBe(false);
+    // hlm-checkbox is a sibling to its label, paired by inputId/for — not
+    // native input-inside-label — so find the pairing id off the label and
+    // query the real, clickable role="checkbox" button by that id.
+    const starredLabel = [...content!.querySelectorAll('label')].find((l) => l.textContent?.includes('Starred'));
+    const checkboxId = starredLabel!.getAttribute('for');
+    const checkbox = content!.querySelector(`#${checkboxId}`) as HTMLButtonElement;
+    expect(checkbox.getAttribute('aria-checked')).toBe('false');
 
     checkbox.click();
     fixture.detectChanges();

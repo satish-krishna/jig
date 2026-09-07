@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSlash } from '@ng-icons/lucide';
 import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { ComponentPage } from '../component-page';
 import { Usage } from '../usage';
 
@@ -17,7 +18,7 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-breadcrumb-page',
-  imports: [ComponentPage, Usage, HlmBreadcrumbImports, NgIcon],
+  imports: [ComponentPage, Usage, HlmBreadcrumbImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ lucideSlash })],
   template: `
     <app-component-page slug="breadcrumb">
@@ -88,8 +89,10 @@ import { Usage } from '../usage';
             </ol>
           </nav>
           <button
+            hlmBtn
+            variant="link"
             type="button"
-            class="text-primary w-fit text-xs underline underline-offset-4"
+            class="w-fit"
             (click)="drillIn()"
           >
             Open "Reports" folder

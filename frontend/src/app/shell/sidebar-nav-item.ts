@@ -4,14 +4,17 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { NgIcon } from '@ng-icons/core';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
 import type { Command } from '../menu';
 
 @Component({
   selector: 'app-sidebar-nav-item',
-  imports: [NgIcon],
+  imports: [NgIcon, HlmButtonImports],
   template: `
     <button
-      class="hlm-nav__item"
+      hlmBtn
+      variant="ghost"
+      class="hlm-nav__item h-auto"
       [attr.data-active]="active()"
       [disabled]="!command().canExecute()"
       (click)="command().execute()"

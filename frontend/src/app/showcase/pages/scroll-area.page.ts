@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCheck } from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -18,7 +19,7 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-scroll-area-page',
-  imports: [ComponentPage, Usage, HlmScrollAreaImports, HlmSeparatorImports, NgScrollbarModule, NgIcon],
+  imports: [ComponentPage, Usage, HlmButtonImports, HlmScrollAreaImports, HlmSeparatorImports, NgScrollbarModule, NgIcon],
   providers: [provideIcons({ lucideCheck })],
   template: `
     <app-component-page slug="scroll-area">
@@ -82,8 +83,10 @@ import { Usage } from '../usage';
           <div class="grid p-s">
             @for (member of members; track member; let i = $index) {
               <button
+                hlmBtn
+                variant="ghost"
                 type="button"
-                class="hover:bg-muted flex items-center justify-between rounded-md px-m py-s text-left text-sm"
+                class="justify-between"
                 (click)="selected.set(i)"
               >
                 {{ member }}

@@ -1,8 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { ComponentPage } from '../component-page';
 import { Usage } from '../usage';
 
@@ -15,7 +17,16 @@ import { Usage } from '../usage';
  */
 @Component({
   selector: 'app-drawer-page',
-  imports: [ComponentPage, Usage, HlmDrawerImports, HlmButtonImports, HlmFieldImports, HlmInputImports],
+  imports: [
+    ComponentPage,
+    Usage,
+    HlmDrawerImports,
+    HlmButtonImports,
+    HlmFieldImports,
+    HlmInputImports,
+    HlmCheckboxImports,
+    HlmLabelImports,
+  ],
   template: `
     <app-component-page slug="drawer">
       <app-usage
@@ -99,14 +110,10 @@ import { Usage } from '../usage';
             </hlm-drawer-header>
             <div class="grid gap-s px-l">
               @for (tag of tags; track tag) {
-                <label class="flex items-center gap-s text-sm">
-                  <input
-                    type="checkbox"
-                    [checked]="selectedTags().includes(tag)"
-                    (change)="toggleTag(tag)"
-                  />
-                  {{ tag }}
-                </label>
+                <div class="flex items-center gap-s text-sm">
+                  <hlm-checkbox [inputId]="'filter-' + tag" [checked]="selectedTags().includes(tag)" (checkedChange)="toggleTag(tag)" />
+                  <label hlmLabel [for]="'filter-' + tag">{{ tag }}</label>
+                </div>
               }
             </div>
             <hlm-drawer-footer>
@@ -186,10 +193,10 @@ toggleTag(tag: string) {
 
 <hlm-drawer-content *hlmDrawerPortal="let ctx">
   @for (tag of tags; track tag) {
-    <label>
-      <input type="checkbox" [checked]="selectedTags().includes(tag)" (change)="toggleTag(tag)" />
-      {{ tag }}
-    </label>
+    <div class="flex items-center gap-s text-sm">
+      <hlm-checkbox [inputId]="'filter-' + tag" [checked]="selectedTags().includes(tag)" (checkedChange)="toggleTag(tag)" />
+      <label hlmLabel [for]="'filter-' + tag">{{ tag }}</label>
+    </div>
   }
 </hlm-drawer-content>`;
 }

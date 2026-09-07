@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideExternalLink } from '@ng-icons/lucide';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { COMPONENT_API } from './component-api.generated';
 import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
 
@@ -14,7 +15,7 @@ import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
  */
 @Component({
   selector: 'app-component-page',
-  imports: [NgIcon],
+  imports: [NgIcon, HlmTableImports],
   providers: [provideIcons({ lucideExternalLink })],
   template: `
     <article class="grid max-w-4xl gap-2xl">
@@ -40,7 +41,7 @@ import { COMPONENTS, DOCS_URL, PATTERN_CATEGORY } from './component-registry';
               <code class="text-muted-foreground font-mono text-xs">{{ cls.selector }}</code>
             </header>
             @if (cls.members.length) {
-              <table class="w-full text-left text-xs">
+              <table hlmTable class="text-left">
                 <thead class="text-muted-foreground">
                   <tr>
                     <th class="px-l py-xs font-medium">Member</th>

@@ -47,7 +47,7 @@ import { Usage } from '../usage';
         <nav hlmPagination>
           <ul hlmPaginationContent>
             <li hlmPaginationItem>
-              <button type="button" class="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center">
+              <button type="button" hlmPaginationLink>
                 <ng-icon name="lucideChevronsLeft" />
               </button>
             </li>
@@ -55,7 +55,7 @@ import { Usage } from '../usage';
             <li hlmPaginationItem><a hlmPaginationLink [isActive]="true">4</a></li>
             <li hlmPaginationItem><hlm-pagination-next iconOnly /></li>
             <li hlmPaginationItem>
-              <button type="button" class="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center">
+              <button type="button" hlmPaginationLink>
                 <ng-icon name="lucideChevronsRight" />
               </button>
             </li>
