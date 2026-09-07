@@ -7,8 +7,8 @@
 //
 // Run AFTER `npm run setup` (it assumes dependencies are installed). Pass the app
 // name (and options) directly to the script, or through npm with `--`:
-//   node tools/init/init.mjs AcmePortal
-//   node tools/init/init.mjs AcmePortal --bundle-id=io.acme.desktop
+//   node tools/init/init.ts AcmePortal
+//   node tools/init/init.ts AcmePortal --bundle-id=io.acme.desktop
 //   npm run init -- AcmePortal --skip-verify   (--skip-verify skips the full test gate)
 
 import { execSync } from 'node:child_process';
@@ -102,7 +102,7 @@ function main() {
   // 7. Prove the renamed app is green.
   if (!skipVerify) {
     console.log('\nRunning verify (full build + all tests)...');
-    sh('node tools/verify/verify.mjs');
+    sh('node tools/verify/verify.ts');
   }
 
   // 8. Commit the fresh app. This bootstrap commit is the one sanctioned commit on

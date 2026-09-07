@@ -2,11 +2,11 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/guard-ruleset.mjs\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/guard-ruleset.ts\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/angular-service-guide.mjs\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/angular-service-guide.ts\""
           }
         ]
       }

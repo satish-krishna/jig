@@ -74,9 +74,13 @@ public sealed class LayerDependencyAnalyzer : DiagnosticAnalyzer
         var rules = LayerRule.Parse(ReadRuleset(context.Options), out var malformedLines);
         if (rules.Length == 0)
         {
-            // A check that goes green because its ruleset vanished is paperwork. Deletion is
-            // neither Write nor Edit, so no PreToolUse hook can catch `rm ArchLayers.txt` —
-            // this is the only guard that sees it. See ADR 0009.
+            // A check that goes green because its ruleset vanished is paperwork. The
+            // PreToolUse guard now also watches Bash, so it catches a literal
+            // `rm ArchLayers.txt` — but that is a heuristic over a shell, and a path
+            // assembled from variables or a deletion through a language runtime still
+            // walks past it. This fires whatever removed the file and however, because
+            // it asks the compilation what it actually has rather than watching for the
+            // act. Belt and braces, not redundancy. See ADR 0009.
             context.RegisterCompilationEndAction(end => end.ReportDiagnostic(
                 Diagnostic.Create(EmptyRuleset, Location.None, RulesetFileName)));
             return;

@@ -63,8 +63,8 @@ test('renameContent rewrites the ESLint plugin import, registration, and rule pr
   // plugin registration key must still match that prefix.
   const n = deriveNames('AcmePortal');
   assert.equal(
-    renameContent("import jig from '../tools/lint/index.mjs';", n),
-    "import acmePortal from '../tools/lint/index.mjs';",
+    renameContent("import jig from '../tools/lint/index.ts';", n),
+    "import acmePortal from '../tools/lint/index.ts';",
   );
   assert.equal(renameContent('plugins: { jig },', n), "plugins: { 'acme-portal': acmePortal },");
   assert.equal(
