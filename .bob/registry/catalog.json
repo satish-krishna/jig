@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 23,
+  "count": 25,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -73,6 +73,22 @@
       "file": "frontend/src/app/contracts/registry.ts",
       "language": "typescript",
       "symbol": "ROUTES"
+    },
+    {
+      "capability": "forms.control-definition",
+      "intent": "A control kind is registered data, never a branch inside SchemaForm.",
+      "reuse": "Declare one per control and pass it to provideFormControls() in app config.",
+      "file": "frontend/src/app/forms/control-definition.ts",
+      "language": "typescript",
+      "symbol": "FormControlDefinition"
+    },
+    {
+      "capability": "forms.control-registry",
+      "intent": "Control choice is a lookup over registered data, not a switch in a component.",
+      "reuse": "Inject it; register kinds with provideFormControls(). Order is semantic — first match wins.",
+      "file": "frontend/src/app/forms/control-registry.ts",
+      "language": "typescript",
+      "symbol": "FormControlRegistry"
     },
     {
       "capability": "forms.dynamic-renderer",
