@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 34,
+  "count": 37,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -111,6 +111,30 @@
       "intent": "z.boolean() infers a checkbox with no meta required.",
       "reuse": "Registered in controls/index.ts; override with control: 'switch' once one exists.",
       "file": "frontend/src/app/forms/controls/checkbox.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.date",
+      "intent": "z.date() infers a picker; the control carries its own adapter dependency.",
+      "reuse": "Registered in controls/index.ts. Nothing else needs changing to use it.",
+      "file": "frontend/src/app/forms/controls/date.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.multiselect",
+      "intent": "z.array(z.enum()) infers a chip multi-select, not a repeater of selects.",
+      "reuse": "Registered before the generic array repeater — order is semantic.",
+      "file": "frontend/src/app/forms/controls/multiselect.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.radio",
+      "intent": "Same values as select, different affordance, chosen by meta.control.",
+      "reuse": "Set control: 'radio' on an enum field's meta.",
+      "file": "frontend/src/app/forms/controls/radio.control.ts",
       "language": "typescript",
       "symbol": "selector"
     },

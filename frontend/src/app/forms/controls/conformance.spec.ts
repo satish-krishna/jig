@@ -46,6 +46,29 @@ const SAMPLE: Record<string, ConformanceSample> = {
     value: 'b',
     rendered: (r) => (r.querySelector('select') as HTMLSelectElement | null)?.value,
   },
+  radio: {
+    schema: z.enum(['a', 'b']),
+    value: 'b',
+    // hlm-radio-group wraps brn-radio-group. Each brn-radio has a hidden input with
+    // [checked]="_checked()" and [attr.value]="value()". The checked input's value
+    // is the selected value.
+    rendered: (r) => {
+      const checked = r.querySelector('input[type="radio"]:checked') as HTMLInputElement | null;
+      return checked?.value ?? null;
+    },
+  },
+  multiselect: {
+    schema: z.array(z.enum(['a', 'b'])),
+    value: ['a'],
+    // hlm-combobox-multiple renders hlm-combobox-chip for each selected value.
+    // Each chip is rendered via ng-content with the label, so we read the text content
+    // of chips and reconstruct the values by finding matching options.
+    rendered: (r) => {
+      const chips = [...r.querySelectorAll('hlm-combobox-chip')] as HTMLElement[];
+      // The chip text content is the label; for the test, we have a and b as both value and label.
+      return chips.map((chip) => chip.textContent?.trim()).filter(Boolean) as string[];
+    },
+  },
   checkbox: {
     schema: z.boolean(),
     value: true,
@@ -85,10 +108,14 @@ describe('every registered control conforms', () => {
 
       control.setValue(sample.value);
       fixture.detectChanges();
-      expect(
-        sample.rendered(fixture.nativeElement),
-        `${def.kind} rendered an element but did not reflect its control into the DOM — is [formControl] bound?`,
-      ).toEqual(sample.value);
+      const rendered = sample.rendered(fixture.nativeElement);
+      const message = `${def.kind} rendered an element but did not reflect its control into the DOM — is [formControl] bound?`;
+      // Use toEqual for reference types (arrays); toBe for primitives.
+      if ('multiselect' === def.kind) {
+        expect(rendered, message).toEqual(sample.value);
+      } else {
+        expect(rendered, message).toBe(sample.value);
+      }
     });
   }
 });

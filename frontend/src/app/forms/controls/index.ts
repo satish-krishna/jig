@@ -1,5 +1,8 @@
 import { provideFormControlDefaults, type FormControlDefinition } from '../control-definition';
 import { CheckboxControl } from './checkbox.control';
+import { DateControl } from './date.control';
+import { MultiselectControl } from './multiselect.control';
+import { RadioControl } from './radio.control';
 import { SelectControl } from './select.control';
 import { TextControl } from './text.control';
 import { TextareaControl } from './textarea.control';
@@ -16,11 +19,20 @@ const isType = (type: string) => (s: { def: { type: string } }) => s.def.type ==
  * @reuse Call provideDefaultFormControls() in app config. Add a kind with a new file plus one entry.
  */
 export const DEFAULT_FORM_CONTROLS: readonly FormControlDefinition[] = [
+  // Override-only kinds first: no matches(), so they never shadow anything.
   { kind: 'textarea', component: TextareaControl, defaultValue: () => '' },
+  { kind: 'radio', component: RadioControl, defaultValue: () => '' },
+  { kind: 'email', component: TextControl, defaultValue: () => '' },
+
+  // Narrow shapes before broad ones. multiselect claims array-of-enum, so it
+  // MUST precede the generic array repeater or it is unreachable.
+  { kind: 'multiselect', component: MultiselectControl, defaultValue: () => [],
+    matches: (s) => s.def.type === 'array' &&
+      ((s.def as unknown as { element: { def: { type: string } } }).element.def.type === 'enum') },
+  { kind: 'select', component: SelectControl, defaultValue: () => '', matches: isType('enum') },
+  { kind: 'date', component: DateControl, defaultValue: () => null, matches: isType('date') },
   { kind: 'checkbox', component: CheckboxControl, defaultValue: () => false, matches: isType('boolean') },
   { kind: 'number', component: TextControl, defaultValue: () => null, matches: isType('number') },
-  { kind: 'email', component: TextControl, defaultValue: () => '' },
-  { kind: 'select', component: SelectControl, defaultValue: () => '', matches: isType('enum') },
   { kind: 'text', component: TextControl, defaultValue: () => '', matches: isType('string') },
 ];
 
@@ -30,4 +42,4 @@ export function provideDefaultFormControls() {
   return provideFormControlDefaults(...DEFAULT_FORM_CONTROLS);
 }
 
-export { TextControl, TextareaControl, CheckboxControl, SelectControl };
+export { TextControl, TextareaControl, CheckboxControl, SelectControl, RadioControl, MultiselectControl, DateControl };
