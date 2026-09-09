@@ -18,6 +18,8 @@ interface ConformanceSample {
   readonly value: unknown;
   /** Read this control's rendered state back out of the DOM. */
   readonly rendered: (root: HTMLElement) => unknown;
+  /** Compare against this instead of `value` when the DOM cannot echo the value verbatim. */
+  readonly expected?: unknown;
 }
 
 const SAMPLE: Record<string, ConformanceSample> = {
@@ -79,12 +81,44 @@ const SAMPLE: Record<string, ConformanceSample> = {
     // native <input type="checkbox"> in this component's render output.
     rendered: (r) => r.querySelector('[role=checkbox]')?.getAttribute('aria-checked') === 'true',
   },
+  date: {
+    schema: z.date(),
+    value: new Date('2026-01-01T12:00:00Z'),
+    // The trigger renders a locale-formatted date, so asserting the exact
+    // string would be locale-dependent. Asserting the year appears is
+    // locale-proof and still DOM-derived: an unbound control shows only the
+    // placeholder, which contains no year. Confirmed in
+    // frontend/libs/ui/date-picker/src/lib/hlm-date-picker-trigger.ts: the
+    // button element contains a span with _formattedDate() text when a date
+    // is set, or ng-content (placeholder) when empty. The button has
+    // data-placeholder attribute when no date is selected.
+    rendered: (r) => {
+      const button = r.querySelector('button') as HTMLButtonElement | null;
+      if (!button) return false;
+      // If data-placeholder is set, no date is selected
+      if (button.hasAttribute('data-placeholder')) return false;
+      // A date is selected; check if the year appears in the button text
+      return button.textContent?.includes('2026') ?? false;
+    },
+    expected: true,
+  },
 };
+
+// Kinds deliberately covered elsewhere rather than by this table.
+// `group` and `array` are structural containers exercised end-to-end in
+// schema-form.spec.ts and array.control.spec.ts, where a real schema and a
+// real form exist to nest into.
+const COVERED_ELSEWHERE = new Set(['group', 'array']);
 
 describe('every registered control conforms', () => {
   for (const def of DEFAULT_FORM_CONTROLS) {
     const sample = SAMPLE[def.kind];
-    if (!sample) continue; // group and array are covered by schema-form.spec.ts
+    if (!sample) {
+      if (!COVERED_ELSEWHERE.has(def.kind)) {
+        throw new Error(`Kind '${def.kind}' registered in DEFAULT_FORM_CONTROLS but not in SAMPLE or COVERED_ELSEWHERE`);
+      }
+      continue;
+    }
 
     it(`${def.kind} renders an interactive element and reflects its control`, () => {
       const control = new FormControl(def.defaultValue?.(sample.schema) ?? null);
@@ -110,12 +144,24 @@ describe('every registered control conforms', () => {
       fixture.detectChanges();
       const rendered = sample.rendered(fixture.nativeElement);
       const message = `${def.kind} rendered an element but did not reflect its control into the DOM — is [formControl] bound?`;
+      const expected = sample.expected ?? sample.value;
       // Use toEqual for reference types (arrays); toBe for primitives.
       if ('multiselect' === def.kind) {
-        expect(rendered, message).toEqual(sample.value);
+        expect(rendered, message).toEqual(expected);
       } else {
-        expect(rendered, message).toBe(sample.value);
+        expect(rendered, message).toBe(expected);
       }
     });
   }
+
+  it('every kind in DEFAULT_FORM_CONTROLS is either sampled or listed as covered elsewhere', () => {
+    const sampledKinds = new Set(Object.keys(SAMPLE));
+    const coveredKinds = new Set([...sampledKinds, ...COVERED_ELSEWHERE]);
+    const registeredKinds = new Set(DEFAULT_FORM_CONTROLS.map((d) => d.kind));
+
+    const uncovered = [...registeredKinds].filter((k) => !coveredKinds.has(k));
+    if (uncovered.length > 0) {
+      throw new Error(`Uncovered control kinds: ${uncovered.join(', ')}. Add to SAMPLE or COVERED_ELSEWHERE.`);
+    }
+  });
 });
