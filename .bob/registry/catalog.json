@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 32,
+  "count": 34,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -91,6 +91,14 @@
       "symbol": "FormControlDefinition"
     },
     {
+      "capability": "forms.control-options",
+      "intent": "Option values are owned by z.enum; meta owns only the words.",
+      "reuse": "Call from any option-bearing control with its FieldSpec.",
+      "file": "frontend/src/app/forms/controls/options.ts",
+      "language": "typescript",
+      "symbol": "optionsOf"
+    },
+    {
       "capability": "forms.control-registry",
       "intent": "Control choice is a lookup over registered data, not a switch in a component.",
       "reuse": "Inject it; register kinds with provideFormControls(). Order is semantic — first match wins.",
@@ -103,6 +111,14 @@
       "intent": "z.boolean() infers a checkbox with no meta required.",
       "reuse": "Registered in controls/index.ts; override with control: 'switch' once one exists.",
       "file": "frontend/src/app/forms/controls/checkbox.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.select",
+      "intent": "z.enum() infers a select with no meta beyond the label.",
+      "reuse": "Override with control: 'radio' for the same values as radio buttons.",
+      "file": "frontend/src/app/forms/controls/select.control.ts",
       "language": "typescript",
       "symbol": "selector"
     },

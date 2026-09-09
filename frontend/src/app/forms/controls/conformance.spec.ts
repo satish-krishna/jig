@@ -19,6 +19,7 @@ const SAMPLE: Record<string, { schema: z.ZodType; value: unknown }> = {
   number: { schema: z.number(), value: 7 },
   textarea: { schema: z.string(), value: 'long' },
   checkbox: { schema: z.boolean(), value: true },
+  select: { schema: z.enum(['a', 'b']), value: 'b' },
 };
 
 describe('every registered control conforms', () => {

@@ -1,5 +1,6 @@
 import { provideFormControlDefaults, type FormControlDefinition } from '../control-definition';
 import { CheckboxControl } from './checkbox.control';
+import { SelectControl } from './select.control';
 import { TextControl } from './text.control';
 import { TextareaControl } from './textarea.control';
 
@@ -19,6 +20,7 @@ export const DEFAULT_FORM_CONTROLS: readonly FormControlDefinition[] = [
   { kind: 'checkbox', component: CheckboxControl, defaultValue: () => false, matches: isType('boolean') },
   { kind: 'number', component: TextControl, defaultValue: () => null, matches: isType('number') },
   { kind: 'email', component: TextControl, defaultValue: () => '' },
+  { kind: 'select', component: SelectControl, defaultValue: () => '', matches: isType('enum') },
   { kind: 'text', component: TextControl, defaultValue: () => '', matches: isType('string') },
 ];
 
@@ -28,4 +30,4 @@ export function provideDefaultFormControls() {
   return provideFormControlDefaults(...DEFAULT_FORM_CONTROLS);
 }
 
-export { TextControl, TextareaControl, CheckboxControl };
+export { TextControl, TextareaControl, CheckboxControl, SelectControl };
