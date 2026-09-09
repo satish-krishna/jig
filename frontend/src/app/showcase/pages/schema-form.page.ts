@@ -29,15 +29,9 @@ const everyKindSchema = z.object({
   contact: z.string().meta({ label: 'Email', control: 'email', order: 2 } satisfies FormFieldMeta),
   // coerce, because an <input type="number"> hands Angular a string
   retries: z.coerce.number().meta({ label: 'Number', control: 'number', order: 3 } satisfies FormFieldMeta),
-  tier: z.string().meta({
-    label: 'Select',
-    control: 'select',
-    options: [
-      { value: 'free', label: 'Free' },
-      { value: 'pro', label: 'Pro' },
-    ],
-    order: 4,
-  } satisfies FormFieldMeta),
+  tier: z
+    .enum(['free', 'pro'])
+    .meta({ label: 'Select', optionMeta: { free: { label: 'Free' }, pro: { label: 'Pro' } }, order: 4 } satisfies FormFieldMeta),
   agreed: z.boolean().meta({ label: 'Checkbox', control: 'checkbox', order: 5 } satisfies FormFieldMeta),
   notes: z.string().meta({ label: 'Textarea', control: 'textarea', order: 6 } satisfies FormFieldMeta),
 });
@@ -153,9 +147,8 @@ export class SchemaFormPage {
 // text, email and number all fall through to <input [type]>.
 retries: z.coerce.number()   // coerce: the input hands Angular a string
   .meta({ label: 'Number', control: 'number' } satisfies FormFieldMeta),
-tier: z.string().meta({
-  label: 'Select', control: 'select',
-  options: [{ value: 'free', label: 'Free' }, { value: 'pro', label: 'Pro' }],
+tier: z.enum(['free', 'pro']).meta({
+  label: 'Select', optionMeta: { free: { label: 'Free' }, pro: { label: 'Pro' } },
 } satisfies FormFieldMeta),`;
 
   protected readonly codeValidation = `// onSubmit runs schema.safeParse, then applyZodIssues writes each issue

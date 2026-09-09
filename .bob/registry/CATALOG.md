@@ -60,14 +60,14 @@
 - **Reuse:** Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.
 - **Where:** `frontend/src/app/forms/schema-form.ts`
 
-### `forms.field-meta` — ControlKind (typescript)
+### `forms.field-meta` — ControlKindRegistry (typescript)
 - **Intent:** Field presentation lives on the schema field, not in a parallel config object.
-- **Reuse:** Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field.
+- **Reuse:** Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field, AFTER any .optional()/.nullable()/.default() wrapper where practical.
 - **Where:** `frontend/src/app/forms/form-field-meta.ts`
 
-### `forms.zod-meta` — formMeta (typescript)
+### `forms.zod-meta` — resolveMeta (typescript)
 - **Intent:** Field presentation stays on the zod schema; components read it, never duplicate it.
-- **Reuse:** Call formMeta(schema) in a form component; pair with validateStandardSchema for validation.
+- **Reuse:** Call resolveMeta(node, path) for one node, or formMeta(objectSchema) for a whole shape.
 - **Where:** `frontend/src/app/forms/zod-meta.ts`
 
 ## repositories

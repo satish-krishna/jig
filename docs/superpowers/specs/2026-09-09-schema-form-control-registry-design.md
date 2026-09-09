@@ -37,7 +37,28 @@ The boundary is expected to move, one control at a time, by extension. The agree
 
 ### The type owns shape and valid values; the meta owns the human-facing words
 
-`meta.control` becomes optional and acts only as an override. The control kind is inferred from the zod type by default. `options` is deleted from `FormFieldMeta` entirely; the values of a `select`, `radio`, or `multiselect` come from `z.enum`. A field whose display labels differ from its values says so with `optionLabels`, a `Record<string, string>` keyed by enum value.
+`meta.control` becomes optional and acts only as an override. The control kind is inferred from the zod type by default. `options` is deleted from `FormFieldMeta` entirely; the values of a `select`, `radio`, or `multiselect` come from `z.enum`. Per-option presentation that the type cannot express rides on `optionMeta`, keyed by enum value:
+
+```ts
+export interface OptionMeta {
+  label?: string;        // defaults to the enum value itself
+  description?: string;
+  disabled?: boolean;
+  icon?: string;         // registered @ng-icons/lucide name
+}
+
+optionMeta?: Record<string, OptionMeta>;
+```
+
+`OptionMeta` is a named interface rather than an open property bag such as `Record<string, string | number | boolean>`, and that is the same call every other decision in this design makes: a misspelled key must be a compile error, not an option that silently renders enabled. The extensibility a bag would buy is available without the cost, because a control registered from outside this folder widens the type through interface declaration merging, which is checked at the merge site:
+
+```ts
+declare module '@app/forms' {
+  interface OptionMeta { severity?: 'warn' | 'error' }
+}
+```
+
+That is the registry's own trick — extend without editing — applied to the type instead of the component.
 
 `label` stays required, so a missing label remains a compile error under `satisfies FormFieldMeta`. Inferring a label from the key name would silently ship machine-generated words to a user, which is a guarantee worth keeping.
 
@@ -194,7 +215,7 @@ frontend/src/app/forms/
   schema-form.ts           MOD  @switch and defaultFor() deleted; grid + outlet
   zod-meta.ts              MOD  unwraps optional/nullable/default; merges meta; throws on missing label
   schema-form.util.ts      MOD  path-addressed applyZodIssues; recursive clearZodIssues
-  form-field-meta.ts       MOD  control optional; span and optionLabels added; options deleted
+  form-field-meta.ts       MOD  control optional; span, OptionMeta and optionMeta added; options deleted
 ```
 
 `SchemaFormBuilder` is injectable rather than a set of free functions because all three of its jobs depend on the registry. That keeps `SchemaForm` thin and makes the whole resolution path unit-testable without rendering a component.
@@ -233,7 +254,7 @@ TDD, red-green-refactor, per the non-negotiables. Every production line below is
 |---|---|
 | `control-registry.spec.ts` | `meta.control` beats inference; first match wins; caller definitions resolve before defaults; unsupported throws with a dotted path; shipped default order |
 | `schema-form-builder.spec.ts` | field tree shape for nested objects and arrays; meta recovered through `.optional()`; missing label throws; `.min(n)` seeds rows; `fieldsFromSchema` accepts a bare non-root node, which is what a future union control needs at runtime |
-| `controls/*.control.spec.ts` | one per control: renders its primitive, reflects the control value, writes back |
+| `controls/*.control.spec.ts` | one per control: renders its primitive, reflects the control value, writes back. The three option-bearing controls also assert `optionMeta` is honored: a value with no entry falls back to the enum value as its label, and `disabled: true` renders an option the user cannot select |
 | `conformance.spec.ts` | every registered control renders something interactive and writes back |
 | `schema-form.spec.ts` | integration: path-addressed error folding into a nested group and an array row; array add and remove; span classes present; `dense` absent; existing behaviors preserved |
 

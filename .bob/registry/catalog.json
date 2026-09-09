@@ -85,18 +85,18 @@
     {
       "capability": "forms.field-meta",
       "intent": "Field presentation lives on the schema field, not in a parallel config object.",
-      "reuse": "Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field.",
+      "reuse": "Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field, AFTER any .optional()/.nullable()/.default() wrapper where practical.",
       "file": "frontend/src/app/forms/form-field-meta.ts",
       "language": "typescript",
-      "symbol": "ControlKind"
+      "symbol": "ControlKindRegistry"
     },
     {
       "capability": "forms.zod-meta",
       "intent": "Field presentation stays on the zod schema; components read it, never duplicate it.",
-      "reuse": "Call formMeta(schema) in a form component; pair with validateStandardSchema for validation.",
+      "reuse": "Call resolveMeta(node, path) for one node, or formMeta(objectSchema) for a whole shape.",
       "file": "frontend/src/app/forms/zod-meta.ts",
       "language": "typescript",
-      "symbol": "formMeta"
+      "symbol": "resolveMeta"
     },
     {
       "capability": "repositories.user",
