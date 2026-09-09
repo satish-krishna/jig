@@ -1,109 +1,79 @@
-import { Component, computed, input, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import type { z } from 'zod';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
-import { HlmInputImports } from '@spartan-ng/helm/input';
-import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
-import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
-import type { FormFieldMeta } from './form-field-meta';
-import { applyZodIssues, clearZodIssues, fieldsFromSchema } from './schema-form.util';
-
-function defaultFor(meta: FormFieldMeta): unknown {
-  if (meta.control === 'checkbox') return false;
-  if (meta.control === 'number') return null;
-  return '';
-}
+import { SchemaFormBuilder } from './schema-form-builder';
+import { applyZodIssues, clearZodIssues } from './schema-form.util';
 
 /**
- * Dynamic, reactive-forms renderer for a zod schema known only at runtime: it
- * builds a FormGroup from the schema's fields, renders each by its meta.control
- * kind with spartan helm controls, and validates through the zod schema on submit,
- * folding issues back onto the fields. Use this when the schema is not known at
- * compile time (agent-emitted forms, admin/config UIs). For a form you author by
- * hand, prefer the typed signal-forms pattern in features/users/user-form.ts.
+ * Dynamic renderer for a zod schema known only at runtime. It builds a control
+ * tree from the schema, renders each field through the control registered for
+ * its zod type, and validates through the schema on submit, folding issues back
+ * onto the matching controls by path.
+ *
+ * This component knows NOTHING about control kinds. Adding one is a new file
+ * plus one entry in controls/index.ts — see ADR on the control registry.
+ *
+ * For a form you author by hand, prefer signal-forms (features/users/user-form.ts).
  *
  * @capability forms.dynamic-renderer
- * @intent Render any zod schema at runtime; the schema stays the source of truth for shape and validation.
- * @reuse Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.
+ * @intent Render any zod schema at runtime; the schema stays the source of truth.
+ * @reuse Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted).
  */
 @Component({
   selector: 'app-schema-form',
-  imports: [
-    ReactiveFormsModule,
-    HlmFieldImports,
-    HlmInputImports,
-    HlmTextareaImports,
-    HlmNativeSelectImports,
-    HlmCheckboxImports,
-    HlmButtonImports,
-  ],
+  imports: [ReactiveFormsModule, NgComponentOutlet, HlmFieldImports, HlmButtonImports],
   template: `
-    <!-- hlmFieldGroup, not a hand-written stack: hlm-field lays out ONE field and
-         says nothing about the gap between rows, and spartan already ships the
-         primitive for that. -->
-    <form hlmFieldGroup [formGroup]="form()" (ngSubmit)="onSubmit()">
-      @for (field of fields(); track field.name) {
-        <hlm-field>
-          <label hlmFieldLabel [attr.for]="field.name">{{ field.meta.label }}</label>
-          @switch (field.meta.control) {
-            @case ('textarea') {
-              <textarea hlmTextarea [id]="field.name" [formControlName]="field.name"
-                        [attr.placeholder]="field.meta.placeholder ?? null"></textarea>
-            }
-            @case ('select') {
-              <hlm-native-select [selectId]="field.name" [formControlName]="field.name">
-                @for (value of optionValues(field.meta); track value) {
-                  <option hlmNativeSelectOption [value]="value">{{ field.meta.optionMeta?.[value]?.label ?? value }}</option>
-                }
-              </hlm-native-select>
-            }
-            @case ('checkbox') {
-              <hlm-checkbox [inputId]="field.name" [formControlName]="field.name" />
-            }
-            @default {
-              <input hlmInput [type]="field.meta.control" [id]="field.name" [formControlName]="field.name"
-                     [attr.placeholder]="field.meta.placeholder ?? null" />
-            }
-          }
-          <!-- Always rendered: hlm-field-error hides itself until the field's error
-               state matches, and only registers itself with the control's
-               aria-describedby while it is showing. Wrapping it in @if or forcing it
-               visible with forceShow bypasses both. -->
-          <hlm-field-error [attr.data-error-for]="field.name">
-            {{ control(field.name)?.errors?.['zod'] }}
-          </hlm-field-error>
-        </hlm-field>
-      }
+    <form [formGroup]="form()" (ngSubmit)="onSubmit()">
+      <div hlmFieldGroup data-schema-grid class="grid grid-cols-4 gap-m">
+        @for (field of fields(); track field.key) {
+          <div
+            class="@container/field-group"
+            [class.col-span-1]="field.meta.span === 1"
+            [class.col-span-2]="field.meta.span === 2"
+            [class.col-span-3]="field.meta.span === 3"
+            [class.col-span-4]="(field.meta.span ?? 4) === 4"
+          >
+            <hlm-field>
+              <label hlmFieldLabel [attr.for]="field.key">{{ field.meta.label }}</label>
+              <ng-container
+                [ngComponentOutlet]="registryComponent(field.kind)"
+                [ngComponentOutletInputs]="{ field: field, control: form().get(field.key)! }"
+              />
+              <!-- Always rendered: hlm-field-error hides itself until the field's
+                   error state matches, and only registers with the control's
+                   aria-describedby while showing. Wrapping it in @if bypasses both. -->
+              <hlm-field-error [attr.data-error-for]="field.key">
+                {{ form().get(field.key)?.errors?.['zod'] }}
+              </hlm-field-error>
+            </hlm-field>
+          </div>
+        }
+      </div>
       <button hlmBtn type="submit">{{ submitLabel() }}</button>
     </form>
   `,
+  styleUrl: './schema-form.css',
 })
 export class SchemaForm {
+  private readonly builder = inject(SchemaFormBuilder);
+
   readonly schema = input.required<z.ZodObject<z.ZodRawShape>>();
   readonly submitLabel = input('Save');
   readonly submitted = output<Record<string, unknown>>();
 
-  readonly fields = computed(() => fieldsFromSchema(this.schema()));
+  protected readonly rootSpec = computed(() => this.builder.fieldsFromSchema(this.schema()));
+  protected readonly fields = computed(() => this.rootSpec().children ?? []);
 
-  readonly form = computed(() => {
-    const controls: Record<string, FormControl> = {};
-    for (const field of this.fields()) {
-      controls[field.name] = new FormControl(defaultFor(field.meta));
-    }
-    return new FormGroup(controls);
-  });
+  // Rebuilt only when `schema` changes. A schema swap therefore RESETS the form,
+  // discarding user input including added array rows. Preserving state across two
+  // schema versions is a diffing subsystem and nothing here swaps a schema mid-edit.
+  readonly form = computed(() => this.builder.buildControl(this.rootSpec()) as FormGroup);
 
-  protected control(name: string) {
-    return this.form().get(name);
-  }
-
-  // Transitional: the whole @switch is deleted in Task 4, when options move to
-  // the control registry and are derived from z.enum. This keeps the AOT build
-  // green in between.
-  protected optionValues(meta: FormFieldMeta): string[] {
-    return Object.keys(meta.optionMeta ?? {});
+  protected registryComponent(kind: string) {
+    return this.builder.componentFor(kind);
   }
 
   onSubmit(): void {
@@ -114,11 +84,9 @@ export class SchemaForm {
       this.submitted.emit(result.data as Record<string, unknown>);
     } else {
       applyZodIssues(form, result.error);
-      // The default spartan ErrorStateMatcher only reports a control as invalid
-      // once it is touched (or its parent form is submitted), and that flag is
-      // what drives data-matches-spartan-invalid — the attribute the generated
-      // helm classes key off for the destructive ring. Without this the control
-      // stays styled as pristine while the message below it says otherwise.
+      // The spartan ErrorStateMatcher only reports a control invalid once it is
+      // touched, and that flag drives data-matches-spartan-invalid — the attribute
+      // the generated helm classes key off for the destructive ring.
       form.markAllAsTouched();
     }
   }

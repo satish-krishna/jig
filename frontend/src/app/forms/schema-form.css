@@ -1,0 +1,14 @@
+/* The grid is its own container, so a nested group's grid collapses at its own
+   width rather than the outer form's. */
+[data-schema-grid] {
+  container: schema-form / inline-size;
+}
+
+/* Below this width every span flattens to one column. Done here rather than as
+   per-cell responsive classes, because `md:col-span-2` would need a colon inside
+   an Angular [class.…] binding name. */
+@container schema-form (max-width: 32rem) {
+  [data-schema-grid] > * {
+    grid-column: auto;
+  }
+}

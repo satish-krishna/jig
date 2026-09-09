@@ -47,11 +47,11 @@ export class FormControlRegistry {
     const inner = unwrap(schema);
 
     if (meta.control) {
-      const byKind = this.definitions.find((d) => d.kind === meta.control);
-      if (!byKind) {
+      try {
+        return this.byKind(meta.control);
+      } catch {
         throw new SchemaFormUnsupportedError(path, `control override "${meta.control}"`);
       }
-      return byKind;
     }
 
     const matched = this.definitions.find((d) => d.matches?.(inner) === true);
@@ -59,5 +59,11 @@ export class FormControlRegistry {
       throw new SchemaFormUnsupportedError(path, (inner.def as { type: string }).type);
     }
     return matched;
+  }
+
+  byKind(kind: string): FormControlDefinition {
+    const found = this.definitions.find((d) => d.kind === kind);
+    if (!found) throw new SchemaFormUnsupportedError(kind, `control kind "${kind}"`);
+    return found;
   }
 }

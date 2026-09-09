@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, type Type } from '@angular/core';
 import { AbstractControl, FormArray, FormControl, FormGroup } from '@angular/forms';
 import type { z } from 'zod';
 import { FormControlRegistry } from './control-registry';
@@ -28,15 +28,18 @@ export class SchemaFormBuilder {
   fieldsFromSchema(schema: z.ZodType, key = '', path = ''): FieldSpec {
     // The root (no key, no path) and an array item template (a path ending in
     // `[]`) render no label of their own, so neither is required to carry one.
-    const isUnlabelledContainer = (!key && !path) || path.endsWith('[]');
+    const isUnlabeledContainer = (!key && !path) || path.endsWith('[]');
     const meta = resolveMeta(schema, path || key || '<root>', {
-      requireLabel: !isUnlabelledContainer,
+      requireLabel: !isUnlabeledContainer,
     });
     const inner = unwrap(schema);
-    const kind = this.registry.resolve(schema, meta, path || key).kind;
-
     const def = inner.def as unknown as { type: string };
 
+    // An object node is always a group — there is no ambiguity to resolve the
+    // way an array has (plain array vs. multiselect), so this skips the
+    // registry rather than requiring a 'group' definition to be registered
+    // before any object schema, including the root every caller passes, can
+    // be walked at all.
     if (def.type === 'object') {
       const shape = (inner.def as unknown as ObjectDef).shape;
       const children = Object.entries(shape)
@@ -44,8 +47,10 @@ export class SchemaFormBuilder {
           this.fieldsFromSchema(child, childKey, path ? `${path}.${childKey}` : childKey),
         )
         .sort((a, b) => (a.meta.order ?? 0) - (b.meta.order ?? 0));
-      return { key, kind, schema: inner, meta, children };
+      return { key, kind: 'group', schema: inner, meta, children };
     }
+
+    const kind = this.registry.resolve(schema, meta, path || key).kind;
 
     if (def.type === 'array' && kind === 'array') {
       const element = (inner.def as unknown as ArrayDef).element;
@@ -73,6 +78,12 @@ export class SchemaFormBuilder {
 
     const definition = this.registry.resolve(spec.schema, spec.meta, spec.key);
     return new FormControl(definition.defaultValue?.(spec.schema) ?? null);
+  }
+
+  /** The component registered for a kind. Used by the outlet in SchemaForm and GroupControl. */
+  componentFor(kind: string): Type<unknown> {
+    const definition = this.registry.byKind(kind);
+    return definition.component;
   }
 }
 

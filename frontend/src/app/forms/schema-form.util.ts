@@ -1,37 +1,31 @@
-import type { FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import type { z } from 'zod';
-import type { FormFieldMeta } from './form-field-meta';
-import { formMeta } from './zod-meta';
 
-/** One rendered field: its control name plus the presentation meta from the schema. */
-export interface FieldSpec {
-  name: string;
-  meta: FormFieldMeta;
-}
-
-/** The schema's fields in render order, each with its meta. Builds on formMeta. */
-export function fieldsFromSchema(schema: z.ZodObject<z.ZodRawShape>): FieldSpec[] {
-  return Object.entries(formMeta(schema))
-    .map(([name, meta]) => ({ name, meta }))
-    .sort((a, b) => (a.meta.order ?? 0) - (b.meta.order ?? 0));
-}
-
-/** Fold a zod issue tree back onto the matching controls so the view can show it. */
+/**
+ * Fold a zod issue tree back onto the matching controls. Angular's get()
+ * accepts Array<string | number> and walks FormGroup and FormArray alike, and
+ * zod hands back issue.path in exactly that shape — so a nested or indexed
+ * issue needs no special handling.
+ */
 export function applyZodIssues(form: FormGroup, error: z.ZodError): void {
   for (const issue of error.issues) {
-    const control = form.get(String(issue.path[0]));
+    const path = issue.path.filter((p): p is string | number => typeof p !== 'symbol');
+    const control = path.length ? form.get(path) : form;
     if (control) {
       control.setErrors({ ...(control.errors ?? {}), zod: issue.message });
     }
   }
 }
 
-/** Remove any prior zod errors before re-validating, leaving other errors intact. */
-export function clearZodIssues(form: FormGroup): void {
-  for (const control of Object.values(form.controls)) {
-    if (control.errors?.['zod']) {
-      const { zod, ...rest } = control.errors;
-      control.setErrors(Object.keys(rest).length ? rest : null);
-    }
+/** Remove any prior zod errors from the whole tree, leaving other errors intact. */
+export function clearZodIssues(control: AbstractControl): void {
+  if (control.errors?.['zod']) {
+    const { zod, ...rest } = control.errors;
+    control.setErrors(Object.keys(rest).length ? rest : null);
+  }
+  if (control instanceof FormGroup) {
+    for (const child of Object.values(control.controls)) clearZodIssues(child);
+  } else if (control instanceof FormArray) {
+    for (const child of control.controls) clearZodIssues(child);
   }
 }

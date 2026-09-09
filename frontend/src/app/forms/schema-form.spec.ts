@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { z } from 'zod';
 import { SchemaForm } from './schema-form';
-import { fieldsFromSchema } from './schema-form.util';
+import { provideDefaultFormControls } from './controls';
+import { SchemaFormBuilder } from './schema-form-builder';
 import type { FormFieldMeta } from './form-field-meta';
 
 const testSchema = z.object({
@@ -15,13 +16,17 @@ const testSchema = z.object({
 
 describe('fieldsFromSchema', () => {
   it('returns fields in meta order', () => {
-    expect(fieldsFromSchema(testSchema).map((f) => f.name)).toEqual(['title', 'bio']);
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
+    const builder = TestBed.inject(SchemaFormBuilder);
+    expect(builder.fieldsFromSchema(testSchema).children?.map((f) => f.key)).toEqual(['title', 'bio']);
   });
 });
 
 describe('SchemaForm (dynamic renderer)', () => {
   function render() {
     TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
     const fixture = TestBed.createComponent(SchemaForm);
     fixture.componentRef.setInput('schema', testSchema);
     fixture.detectChanges();
@@ -70,9 +75,8 @@ describe('SchemaForm (dynamic renderer)', () => {
     // consumer: hlm-field lays out one field internally and says nothing about
     // the gap BETWEEN fields, so every row sat flush. hlmFieldGroup is spartan's
     // own answer to that, which is why this is an attribute and not a class.
-    const form = render().nativeElement.querySelector('form');
-
-    expect(form.getAttribute('data-slot')).toBe('field-group');
+    const grid = render().nativeElement.querySelector('[data-schema-grid]');
+    expect(grid.getAttribute('data-slot')).toBe('field-group');
   });
 
   it('emits the parsed value when the schema passes', () => {

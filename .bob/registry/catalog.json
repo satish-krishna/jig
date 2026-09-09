@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 27,
+  "count": 32,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -75,6 +75,14 @@
       "symbol": "ROUTES"
     },
     {
+      "capability": "forms.control-base",
+      "intent": "Every control receives the same two inputs, checked at compile time.",
+      "reuse": "`export class MyControl extends SchemaFormControl {}`, then register it.",
+      "file": "frontend/src/app/forms/schema-form-control.ts",
+      "language": "typescript",
+      "symbol": "SchemaFormControl"
+    },
+    {
       "capability": "forms.control-definition",
       "intent": "A control kind is registered data, never a branch inside SchemaForm.",
       "reuse": "Declare one per control and pass it to provideFormControls() in app config.",
@@ -91,9 +99,41 @@
       "symbol": "FormControlRegistry"
     },
     {
+      "capability": "forms.control.checkbox",
+      "intent": "z.boolean() infers a checkbox with no meta required.",
+      "reuse": "Registered in controls/index.ts; override with control: 'switch' once one exists.",
+      "file": "frontend/src/app/forms/controls/checkbox.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.text",
+      "intent": "One component per input shape, not per zod type.",
+      "reuse": "Registered as three definitions in controls/index.ts.",
+      "file": "frontend/src/app/forms/controls/text.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.textarea",
+      "intent": "Override-only kinds carry no matches() predicate.",
+      "reuse": "Set control: 'textarea' on the field's meta.",
+      "file": "frontend/src/app/forms/controls/textarea.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.default-controls",
+      "intent": "The default catalog is one ordered list, reviewable in one place.",
+      "reuse": "Call provideDefaultFormControls() in app config. Add a kind with a new file plus one entry.",
+      "file": "frontend/src/app/forms/controls/index.ts",
+      "language": "typescript",
+      "symbol": "DEFAULT_FORM_CONTROLS"
+    },
+    {
       "capability": "forms.dynamic-renderer",
-      "intent": "Render any zod schema at runtime; the schema stays the source of truth for shape and validation.",
-      "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.",
+      "intent": "Render any zod schema at runtime; the schema stays the source of truth.",
+      "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted).",
       "file": "frontend/src/app/forms/schema-form.ts",
       "language": "typescript",
       "symbol": "selector"
