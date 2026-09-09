@@ -31,7 +31,7 @@ const everyKindSchema = z.object({
   retries: z.coerce.number().meta({ label: 'Number', control: 'number', order: 3 } satisfies FormFieldMeta),
   tier: z
     .enum(['free', 'pro'])
-    .meta({ label: 'Select', optionMeta: { free: { label: 'Free' }, pro: { label: 'Pro' } }, order: 4 } satisfies FormFieldMeta),
+    .meta({ label: 'Select', control: 'select', optionMeta: { free: { label: 'Free' }, pro: { label: 'Pro' } }, order: 4 } satisfies FormFieldMeta),
   agreed: z.boolean().meta({ label: 'Checkbox', control: 'checkbox', order: 5 } satisfies FormFieldMeta),
   notes: z.string().meta({ label: 'Textarea', control: 'textarea', order: 6 } satisfies FormFieldMeta),
 });

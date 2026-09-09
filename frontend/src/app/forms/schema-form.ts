@@ -54,8 +54,8 @@ function defaultFor(meta: FormFieldMeta): unknown {
             }
             @case ('select') {
               <hlm-native-select [selectId]="field.name" [formControlName]="field.name">
-                @for (opt of field.meta.options ?? []; track opt.value) {
-                  <option hlmNativeSelectOption [value]="opt.value">{{ opt.label }}</option>
+                @for (value of optionValues(field.meta); track value) {
+                  <option hlmNativeSelectOption [value]="value">{{ field.meta.optionMeta?.[value]?.label ?? value }}</option>
                 }
               </hlm-native-select>
             }
@@ -97,6 +97,13 @@ export class SchemaForm {
 
   protected control(name: string) {
     return this.form().get(name);
+  }
+
+  // Transitional: the whole @switch is deleted in Task 4, when options move to
+  // the control registry and are derived from z.enum. This keeps the AOT build
+  // green in between.
+  protected optionValues(meta: FormFieldMeta): string[] {
+    return Object.keys(meta.optionMeta ?? {});
   }
 
   onSubmit(): void {
