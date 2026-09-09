@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 25,
+  "count": 27,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -105,6 +105,22 @@
       "file": "frontend/src/app/forms/form-field-meta.ts",
       "language": "typescript",
       "symbol": "ControlKindRegistry"
+    },
+    {
+      "capability": "forms.field-spec",
+      "intent": "The render tree is data derived from the schema, never hand-authored.",
+      "reuse": "Produced by SchemaFormBuilder.fieldsFromSchema; consumed by SchemaForm and every control.",
+      "file": "frontend/src/app/forms/field-spec.ts",
+      "language": "typescript",
+      "symbol": "FieldSpec"
+    },
+    {
+      "capability": "forms.schema-form-builder",
+      "intent": "One walk of the schema produces both the render tree and the control tree.",
+      "reuse": "Inject it; call fieldsFromSchema(node) then buildControl(spec). Both work on any node.",
+      "file": "frontend/src/app/forms/schema-form-builder.ts",
+      "language": "typescript",
+      "symbol": "SchemaFormBuilder"
     },
     {
       "capability": "forms.zod-meta",
