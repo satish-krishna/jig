@@ -27,7 +27,9 @@ z.string().optional().meta({ label: 'C' })   ->  .meta() === { label: 'C' }
 
 **In:** control inference from the zod type; a registry that resolves a zod node to a control component; enum, radio, multi-select, and date controls; nested `z.object`; arrays of scalars and of objects; a four-column span layout; a loud, named failure for anything unsupported.
 
-**Out, deliberately:** unions and discriminated unions, `allOf` and intersections, `if`/`then`/`else` conditional visibility, tuples, records and `additionalProperties`, and recursive `z.lazy` references. These are not deferred features with a placeholder; they throw `SchemaFormUnsupportedError`. Supporting them turns the renderer into a form engine with a dependency graph and a plugin architecture, which is out of proportion to a template repository and duplicates JSONForms and Formily.
+**Out, deliberately:** unions and discriminated unions, `allOf` and intersections, `if`/`then`/`else` conditional visibility, tuples, records and `additionalProperties`, and recursive `z.lazy` references. These are not deferred features with a placeholder; they throw `SchemaFormUnsupportedError`. Supporting them all at once turns the renderer into a form engine with a dependency graph and a plugin architecture, which is out of proportion to a template repository and duplicates JSONForms and Formily.
+
+The boundary is expected to move, one control at a time, by extension. The agreed response to hitting it is to register the missing control, not to catch the error or add a fallback renderer. A discriminated union is the most likely first extension, because it is how an agent naturally expresses "one of these shapes"; the requirement that decision places on the builder is recorded below.
 
 **Out, with a recorded reason:** state-preserving reconciliation when the `schema` input changes. `form` is a `computed()` over `schema()`, so a schema swap rebuilds the form and discards user input, including added array rows. That is cheap today and becomes expensive with arrays, but the fix is a diffing subsystem and nothing in this codebase swaps a schema mid-edit. It gets a comment at the `computed` and a sentence in `docs/architecture/forms.md`.
 
@@ -71,9 +73,13 @@ export abstract class SchemaFormControl {
 
 Angular inherits inputs from a base class, so a control that omits one is a compile error. `no-state-outside-view-model` bails outside the container tier and names `forms/schema-form.ts` as explicitly permitted, so `forms/` carrying component state is already sanctioned; the base class trips no lint rule.
 
-### Unsupported schemas throw at build time
+### Unsupported schemas throw at build time, as a developer-time assertion
 
-`fieldsFromSchema` throws `SchemaFormUnsupportedError` naming the dotted path and the zod type, for example `contacts[].kind: ZodUnion is not supported by SchemaForm`. A `supportsSchema(schema)` predicate lets a caller check before rendering, so an agent pipeline can reject a schema instead of crashing a view.
+`fieldsFromSchema` throws `SchemaFormUnsupportedError` naming the dotted path and the zod type, for example `contacts[].kind: ZodUnion is not supported by SchemaForm`.
+
+**The agreed response to that error is to write the missing control, not to catch it.** No caller branches on it, no fallback renderer exists, and there is deliberately no `supportsSchema` predicate: a public method whose only consumer would be the test asserting it agrees with the throw is a method built for its own test. The error message is therefore addressed to a developer and its job is to name precisely what to go build.
+
+That decision places one requirement on `SchemaFormBuilder` which costs nothing now and is expensive to retrofit. **`fieldsFromSchema` must accept any zod node and be callable at runtime, not only the root `ZodObject` once at bootstrap.** The first control to extend this boundary is a union control, which must build a child field tree when its discriminator flips rather than at build time. Writing the builder root-only is the natural shape for everything this design needs today, and it would force the first extender to widen the signature — the extension point failing its first real test. A test asserts `fieldsFromSchema` works on a bare non-root node.
 
 Rendering the field as a skipped placeholder was rejected. Submit runs `schema.safeParse(form.getRawValue())`; a skipped required field fails the parse permanently, producing a form that renders correctly and can never be submitted, with the error pointing at a field that is not on screen. That is a worse failure than a throw because it looks like it works.
 
@@ -172,7 +178,7 @@ frontend/src/app/forms/
   control-definition.ts    NEW  FormControlDefinition, FORM_CONTROL token, provideFormControls()
   control-registry.ts      NEW  resolve(schema, meta); throws SchemaFormUnsupportedError
   schema-form-control.ts   NEW  abstract base: field + control inputs
-  schema-form-builder.ts   NEW  fieldsFromSchema / supportsSchema / buildControl (registry-aware)
+  schema-form-builder.ts   NEW  fieldsFromSchema / buildControl (registry-aware, any node, runtime-callable)
   field-spec.ts            NEW  the FieldSpec tree type
   controls/
     text.control.ts        NEW  also serves email and number by kind
@@ -226,7 +232,7 @@ TDD, red-green-refactor, per the non-negotiables. Every production line below is
 | Spec | Covers |
 |---|---|
 | `control-registry.spec.ts` | `meta.control` beats inference; first match wins; caller definitions resolve before defaults; unsupported throws with a dotted path; shipped default order |
-| `schema-form-builder.spec.ts` | field tree shape for nested objects and arrays; meta recovered through `.optional()`; missing label throws; `.min(n)` seeds rows; `supportsSchema` agrees with what `fieldsFromSchema` throws on |
+| `schema-form-builder.spec.ts` | field tree shape for nested objects and arrays; meta recovered through `.optional()`; missing label throws; `.min(n)` seeds rows; `fieldsFromSchema` accepts a bare non-root node, which is what a future union control needs at runtime |
 | `controls/*.control.spec.ts` | one per control: renders its primitive, reflects the control value, writes back |
 | `conformance.spec.ts` | every registered control renders something interactive and writes back |
 | `schema-form.spec.ts` | integration: path-addressed error folding into a nested group and an array row; array add and remove; span classes present; `dense` absent; existing behaviors preserved |
@@ -246,3 +252,4 @@ Evidence that this design is not working and needs revisiting:
 - The conformance test cannot be written generically because controls need materially different inputs. That means the four-fact `FormControlDefinition` is the wrong contract, and the seam needs rethinking before more controls are added.
 - Adding `switch` or `slider` after the fact requires editing any existing file. The extension point failed and the file count bought nothing.
 - Nested error folding needs per-control path knowledge. That means `FieldSpec` genuinely does need a path, and the "controls receive their control and never know where they sit" simplification is wrong.
+- The first boundary extension — a discriminated union control — cannot be written without changing `SchemaFormBuilder`, `SchemaForm`, or `FormControlDefinition`. Since extending on contact is the agreed response to hitting the boundary, an extension that cannot be made from outside means the seam is decorative, and the registry's file count bought nothing that the deleted `@switch` was not already giving.
