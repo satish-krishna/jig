@@ -13,13 +13,49 @@ import type { SchemaFormControl } from '../schema-form-control';
  * control that renders an empty <div> passes every other spec in the suite and
  * fails only in front of a user.
  */
-const SAMPLE: Record<string, { schema: z.ZodType; value: unknown }> = {
-  text: { schema: z.string(), value: 'typed' },
-  email: { schema: z.string(), value: 'a@b.io' },
-  number: { schema: z.number(), value: 7 },
-  textarea: { schema: z.string(), value: 'long' },
-  checkbox: { schema: z.boolean(), value: true },
-  select: { schema: z.enum(['a', 'b']), value: 'b' },
+interface ConformanceSample {
+  readonly schema: z.ZodType;
+  readonly value: unknown;
+  /** Read this control's rendered state back out of the DOM. */
+  readonly rendered: (root: HTMLElement) => unknown;
+}
+
+const SAMPLE: Record<string, ConformanceSample> = {
+  text: {
+    schema: z.string(),
+    value: 'typed',
+    rendered: (r) => (r.querySelector('input') as HTMLInputElement | null)?.value,
+  },
+  email: {
+    schema: z.string(),
+    value: 'a@b.io',
+    rendered: (r) => (r.querySelector('input') as HTMLInputElement | null)?.value,
+  },
+  number: {
+    schema: z.number(),
+    value: 7,
+    rendered: (r) => Number((r.querySelector('input') as HTMLInputElement | null)?.value),
+  },
+  textarea: {
+    schema: z.string(),
+    value: 'long',
+    rendered: (r) => (r.querySelector('textarea') as HTMLTextAreaElement | null)?.value,
+  },
+  select: {
+    schema: z.enum(['a', 'b']),
+    value: 'b',
+    rendered: (r) => (r.querySelector('select') as HTMLSelectElement | null)?.value,
+  },
+  checkbox: {
+    schema: z.boolean(),
+    value: true,
+    // hlm-checkbox delegates to brn-checkbox, whose inner element carries
+    // role="checkbox" and [attr.aria-checked]="_ariaChecked()" — confirmed in
+    // node_modules/@spartan-ng/brain/fesm2022/spartan-ng-brain-checkbox.mjs,
+    // where _ariaChecked() returns 'true' | 'false' | 'mixed'. There is no
+    // native <input type="checkbox"> in this component's render output.
+    rendered: (r) => r.querySelector('[role=checkbox]')?.getAttribute('aria-checked') === 'true',
+  },
 };
 
 describe('every registered control conforms', () => {
@@ -49,7 +85,10 @@ describe('every registered control conforms', () => {
 
       control.setValue(sample.value);
       fixture.detectChanges();
-      expect(control.value).toBe(sample.value);
+      expect(
+        sample.rendered(fixture.nativeElement),
+        `${def.kind} rendered an element but did not reflect its control into the DOM — is [formControl] bound?`,
+      ).toEqual(sample.value);
     });
   }
 });
