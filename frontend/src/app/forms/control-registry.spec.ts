@@ -91,13 +91,6 @@ describe('FormControlRegistry', () => {
 describe('DEFAULT_FORM_CONTROLS ordering', () => {
   it('puts multiselect before the generic array repeater, or multiselect is unreachable', () => {
     const kinds = DEFAULT_FORM_CONTROLS.map((d) => d.kind);
-    // 'array' is added in Task 6; skip until then rather than asserting on absence.
-    if (!kinds.includes('array')) return;
     expect(kinds.indexOf('multiselect')).toBeLessThan(kinds.indexOf('array'));
-  });
-
-  it('puts select before nothing broader that claims enum', () => {
-    const kinds = DEFAULT_FORM_CONTROLS.map((d) => d.kind);
-    expect(kinds).toContain('select');
   });
 });

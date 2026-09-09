@@ -1,6 +1,8 @@
 import { provideFormControlDefaults, type FormControlDefinition } from '../control-definition';
+import { ArrayControl } from './array.control';
 import { CheckboxControl } from './checkbox.control';
 import { DateControl } from './date.control';
+import { GroupControl } from './group.control';
 import { MultiselectControl } from './multiselect.control';
 import { RadioControl } from './radio.control';
 import { SelectControl } from './select.control';
@@ -29,6 +31,8 @@ export const DEFAULT_FORM_CONTROLS: readonly FormControlDefinition[] = [
   { kind: 'multiselect', component: MultiselectControl, defaultValue: () => [],
     matches: (s) => s.def.type === 'array' &&
       ((s.def as unknown as { element: { def: { type: string } } }).element.def.type === 'enum') },
+  { kind: 'group', component: GroupControl, matches: isType('object') },
+  { kind: 'array', component: ArrayControl, defaultValue: () => [], matches: isType('array') },
   { kind: 'select', component: SelectControl, defaultValue: () => '', matches: isType('enum') },
   { kind: 'date', component: DateControl, defaultValue: () => null, matches: isType('date') },
   { kind: 'checkbox', component: CheckboxControl, defaultValue: () => false, matches: isType('boolean') },
@@ -42,4 +46,14 @@ export function provideDefaultFormControls() {
   return provideFormControlDefaults(...DEFAULT_FORM_CONTROLS);
 }
 
-export { TextControl, TextareaControl, CheckboxControl, SelectControl, RadioControl, MultiselectControl, DateControl };
+export {
+  TextControl,
+  TextareaControl,
+  CheckboxControl,
+  SelectControl,
+  RadioControl,
+  MultiselectControl,
+  DateControl,
+  GroupControl,
+  ArrayControl,
+};

@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 37,
+  "count": 40,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -107,6 +107,14 @@
       "symbol": "FormControlRegistry"
     },
     {
+      "capability": "forms.control.array",
+      "intent": "A repeater is a registered control that recurses through the same outlet.",
+      "reuse": "Inferred from z.array(); .min(n) seeds n rows at build time.",
+      "file": "frontend/src/app/forms/controls/array.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
       "capability": "forms.control.checkbox",
       "intent": "z.boolean() infers a checkbox with no meta required.",
       "reuse": "Registered in controls/index.ts; override with control: 'switch' once one exists.",
@@ -119,6 +127,14 @@
       "intent": "z.date() infers a picker; the control carries its own adapter dependency.",
       "reuse": "Registered in controls/index.ts. Nothing else needs changing to use it.",
       "file": "frontend/src/app/forms/controls/date.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.group",
+      "intent": "Nesting is a registered control, not a special case in the renderer.",
+      "reuse": "Inferred from z.object(); nothing to configure.",
+      "file": "frontend/src/app/forms/controls/group.control.ts",
       "language": "typescript",
       "symbol": "selector"
     },
@@ -175,6 +191,14 @@
       "intent": "Render any zod schema at runtime; the schema stays the source of truth.",
       "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted).",
       "file": "frontend/src/app/forms/schema-form.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.field-host",
+      "intent": "The cell, its span and its error slot are stated once, not per container.",
+      "reuse": "Render any FieldSpec with its AbstractControl through this component.",
+      "file": "frontend/src/app/forms/controls/field-host.ts",
       "language": "typescript",
       "symbol": "selector"
     },

@@ -1,9 +1,9 @@
 import { Component, computed, inject, input, output } from '@angular/core';
-import { NgComponentOutlet } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import type { z } from 'zod';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { FieldHost } from './controls/field-host';
 import { SchemaFormBuilder } from './schema-form-builder';
 import { applyZodIssues, clearZodIssues } from './schema-form.util';
 
@@ -24,32 +24,12 @@ import { applyZodIssues, clearZodIssues } from './schema-form.util';
  */
 @Component({
   selector: 'app-schema-form',
-  imports: [ReactiveFormsModule, NgComponentOutlet, HlmFieldImports, HlmButtonImports],
+  imports: [ReactiveFormsModule, FieldHost, HlmFieldImports, HlmButtonImports],
   template: `
     <form [formGroup]="form()" (ngSubmit)="onSubmit()">
       <div hlmFieldGroup data-schema-grid class="grid grid-cols-4 gap-m">
         @for (field of fields(); track field.key) {
-          <div
-            class="@container/field-group"
-            [class.col-span-1]="field.meta.span === 1"
-            [class.col-span-2]="field.meta.span === 2"
-            [class.col-span-3]="field.meta.span === 3"
-            [class.col-span-4]="(field.meta.span ?? 4) === 4"
-          >
-            <hlm-field>
-              <label hlmFieldLabel [attr.for]="field.key">{{ field.meta.label }}</label>
-              <ng-container
-                [ngComponentOutlet]="registryComponent(field.kind)"
-                [ngComponentOutletInputs]="{ field: field, control: form().get(field.key)! }"
-              />
-              <!-- Always rendered: hlm-field-error hides itself until the field's
-                   error state matches, and only registers with the control's
-                   aria-describedby while showing. Wrapping it in @if bypasses both. -->
-              <hlm-field-error [attr.data-error-for]="field.key">
-                {{ form().get(field.key)?.errors?.['zod'] }}
-              </hlm-field-error>
-            </hlm-field>
-          </div>
+          <app-field-host [field]="field" [control]="form().get(field.key)!" />
         }
       </div>
       <button hlmBtn type="submit">{{ submitLabel() }}</button>
@@ -71,10 +51,6 @@ export class SchemaForm {
   // discarding user input including added array rows. Preserving state across two
   // schema versions is a diffing subsystem and nothing here swaps a schema mid-edit.
   readonly form = computed(() => this.builder.buildControl(this.rootSpec()) as FormGroup);
-
-  protected registryComponent(kind: string) {
-    return this.builder.componentFor(kind);
-  }
 
   onSubmit(): void {
     const form = this.form();

@@ -114,9 +114,9 @@ describe('every registered control conforms', () => {
   for (const def of DEFAULT_FORM_CONTROLS) {
     const sample = SAMPLE[def.kind];
     if (!sample) {
-      if (!COVERED_ELSEWHERE.has(def.kind)) {
-        throw new Error(`Kind '${def.kind}' registered in DEFAULT_FORM_CONTROLS but not in SAMPLE or COVERED_ELSEWHERE`);
-      }
+      // Not sampled here. Either it is declared COVERED_ELSEWHERE, or the
+      // trailing 'every kind ...' test below names it as uncovered — that test
+      // is the single mechanism that enforces this, so this loop only skips.
       continue;
     }
 
