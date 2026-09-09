@@ -46,6 +46,14 @@ describe('SchemaFormBuilder.fieldsFromSchema', () => {
     expect(address?.children?.map((c) => c.key)).toEqual(['city']);
   });
 
+  it('honors an explicit meta.control override on an object field instead of defaulting to group', () => {
+    const schema = z.object({
+      address: z.object({ city: z.string().meta(m('City')) }).meta(m('Address', { control: 'text' })),
+    });
+    const address = builder().fieldsFromSchema(schema).children?.[0];
+    expect(address?.kind).toBe('text');
+  });
+
   it('gives an array a single child: the item template, not an instance', () => {
     const schema = z.object({
       contacts: z.array(z.object({ email: z.string().meta(m('Email')) })).meta(m('Contacts')),

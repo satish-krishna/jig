@@ -3,6 +3,7 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { SchemaForm } from '../../forms/schema-form';
+import { provideDefaultFormControls } from '../../forms/controls';
 import { SchemaFormPage } from './schema-form.page';
 
 /**
@@ -19,7 +20,7 @@ describe('SchemaFormPage', () => {
 
   beforeEach(() => {
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({ providers: [provideRouter([]), provideDefaultFormControls()] });
     fixture = TestBed.createComponent(SchemaFormPage);
     fixture.detectChanges();
     host = fixture.nativeElement;

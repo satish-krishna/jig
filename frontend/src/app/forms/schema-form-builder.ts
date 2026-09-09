@@ -39,15 +39,18 @@ export class SchemaFormBuilder {
     // way an array has (plain array vs. multiselect), so this skips the
     // registry rather than requiring a 'group' definition to be registered
     // before any object schema, including the root every caller passes, can
-    // be walked at all.
+    // be walked at all. An explicit meta.control still wins: that is the seam
+    // a composite widget (e.g. an address autocomplete) uses to render a whole
+    // object as one control instead of a grid of its fields.
     if (def.type === 'object') {
+      const kind = meta.control ?? 'group';
       const shape = (inner.def as unknown as ObjectDef).shape;
       const children = Object.entries(shape)
         .map(([childKey, child]) =>
           this.fieldsFromSchema(child, childKey, path ? `${path}.${childKey}` : childKey),
         )
         .sort((a, b) => (a.meta.order ?? 0) - (b.meta.order ?? 0));
-      return { key, kind: 'group', schema: inner, meta, children };
+      return { key, kind, schema: inner, meta, children };
     }
 
     const kind = this.registry.resolve(schema, meta, path || key).kind;
