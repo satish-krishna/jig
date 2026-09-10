@@ -88,3 +88,54 @@ describe('SchemaForm (dynamic renderer)', () => {
     expect(emitted).toEqual({ title: 'Hello', bio: 'hi' });
   });
 });
+
+describe('layout', () => {
+  const laid = z.object({
+    first: z.string().meta({ label: 'First', span: 2, order: 1 } satisfies FormFieldMeta),
+    last: z.string().meta({ label: 'Last', span: 2, order: 2 } satisfies FormFieldMeta),
+    notes: z.string().meta({ label: 'Notes', order: 3 } satisfies FormFieldMeta),
+  });
+
+  function renderLaid() {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
+    const fixture = TestBed.createComponent(SchemaForm);
+    fixture.componentRef.setInput('schema', laid);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('lays fields on a four-column grid with a token gap', () => {
+    const grid = renderLaid().nativeElement.querySelector('[data-schema-grid]');
+    expect(grid.className).toContain('grid-cols-4');
+    expect(grid.className).toContain('gap-m');
+  });
+
+  it('applies the declared span to each cell', () => {
+    const cells = renderLaid().nativeElement.querySelectorAll('app-field-host');
+    expect(cells[0].className).toContain('col-span-2');
+    expect(cells[1].className).toContain('col-span-2');
+  });
+
+  it('defaults an undeclared span to a full row rather than one column', () => {
+    // A default of 1 would silently reflow every existing single-column form.
+    const cells = renderLaid().nativeElement.querySelectorAll('app-field-host');
+    expect(cells[2].className).toContain('col-span-4');
+  });
+
+  it('gives every cell its own field-group container', () => {
+    // hlm-field flips to a horizontal label at @md/field-group. Without a
+    // per-cell container it measures the whole form and squashes narrow cells.
+    const cells = renderLaid().nativeElement.querySelectorAll('app-field-host');
+    for (const cell of cells) {
+      expect(cell.className).toContain('@container/field-group');
+    }
+  });
+
+  it('never uses dense auto-flow, which would break tab order', () => {
+    // grid-auto-flow: dense backfills holes by pulling later fields forward,
+    // desynchronizing visual order from DOM order and therefore tab order.
+    const grid = renderLaid().nativeElement.querySelector('[data-schema-grid]');
+    expect(grid.className).not.toContain('dense');
+  });
+});
