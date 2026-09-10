@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 40,
+  "count": 41,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -143,6 +143,14 @@
       "intent": "z.array(z.enum()) infers a chip multi-select, not a repeater of selects.",
       "reuse": "Registered before the generic array repeater — order is semantic.",
       "file": "frontend/src/app/forms/controls/multiselect.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.number",
+      "intent": "A bound `[type]=\"'number'\"` looks equivalent to a static one but is not.",
+      "reuse": "Registered as the `number` kind in controls/index.ts.",
+      "file": "frontend/src/app/forms/controls/number.control.ts",
       "language": "typescript",
       "symbol": "selector"
     },
