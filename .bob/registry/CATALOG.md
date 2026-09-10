@@ -117,7 +117,7 @@
 
 ### `forms.control.text` — selector (typescript)
 - **Intent:** One component per input shape, not per zod type.
-- **Reuse:** Registered as three definitions in controls/index.ts.
+- **Reuse:** Registered as two definitions in controls/index.ts.
 - **Where:** `frontend/src/app/forms/controls/text.control.ts`
 
 ### `forms.control.textarea` — selector (typescript)

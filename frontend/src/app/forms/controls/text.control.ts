@@ -4,12 +4,16 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { SchemaFormControl } from '../schema-form-control';
 
 /**
- * Single-line input. Serves text, email and number: the kind IS the input type,
- * which is why one component covers three registered kinds.
+ * Single-line input. Serves text and email: the kind IS the input type,
+ * which is why one component covers both registered kinds. Number is NOT
+ * routed here — a bound `[type]` never activates Angular's
+ * NumberValueAccessor (it selects on the static attribute `input[type=number]`),
+ * so a numeric input needs a static `type="number"`, which is NumberControl's
+ * whole reason to exist.
  *
  * @capability forms.control.text
  * @intent One component per input shape, not per zod type.
- * @reuse Registered as three definitions in controls/index.ts.
+ * @reuse Registered as two definitions in controls/index.ts.
  */
 @Component({
   selector: 'app-text-control',

@@ -173,7 +173,7 @@
     {
       "capability": "forms.control.text",
       "intent": "One component per input shape, not per zod type.",
-      "reuse": "Registered as three definitions in controls/index.ts.",
+      "reuse": "Registered as two definitions in controls/index.ts.",
       "file": "frontend/src/app/forms/controls/text.control.ts",
       "language": "typescript",
       "symbol": "selector"

@@ -26,8 +26,9 @@ const contactSchema = z.object({
 const everyKindSchema = z.object({
   title: z.string().meta({ label: 'Text', span: 2, order: 1 } satisfies FormFieldMeta),
   contact: z.string().meta({ label: 'Email', control: 'email', span: 2, order: 2 } satisfies FormFieldMeta),
-  // coerce, because an <input type="number"> hands Angular a string
-  retries: z.coerce.number().meta({ label: 'Number', span: 1, order: 3 } satisfies FormFieldMeta),
+  // NumberControl carries a static type="number", so NumberValueAccessor
+  // hands Angular a genuine number: no z.coerce needed here.
+  retries: z.number().meta({ label: 'Number', span: 1, order: 3 } satisfies FormFieldMeta),
   tier: z.enum(['free', 'pro']).meta({
     label: 'Select',
     span: 3,
@@ -47,6 +48,7 @@ const everyKindSchema = z.object({
   } satisfies FormFieldMeta),
   agreed: z.boolean().meta({ label: 'Checkbox', span: 1, order: 7 } satisfies FormFieldMeta),
   notes: z.string().meta({ label: 'Textarea', control: 'textarea', order: 8 } satisfies FormFieldMeta),
+  started: z.date().meta({ label: 'Date', span: 1, order: 9 } satisfies FormFieldMeta),
 });
 
 const nestedSchema = z.object({
@@ -106,7 +108,7 @@ const serverSchema = z.object({
 
       <app-usage
         title="Every control kind"
-        note="Inference with no control override. Eight control kinds on a four-column layout."
+        note="Inference with no control override. Every registered leaf control kind on a four-column layout."
         [code]="codeKinds"
       >
         <div class="grid w-full max-w-sm">
@@ -187,14 +189,16 @@ export class SchemaFormPage {
 
   protected readonly codeKinds = `// Control kind is inferred from the zod type; meta.control overrides if needed.
 // text: z.string() matches text control, email for email strings
-// number: z.coerce.number() (coerce: input hands Angular a string)
+// number: z.number() matches number control (a static type="number" input)
 // select: z.enum() matches select control, radio with control: 'radio'
 // checkbox: z.boolean() matches checkbox
 // textarea: z.string() with control: 'textarea' override
 // multiselect: z.array(z.enum()) matches multiselect
+// date: z.date() matches date control
 title: z.string().meta({ label: 'Text', span: 2, order: 1 } satisfies FormFieldMeta),
 stacks: z.array(z.enum(['angular', 'dotnet', 'rust']))
-  .meta({ label: 'Multi-select', span: 2, order: 6 } satisfies FormFieldMeta),`;
+  .meta({ label: 'Multi-select', span: 2, order: 6 } satisfies FormFieldMeta),
+started: z.date().meta({ label: 'Date', span: 1, order: 9 } satisfies FormFieldMeta),`;
 
   protected readonly codeNested = `// A z.object() inside the schema renders as a group control.
 // A z.array(z.object()) renders as an array repeater.
