@@ -2,12 +2,12 @@
 
 - Status: accepted
 - Date: 2026-09-09
-- Scope: frontend/src/app/forms, contracts/form-control definitions
+- Scope: frontend/src/app/forms
 - Supersedes: the `@switch` rule in `docs/architecture/forms.md`
 
 ## Context
 
-Seven tasks rebuilt the dynamic zod-schema form renderer so control kind selection moves from a component-local `@switch` to a Dependency Injection multi-provider registry. Each kind is now a `FormControlDefinition` — an object carrying the kind name, the component class, a `matches(zodType)` predicate for type inference, and a default value.
+Eight tasks rebuilt the dynamic zod-schema form renderer so control kind selection moves from a component-local `@switch` to a Dependency Injection multi-provider registry. Each kind is now a `FormControlDefinition` — an object carrying the kind name, the component class, a `matches(zodType)` predicate for type inference, and a default value.
 
 The dynamic renderer (`SchemaForm`) contains no control-kind branches. It asks the registry for a control that matches the zod type, and `NgComponentOutlet` renders it. A new control kind is a new file under `forms/controls/` plus one entry in the registry export (`controls/index.ts`); `SchemaForm` never changes.
 
@@ -28,8 +28,8 @@ Control kinds are exactly opposite. They are known at bootstrap (before any comp
 This is mitigated by:
 
 - Shipping the defaults pre-ordered so narrower predicates precede broader ones (e.g., `z.enum` matches before `z.string`).
-- Letting the caller's `provideDefaultFormControls()` set take priority in the DI multi-provider resolution order, so test controls or feature-specific control overrides resolve first.
-- Testing the resolution order explicitly in Task 2 (the control registry test), so a misordering is caught at startup before any render.
+- Letting the caller's `provideFormControls()` set take priority in the DI multi-provider resolution order, so test controls or feature-specific control overrides resolve before the shipped `provideDefaultFormControls()` catalog.
+- Testing the resolution order explicitly in Task 2 (the control registry test), so a misordering is caught by that unit test before any render.
 
 The cost is not eliminated: a future maintainer who adds two controls without understanding the ordering risk will introduce an order-dependent bug. Mitigated-but-not-eliminated is the boundary this repo accepts.
 
@@ -41,7 +41,7 @@ The agreed response to a thrown shape is to register the missing control, not to
 
 ## Consequences
 
-- A new control kind costs three locations: the component, `controls/index.ts`, and the registry test.
+- A new control kind costs four locations: the component, `controls/index.ts`, the registry test, and `ControlKindRegistry` in `form-field-meta.ts`.
 - Control inference (`matches`) frees the schema author from writing `meta.control` overrides for the obvious cases.
 - The zod type is the single source of truth for shape and valid values; `optionMeta` supplies only human-facing words (`label`, `description`, `disabled`, `icon`) for select options.
 - Schema swap resets the form (no state diffing), which is documented in `docs/architecture/forms.md`.

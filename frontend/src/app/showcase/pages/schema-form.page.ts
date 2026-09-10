@@ -209,8 +209,9 @@ contacts: z
   .array(z.object({ label: z.string(), email: z.string() }))
   .meta({ label: 'Contacts', order: 3 }),`;
 
-  protected readonly codeValidation = `// onSubmit runs schema.safeParse, then applyZodIssues writes each issue
-// onto the control named by issue.path[0]. Nothing is restated as a validator.
+  protected readonly codeValidation = `// onSubmit runs schema.safeParse, then applyZodIssues folds each issue
+// onto the control at its WHOLE path (form.get(issue.path)), so nested and
+// array errors land on the right row. Nothing is restated as a validator.
 const result = this.schema().safeParse(form.getRawValue());
 if (result.success) this.submitted.emit(result.data);
 else applyZodIssues(form, result.error);`;
