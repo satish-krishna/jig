@@ -24,7 +24,7 @@ Both read shape and labels from the same zod schema. Do not reach for reactive f
 
 For a schema not known until runtime, `forms/schema-form.ts` builds the form for you.
 
-- It builds a reactive `FormGroup` from the schema's fields (`fieldsFromSchema`), renders each by its `meta.control` kind with spartan controls, and on submit validates through `schema.safeParse`, folding zod issues back onto the matching fields.
+- It walks the schema into a field tree with a matching control tree (`SchemaFormBuilder`), resolves each node to a registered control — inferred from the zod type or overridden by `meta.control` — renders it through `NgComponentOutlet`, and on submit validates through `schema.safeParse`, folding zod issues back onto the matching controls by path.
 - Usage: `<app-schema-form [schema]="mySchema" submitLabel="Save" (submitted)="onSaved($event)" />`. The emitted value is the parsed, valid data.
 - **A control kind is a registered `FormControlDefinition`, never a branch.** It carries the kind name, the component, a `matches(zodType)` predicate for inference, and a default value. Add one with a new file under `forms/controls/` plus one entry in `controls/index.ts`; `SchemaForm` never changes. Registration order is semantic — resolution is first-match-wins, so a narrower `matches` must precede a broader one.
 - **The zod type owns shape and valid values; the meta owns the human-facing words.** `meta.control` is an override, absent by default. `z.enum` supplies a select's values; `optionMeta` supplies only their labels, descriptions, disabled flags and icons.
