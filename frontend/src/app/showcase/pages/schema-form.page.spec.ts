@@ -26,8 +26,8 @@ describe('SchemaFormPage', () => {
     host = fixture.nativeElement;
   });
 
-  it('shows four distinct usages', () => {
-    expect(host.querySelectorAll('app-usage').length).toBe(4);
+  it('shows five distinct usages', () => {
+    expect(host.querySelectorAll('app-usage').length).toBe(5);
   });
 
   it('renders a live form in every usage stage', () => {
@@ -47,20 +47,20 @@ describe('SchemaFormPage', () => {
   });
 
   it('folds a zod message onto the field that failed, not the top of the form', () => {
-    forms()[2].componentInstance.onSubmit(); // every field is empty
+    forms()[3].componentInstance.onSubmit(); // every field is empty
     fixture.detectChanges();
 
-    const stage = host.querySelectorAll('[data-slot="usage-stage"]')[2];
+    const stage = host.querySelectorAll('[data-slot="usage-stage"]')[3];
     const error = stage.querySelector('[data-error-for="name"]');
     expect(error?.textContent).toContain('Name is required');
   });
 
   it('drives the failed field into spartan-invalid, so the control looks wrong too', () => {
-    forms()[2].componentInstance.onSubmit();
+    forms()[3].componentInstance.onSubmit();
     fixture.detectChanges();
 
     const field = host
-      .querySelectorAll('[data-slot="usage-stage"]')[2]
+      .querySelectorAll('[data-slot="usage-stage"]')[3]
       .querySelector('hlm-field');
     expect(field?.getAttribute('data-matches-spartan-invalid')).toBe('true');
   });
@@ -69,7 +69,7 @@ describe('SchemaFormPage', () => {
     // Scoped to the swap usage: two other stages render the contact schema, so a
     // page-wide label query would report "Message" whatever this one does.
     const labels = () =>
-      [...host.querySelectorAll('[data-slot="usage-stage"]')[3].querySelectorAll('label')].map(
+      [...host.querySelectorAll('[data-slot="usage-stage"]')[4].querySelectorAll('label')].map(
         (l) => l.textContent?.trim(),
       );
 

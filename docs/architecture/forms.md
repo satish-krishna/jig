@@ -26,7 +26,10 @@ For a schema not known until runtime, `forms/schema-form.ts` builds the form for
 
 - It builds a reactive `FormGroup` from the schema's fields (`fieldsFromSchema`), renders each by its `meta.control` kind with spartan controls, and on submit validates through `schema.safeParse`, folding zod issues back onto the matching fields.
 - Usage: `<app-schema-form [schema]="mySchema" submitLabel="Save" (submitted)="onSaved($event)" />`. The emitted value is the parsed, valid data.
-- The zod-to-control mapping lives only in this component's `@switch`. Add a control kind there, never in a feature.
+- **A control kind is a registered `FormControlDefinition`, never a branch.** It carries the kind name, the component, a `matches(zodType)` predicate for inference, and a default value. Add one with a new file under `forms/controls/` plus one entry in `controls/index.ts`; `SchemaForm` never changes. Registration order is semantic — resolution is first-match-wins, so a narrower `matches` must precede a broader one.
+- **The zod type owns shape and valid values; the meta owns the human-facing words.** `meta.control` is an override, absent by default. `z.enum` supplies a select's values; `optionMeta` supplies only their labels, descriptions, disabled flags and icons.
+- **A shape no control claims throws `SchemaFormUnsupportedError`.** Unions, records, tuples, conditionals and `z.lazy` are unsupported. The agreed response is to register the missing control, not to catch the error — no caller branches on it and there is no fallback renderer.
+- **Changing the `schema` input rebuilds the form and discards user input,** including added array rows. Nothing here swaps a schema mid-edit; preserving state across two schema versions would be a diffing subsystem.
 - This is the substrate for agent-generated forms: an agent emits a zod schema, the renderer turns it into a validated form with no hand-written component.
 
 ## Where spartan lives
@@ -38,5 +41,6 @@ Helm components are generated into `frontend/libs/ui` (the CLI copy model) behin
 - A hand-written form-model interface instead of `z.infer`.
 - A validation rule stated in both the zod schema and a validator.
 - Rendering a runtime schema by hand instead of through `SchemaForm`, or hand-authoring a known form through `SchemaForm` instead of signal-forms.
-- A `switch` on control type living in a feature instead of in `SchemaForm`.
+- A `switch` on control type anywhere, including inside `SchemaForm` — a kind is a registered definition.
+- Values hand-listed in meta next to a `z.string()`, instead of declared with `z.enum`.
 - Labels hard-coded instead of read from `.meta()`.

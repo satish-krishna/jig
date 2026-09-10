@@ -23,17 +23,49 @@ const contactSchema = z.object({
     .meta({ label: 'Message', control: 'textarea', placeholder: 'What do you need?', order: 3 } satisfies FormFieldMeta),
 });
 
-/** One field per ControlKind, so the switch in schema-form.ts is legible in one place. */
 const everyKindSchema = z.object({
-  title: z.string().meta({ label: 'Text', control: 'text', order: 1 } satisfies FormFieldMeta),
-  contact: z.string().meta({ label: 'Email', control: 'email', order: 2 } satisfies FormFieldMeta),
+  title: z.string().meta({ label: 'Text', span: 2, order: 1 } satisfies FormFieldMeta),
+  contact: z.string().meta({ label: 'Email', control: 'email', span: 2, order: 2 } satisfies FormFieldMeta),
   // coerce, because an <input type="number"> hands Angular a string
-  retries: z.coerce.number().meta({ label: 'Number', control: 'number', order: 3 } satisfies FormFieldMeta),
-  tier: z
-    .enum(['free', 'pro'])
-    .meta({ label: 'Select', control: 'select', optionMeta: { free: { label: 'Free' }, pro: { label: 'Pro' } }, order: 4 } satisfies FormFieldMeta),
-  agreed: z.boolean().meta({ label: 'Checkbox', control: 'checkbox', order: 5 } satisfies FormFieldMeta),
-  notes: z.string().meta({ label: 'Textarea', control: 'textarea', order: 6 } satisfies FormFieldMeta),
+  retries: z.coerce.number().meta({ label: 'Number', span: 1, order: 3 } satisfies FormFieldMeta),
+  tier: z.enum(['free', 'pro']).meta({
+    label: 'Select',
+    span: 3,
+    optionMeta: { free: { label: 'Free' }, pro: { label: 'Pro' } },
+    order: 4,
+  } satisfies FormFieldMeta),
+  billing: z.enum(['monthly', 'yearly']).meta({
+    label: 'Radio',
+    control: 'radio',
+    span: 2,
+    order: 5,
+  } satisfies FormFieldMeta),
+  stacks: z.array(z.enum(['angular', 'dotnet', 'rust'])).meta({
+    label: 'Multi-select',
+    span: 2,
+    order: 6,
+  } satisfies FormFieldMeta),
+  agreed: z.boolean().meta({ label: 'Checkbox', span: 1, order: 7 } satisfies FormFieldMeta),
+  notes: z.string().meta({ label: 'Textarea', control: 'textarea', order: 8 } satisfies FormFieldMeta),
+});
+
+const nestedSchema = z.object({
+  name: z.string().meta({ label: 'Name', span: 2, order: 1 } satisfies FormFieldMeta),
+  address: z
+    .object({
+      street: z.string().meta({ label: 'Street', span: 4, order: 1 } satisfies FormFieldMeta),
+      city: z.string().meta({ label: 'City', span: 3, order: 2 } satisfies FormFieldMeta),
+      zip: z.string().meta({ label: 'ZIP', span: 1, order: 3 } satisfies FormFieldMeta),
+    })
+    .meta({ label: 'Address', order: 2 } satisfies FormFieldMeta),
+  contacts: z
+    .array(
+      z.object({
+        label: z.string().meta({ label: 'Label', span: 2, order: 1 } satisfies FormFieldMeta),
+        email: z.string().meta({ label: 'Email', span: 2, order: 2 } satisfies FormFieldMeta),
+      }),
+    )
+    .meta({ label: 'Contacts', order: 3 } satisfies FormFieldMeta),
 });
 
 const serverSchema = z.object({
@@ -74,11 +106,21 @@ const serverSchema = z.object({
 
       <app-usage
         title="Every control kind"
-        note="Six ControlKind values, four switch branches — text, email and number share the default input."
+        note="Inference with no control override. Eight control kinds on a four-column layout."
         [code]="codeKinds"
       >
         <div class="grid w-full max-w-sm">
           <app-schema-form [schema]="everyKind" submitLabel="Save" />
+        </div>
+      </app-usage>
+
+      <app-usage
+        title="Nested objects and arrays"
+        note="A group control nesting an address form, and an array-of-objects repeater for contact entries."
+        [code]="codeNested"
+      >
+        <div class="grid w-full max-w-2xl">
+          <app-schema-form [schema]="nested" submitLabel="Save" />
         </div>
       </app-usage>
 
@@ -128,6 +170,7 @@ const serverSchema = z.object({
 export class SchemaFormPage {
   protected readonly contact = contactSchema;
   protected readonly everyKind = everyKindSchema;
+  protected readonly nested = nestedSchema;
 
   protected readonly sent = signal<Record<string, unknown> | undefined>(undefined);
   protected readonly showServer = signal(false);
@@ -142,14 +185,29 @@ export class SchemaFormPage {
 
 <app-schema-form [schema]="contactSchema" submitLabel="Send" (submitted)="sent.set($event)" />`;
 
-  protected readonly codeKinds = `// ControlKind = 'text' | 'email' | 'number' | 'select' | 'checkbox' | 'textarea'
-// The @switch in schema-form.ts branches on textarea, select and checkbox;
-// text, email and number all fall through to <input [type]>.
-retries: z.coerce.number()   // coerce: the input hands Angular a string
-  .meta({ label: 'Number', control: 'number' } satisfies FormFieldMeta),
-tier: z.enum(['free', 'pro']).meta({
-  label: 'Select', optionMeta: { free: { label: 'Free' }, pro: { label: 'Pro' } },
-} satisfies FormFieldMeta),`;
+  protected readonly codeKinds = `// Control kind is inferred from the zod type; meta.control overrides if needed.
+// text: z.string() matches text control, email for email strings
+// number: z.coerce.number() (coerce: input hands Angular a string)
+// select: z.enum() matches select control, radio with control: 'radio'
+// checkbox: z.boolean() matches checkbox
+// textarea: z.string() with control: 'textarea' override
+// multiselect: z.array(z.enum()) matches multiselect
+title: z.string().meta({ label: 'Text', span: 2, order: 1 } satisfies FormFieldMeta),
+stacks: z.array(z.enum(['angular', 'dotnet', 'rust']))
+  .meta({ label: 'Multi-select', span: 2, order: 6 } satisfies FormFieldMeta),`;
+
+  protected readonly codeNested = `// A z.object() inside the schema renders as a group control.
+// A z.array(z.object()) renders as an array repeater.
+address: z
+  .object({
+    street: z.string().meta({ label: 'Street', span: 4, order: 1 }),
+    city: z.string().meta({ label: 'City', span: 3, order: 2 }),
+    zip: z.string().meta({ label: 'ZIP', span: 1, order: 3 }),
+  })
+  .meta({ label: 'Address', order: 2 }),
+contacts: z
+  .array(z.object({ label: z.string(), email: z.string() }))
+  .meta({ label: 'Contacts', order: 3 }),`;
 
   protected readonly codeValidation = `// onSubmit runs schema.safeParse, then applyZodIssues writes each issue
 // onto the control named by issue.path[0]. Nothing is restated as a validator.

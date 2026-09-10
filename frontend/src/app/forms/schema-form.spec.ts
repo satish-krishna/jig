@@ -127,6 +127,7 @@ describe('layout', () => {
     // hlm-field flips to a horizontal label at @md/field-group. Without a
     // per-cell container it measures the whole form and squashes narrow cells.
     const cells = renderLaid().nativeElement.querySelectorAll('app-field-host');
+    expect(cells.length).toBe(3);
     for (const cell of cells) {
       expect(cell.className).toContain('@container/field-group');
     }
