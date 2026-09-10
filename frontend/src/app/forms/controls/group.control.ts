@@ -25,7 +25,11 @@ import { FieldHost } from './field-host';
   template: `
     <div data-schema-grid class="grid grid-cols-4 gap-m">
       @for (child of children(); track child.key) {
-        <app-field-host [field]="child" [control]="group.get(child.key)!" [idPrefix]="idPrefix()" />
+        <app-field-host
+          [field]="child"
+          [control]="group.get(child.key)!"
+          [idPrefix]="idPrefix() ? idPrefix() + '-' + field().key : field().key"
+        />
       }
     </div>
   `,

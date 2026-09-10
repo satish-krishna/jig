@@ -107,7 +107,31 @@ describe('arrays of objects', () => {
     fixture.componentRef.setInput('schema', nested);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('#city')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#address-city')).toBeTruthy();
     expect(fixture.componentInstance.form().get(['address', 'city'])).toBeTruthy();
+  });
+
+  it('gives two sibling nested groups with a same-named field distinct DOM ids', () => {
+    const siblings = z.object({
+      home: z.object({ city: z.string().meta(m('City')) }).meta(m('Home')),
+      work: z.object({ city: z.string().meta(m('City')) }).meta(m('Work')),
+    });
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
+    const fixture = TestBed.createComponent(SchemaForm);
+    fixture.componentRef.setInput('schema', siblings);
+    fixture.detectChanges();
+
+    const homeInput = fixture.nativeElement.querySelector('#home-city') as HTMLInputElement;
+    const workInput = fixture.nativeElement.querySelector('#work-city') as HTMLInputElement;
+    expect(homeInput).toBeTruthy();
+    expect(workInput).toBeTruthy();
+    expect(homeInput).not.toBe(workInput);
+
+    const labels = [...fixture.nativeElement.querySelectorAll('label')] as HTMLLabelElement[];
+    const homeLabel = labels.find((l) => l.getAttribute('for') === 'home-city');
+    const workLabel = labels.find((l) => l.getAttribute('for') === 'work-city');
+    expect(homeLabel?.getAttribute('for')).toBe(homeInput.id);
+    expect(workLabel?.getAttribute('for')).toBe(workInput.id);
   });
 });
