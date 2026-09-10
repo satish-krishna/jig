@@ -23,6 +23,7 @@
     "lint": "node tools/lint/lint-frontend.ts",
     "lint:report": "node tools/lint/analyze-firings.ts",
     "showcase:api": "node tools/showcase-api/showcase-api.ts",
+    "showcase:shots": "node tools/showcase-shots/showcase-shots.ts",
     "stylelint": "node tools/lint/stylelint-frontend.ts",
     "ui:style": "node tools/ui-style/ui-style.ts"
   },
