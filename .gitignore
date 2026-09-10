@@ -10,9 +10,11 @@ obj/
 [Bb]in/
 [Oo]bj/
 
+# thick:start
 # Rust / Tauri
 target/
 apps/desktop/src-tauri/target/
+# thick:end
 
 # Editors / OS
 .DS_Store

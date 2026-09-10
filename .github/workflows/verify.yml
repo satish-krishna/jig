@@ -61,6 +61,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # thick:start
       - uses: dtolnay/rust-toolchain@stable
         if: contains(steps.select.outputs.areas, 'rust')
 
@@ -68,6 +69,7 @@ jobs:
         if: contains(steps.select.outputs.areas, 'rust')
         with:
           workspaces: apps/desktop/src-tauri
+      # thick:end
 
       - name: Install root tooling
         if: steps.select.outputs.areas != ''

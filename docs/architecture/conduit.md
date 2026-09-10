@@ -22,6 +22,7 @@ flowchart TD
 - Response types resolve to the **OpenAPI-generated DTOs**, so HTTP and IPC cannot disagree about a shape.
 - **One error seam.** No `HttpErrorResponse` and no raw `invoke` rejection may reach a repository or ViewModel. `NormalizingTransport` folds both into one `AppError`.
 
+<!-- thick:start -->
 ## The three legitimate asymmetries
 
 Everything else is identical across wires. These three are the only sanctioned differences:
@@ -29,13 +30,18 @@ Everything else is identical across wires. These three are the only sanctioned d
 1. **Transport selection** happens once, at the bootstrap factory, via `isTauri`. Nowhere above it.
 2. **Auth is HTTP-only** (an interceptor). IPC trusts the local origin; the Rust core holds the real credentials.
 3. **Native-only capabilities** (tray, file watch, local config) are thick-only. They live behind a capability service that is simply not provided in the web bootstrap. They never enter the shared operation map as "throws on HTTP" stubs.
+<!-- thick:end -->
 
 ## Smells that mean it is breaking
 
+<!-- thick:start -->
 - `isTauri()` or `window` checks above the bootstrap factory.
+<!-- thick:end -->
 - A URL string or a command name inside a repository.
 - A `catch` that inspects `.status`.
+<!-- thick:start -->
 - A shared operation implemented as a throw on one wire.
+<!-- thick:end -->
 
 The port is a DI seam: an app that genuinely needs per-operation routing (some operations over HTTP, others over IPC in one build) can supply a composite transport that dispatches per operation, at the cost of the parity guarantee above; record that departure as an ADR.
 

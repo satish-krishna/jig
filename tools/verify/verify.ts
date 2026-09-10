@@ -71,7 +71,9 @@ const steps: Step[] = [
   // generated code has to run when its own generator moves. It costs a dotnet build on
   // tools changes, which is the cheap direction of a mistake.
   { name: 'contract freshness (codegen)', cmd: 'node tools/codegen/generate.ts --check', cwd: ROOT, areas: ['dotnet', 'contracts', 'tools'], native: true },
+  // thick:start
   { name: 'rust tests', cmd: 'cargo test', cwd: SRC_TAURI, areas: ['rust'], native: true },
+  // thick:end
   { name: 'frontend unit tests (Vitest)', cmd: 'npm test', cwd: FRONTEND, areas: ['frontend', 'contracts'] },
   { name: 'frontend lint (ESLint)', cmd: runFrontendLint, cwd: ROOT, areas: ['frontend', 'tools'] },
   { name: 'frontend css (stylelint)', cmd: 'npm run stylelint', cwd: ROOT, areas: ['frontend', 'tools'] },

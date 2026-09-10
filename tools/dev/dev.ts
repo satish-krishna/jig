@@ -7,8 +7,10 @@
 // This speeds the INNER loop only. It does not run tests. Run `npm run verify`
 // before committing — HMR being green is not the gate.
 //
+// thick:start
 // For the desktop shell (Rust + WebView), use `cargo tauri dev` instead; it opens
 // a window, so it is on-demand rather than part of this headless loop.
+// thick:end
 
 import { spawn, spawnSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
@@ -32,7 +34,9 @@ process.stdout.write(
     '  jig dev loop (headless — no browser is opened for you)',
     '    web app   http://localhost:4200',
     '    api docs  http://localhost:5025/swagger   (:5025/ itself is a 404, that is expected)',
+    // thick:start
     '    desktop   run `cargo tauri dev` separately for the Tauri shell',
+    // thick:end
     '',
   ].join('\n') + '\n',
 );
