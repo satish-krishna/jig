@@ -20,7 +20,7 @@ import { SchemaFormControl } from '../schema-form-control';
   imports: [ReactiveFormsModule, HlmDatePickerImports],
   template: `
     <hlm-date-picker [formControl]="formControl" [autoCloseOnSelect]="true">
-      <hlm-date-picker-trigger [buttonId]="field().key">
+      <hlm-date-picker-trigger [buttonId]="controlId()">
         {{ field().meta.placeholder ?? 'Pick a date' }}
       </hlm-date-picker-trigger>
     </hlm-date-picker>

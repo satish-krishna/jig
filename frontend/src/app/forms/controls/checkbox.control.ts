@@ -14,6 +14,6 @@ import { SchemaFormControl } from '../schema-form-control';
 @Component({
   selector: 'app-checkbox-control',
   imports: [ReactiveFormsModule, HlmCheckboxImports],
-  template: `<hlm-checkbox [inputId]="field().key" [formControl]="formControl" />`,
+  template: `<hlm-checkbox [inputId]="controlId()" [formControl]="formControl" />`,
 })
 export class CheckboxControl extends SchemaFormControl {}

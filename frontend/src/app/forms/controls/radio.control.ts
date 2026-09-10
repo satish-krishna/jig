@@ -26,10 +26,10 @@ import { optionsOf } from './options';
     <hlm-radio-group [formControl]="formControl">
       @for (opt of options(); track opt.value) {
         <div class="flex items-center gap-m">
-          <hlm-radio [value]="opt.value" [inputId]="field().key + '-' + opt.value" [disabled]="opt.disabled">
+          <hlm-radio [value]="opt.value" [inputId]="controlId() + '-' + opt.value" [disabled]="opt.disabled">
             <hlm-radio-indicator indicator />
           </hlm-radio>
-          <label hlmLabel [for]="field().key + '-' + opt.value">{{ opt.label }}</label>
+          <label hlmLabel [for]="controlId() + '-' + opt.value">{{ opt.label }}</label>
         </div>
       }
     </hlm-radio-group>

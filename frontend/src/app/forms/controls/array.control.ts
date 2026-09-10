@@ -33,7 +33,7 @@ import { FieldHost } from './field-host';
              it. A row with one non-column child is not the shape
              no-nested-flex-grid forbids. -->
         <div data-array-row class="flex items-start gap-m">
-          <app-field-host class="grow" [field]="item()" [control]="row" />
+          <app-field-host class="grow" [field]="item()" [control]="row" [idPrefix]="field().key + '-' + i" />
           <button hlmBtn type="button" variant="ghost" data-array-remove (click)="remove(i)">Remove</button>
         </div>
       }

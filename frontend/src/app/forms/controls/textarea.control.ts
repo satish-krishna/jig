@@ -17,7 +17,7 @@ import { SchemaFormControl } from '../schema-form-control';
   template: `
     <textarea
       hlmTextarea
-      [id]="field().key"
+      [id]="controlId()"
       [formControl]="formControl"
       [attr.placeholder]="field().meta.placeholder ?? null"
     ></textarea>

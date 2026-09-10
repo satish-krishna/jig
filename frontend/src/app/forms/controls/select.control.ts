@@ -16,7 +16,7 @@ import { optionsOf } from './options';
   selector: 'app-select-control',
   imports: [ReactiveFormsModule, HlmNativeSelectImports],
   template: `
-    <hlm-native-select [selectId]="field().key" [formControl]="formControl">
+    <hlm-native-select [selectId]="controlId()" [formControl]="formControl">
       @for (opt of options(); track opt.value) {
         <option hlmNativeSelectOption [value]="opt.value" [disabled]="opt.disabled">{{ opt.label }}</option>
       }

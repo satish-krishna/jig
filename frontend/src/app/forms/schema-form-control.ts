@@ -1,4 +1,4 @@
-import { Directive, input } from '@angular/core';
+import { Directive, computed, input } from '@angular/core';
 import type { AbstractControl } from '@angular/forms';
 import type { FieldSpec } from './field-spec';
 
@@ -18,6 +18,16 @@ import type { FieldSpec } from './field-spec';
 export abstract class SchemaFormControl {
   readonly field = input.required<FieldSpec>();
   readonly control = input.required<AbstractControl>();
+
+  // Empty by default, so a top-level field's id stays exactly what it is today.
+  // A repeater row sets this to something unique to the row, since FieldSpec
+  // itself carries no path or index — see ArrayControl.
+  readonly idPrefix = input('');
+
+  /** DOM id for this control. Prefixed inside a repeater so rows do not collide. */
+  protected readonly controlId = computed(() =>
+    this.idPrefix() ? `${this.idPrefix()}-${this.field().key}` : this.field().key,
+  );
 
   /** Narrowed accessor so templates can bind [formControl] without a cast. */
   protected get formControl() {

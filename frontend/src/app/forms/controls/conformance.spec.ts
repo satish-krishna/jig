@@ -106,8 +106,7 @@ const SAMPLE: Record<string, ConformanceSample> = {
 
 // Kinds deliberately covered elsewhere rather than by this table.
 // `group` and `array` are structural containers exercised end-to-end in
-// schema-form.spec.ts and array.control.spec.ts, where a real schema and a
-// real form exist to nest into.
+// array.control.spec.ts, where a real schema and a real form exist to nest into.
 const COVERED_ELSEWHERE = new Set(['group', 'array']);
 
 describe('every registered control conforms', () => {

@@ -18,7 +18,7 @@ import { SchemaFormControl } from '../schema-form-control';
     <input
       hlmInput
       [type]="field().kind"
-      [id]="field().key"
+      [id]="controlId()"
       [formControl]="formControl"
       [attr.placeholder]="field().meta.placeholder ?? null"
     />

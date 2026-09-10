@@ -49,10 +49,40 @@ describe('arrays of objects', () => {
     add.click();
     fixture.detectChanges();
 
+    // Two structurally identical empty rows cannot distinguish "removed the
+    // right row" from "always removes the last/first row" — seed them
+    // distinguishably so a wrong-index bug fails loudly.
+    const contacts = fixture.componentInstance.form().get('contacts') as FormArray;
+    (contacts.at(0) as FormGroup).get('email')!.setValue('first@example.io');
+    (contacts.at(1) as FormGroup).get('email')!.setValue('second@example.io');
+    fixture.detectChanges();
+
     (fixture.nativeElement.querySelectorAll('[data-array-remove]')[0] as HTMLButtonElement).click();
     fixture.detectChanges();
 
-    expect((fixture.componentInstance.form().get('contacts') as FormArray).length).toBe(1);
+    expect(contacts.length).toBe(1);
+    expect((contacts.at(0) as FormGroup).get('email')!.value).toBe('second@example.io');
+  });
+
+  it('gives every row its own DOM identity, so ids do not collide across rows', () => {
+    const fixture = render();
+    const add = fixture.nativeElement.querySelector('[data-array-add]') as HTMLButtonElement;
+    add.click();
+    add.click();
+    fixture.detectChanges();
+
+    const rows = [...fixture.nativeElement.querySelectorAll('[data-array-row]')] as HTMLElement[];
+    expect(rows.length).toBe(2);
+
+    const inputs = rows.map((row) => row.querySelector('input') as HTMLInputElement);
+    const ids = inputs.map((input) => input.id);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids.every((id) => !!id)).toBe(true);
+
+    rows.forEach((row, i) => {
+      const label = row.querySelector('label') as HTMLLabelElement;
+      expect(label.getAttribute('for')).toBe(inputs[i].id);
+    });
   });
 
   it('folds a zod error onto the control inside the failing row', () => {

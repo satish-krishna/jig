@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import type { AbstractControl } from '@angular/forms';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
@@ -32,13 +32,13 @@ import { SchemaFormBuilder } from '../schema-form-builder';
   template: `
     <hlm-field>
       @if (field().meta.label) {
-        <label hlmFieldLabel [attr.for]="field().key">{{ field().meta.label }}</label>
+        <label hlmFieldLabel [attr.for]="fieldId()">{{ field().meta.label }}</label>
       }
       <ng-container
         [ngComponentOutlet]="component()"
-        [ngComponentOutletInputs]="{ field: field(), control: control() }"
+        [ngComponentOutletInputs]="{ field: field(), control: control(), idPrefix: idPrefix() }"
       />
-      <hlm-field-error [attr.data-error-for]="field().key">
+      <hlm-field-error [attr.data-error-for]="fieldId()">
         {{ control().errors?.['zod'] }}
       </hlm-field-error>
     </hlm-field>
@@ -49,6 +49,16 @@ export class FieldHost {
 
   readonly field = input.required<FieldSpec>();
   readonly control = input.required<AbstractControl>();
+
+  // Empty by default, so a top-level field's id stays exactly what it is today.
+  // A repeater row passes something unique to the row (see ArrayControl); a
+  // nested group passes its own prefix straight through to its children.
+  readonly idPrefix = input('');
+
+  /** DOM id for this field. Prefixed inside a repeater so rows do not collide. */
+  protected readonly fieldId = computed(() =>
+    this.idPrefix() ? `${this.idPrefix()}-${this.field().key}` : this.field().key,
+  );
 
   protected component() {
     return this.builder.componentFor(this.field().kind);
