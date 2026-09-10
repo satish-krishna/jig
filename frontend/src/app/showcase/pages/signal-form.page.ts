@@ -18,7 +18,7 @@ const profileSchema = z.object({
   displayName: z
     .string()
     .min(1, 'Display name is required')
-    .meta({ label: 'Display name', control: 'text', placeholder: 'Ada', order: 1 } satisfies FormFieldMeta),
+    .meta({ label: 'Display name', placeholder: 'Ada', order: 1 } satisfies FormFieldMeta),
   email: z
     .string()
     .min(1, 'Email is required')
@@ -203,7 +203,7 @@ export class SignalFormPage {
 
   protected readonly codeAuthored = `const profileSchema = z.object({
   displayName: z.string().min(1, 'Display name is required')
-    .meta({ label: 'Display name', control: 'text' } satisfies FormFieldMeta),
+    .meta({ label: 'Display name' } satisfies FormFieldMeta),
 });
 type Profile = z.infer<typeof profileSchema>;   // never hand-written
 
