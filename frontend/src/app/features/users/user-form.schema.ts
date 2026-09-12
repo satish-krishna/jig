@@ -9,7 +9,7 @@ export const userFormSchema = z.object({
   name: z
     .string()
     .min(1, 'Name is required')
-    .meta({ label: 'Name', control: 'text', placeholder: 'Ada Lovelace', order: 1 } satisfies FormFieldMeta),
+    .meta({ label: 'Name', placeholder: 'Ada Lovelace', order: 1 } satisfies FormFieldMeta),
   email: z
     .string()
     .min(1, 'Email is required')

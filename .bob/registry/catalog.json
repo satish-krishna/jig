@@ -1,6 +1,6 @@
 {
   "generator": "tools/catalog",
-  "count": 23,
+  "count": 41,
   "capabilities": [
     {
       "capability": "api.application-module",
@@ -75,28 +75,172 @@
       "symbol": "ROUTES"
     },
     {
+      "capability": "forms.control-base",
+      "intent": "Every control receives the same two inputs, checked at compile time.",
+      "reuse": "`export class MyControl extends SchemaFormControl {}`, then register it.",
+      "file": "frontend/src/app/forms/schema-form-control.ts",
+      "language": "typescript",
+      "symbol": "SchemaFormControl"
+    },
+    {
+      "capability": "forms.control-definition",
+      "intent": "A control kind is registered data, never a branch inside SchemaForm.",
+      "reuse": "Declare one per control and pass it to provideFormControls() in app config.",
+      "file": "frontend/src/app/forms/control-definition.ts",
+      "language": "typescript",
+      "symbol": "FormControlDefinition"
+    },
+    {
+      "capability": "forms.control-options",
+      "intent": "Option values are owned by z.enum; meta owns only the words.",
+      "reuse": "Call from any option-bearing control with its FieldSpec.",
+      "file": "frontend/src/app/forms/controls/options.ts",
+      "language": "typescript",
+      "symbol": "optionsOf"
+    },
+    {
+      "capability": "forms.control-registry",
+      "intent": "Control choice is a lookup over registered data, not a switch in a component.",
+      "reuse": "Inject it; register kinds with provideFormControls(). Order is semantic — first match wins.",
+      "file": "frontend/src/app/forms/control-registry.ts",
+      "language": "typescript",
+      "symbol": "FormControlRegistry"
+    },
+    {
+      "capability": "forms.control.array",
+      "intent": "A repeater is a registered control that recurses through the same outlet.",
+      "reuse": "Inferred from z.array(); .min(n) seeds n rows at build time.",
+      "file": "frontend/src/app/forms/controls/array.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.checkbox",
+      "intent": "z.boolean() infers a checkbox with no meta required.",
+      "reuse": "Registered in controls/index.ts; override with control: 'switch' once one exists.",
+      "file": "frontend/src/app/forms/controls/checkbox.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.date",
+      "intent": "z.date() infers a picker; the control carries its own adapter dependency.",
+      "reuse": "Registered in controls/index.ts. Nothing else needs changing to use it.",
+      "file": "frontend/src/app/forms/controls/date.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.group",
+      "intent": "Nesting is a registered control, not a special case in the renderer.",
+      "reuse": "Inferred from z.object(); nothing to configure.",
+      "file": "frontend/src/app/forms/controls/group.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.multiselect",
+      "intent": "z.array(z.enum()) infers a chip multi-select, not a repeater of selects.",
+      "reuse": "Registered before the generic array repeater — order is semantic.",
+      "file": "frontend/src/app/forms/controls/multiselect.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.number",
+      "intent": "A bound `[type]=\"'number'\"` looks equivalent to a static one but is not.",
+      "reuse": "Registered as the `number` kind in controls/index.ts.",
+      "file": "frontend/src/app/forms/controls/number.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.radio",
+      "intent": "Same values as select, different affordance, chosen by meta.control.",
+      "reuse": "Set control: 'radio' on an enum field's meta.",
+      "file": "frontend/src/app/forms/controls/radio.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.select",
+      "intent": "z.enum() infers a select with no meta beyond the label.",
+      "reuse": "Override with control: 'radio' for the same values as radio buttons.",
+      "file": "frontend/src/app/forms/controls/select.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.text",
+      "intent": "One component per input shape, not per zod type.",
+      "reuse": "Registered as two definitions in controls/index.ts.",
+      "file": "frontend/src/app/forms/controls/text.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.control.textarea",
+      "intent": "Override-only kinds carry no matches() predicate.",
+      "reuse": "Set control: 'textarea' on the field's meta.",
+      "file": "frontend/src/app/forms/controls/textarea.control.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.default-controls",
+      "intent": "The default catalog is one ordered list, reviewable in one place.",
+      "reuse": "Call provideDefaultFormControls() in app config. Add a kind with a new file plus one entry.",
+      "file": "frontend/src/app/forms/controls/index.ts",
+      "language": "typescript",
+      "symbol": "DEFAULT_FORM_CONTROLS"
+    },
+    {
       "capability": "forms.dynamic-renderer",
-      "intent": "Render any zod schema at runtime; the schema stays the source of truth for shape and validation.",
-      "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted). Runtime schemas only; author-time forms use signal-forms.",
+      "intent": "Render any zod schema at runtime; the schema stays the source of truth.",
+      "reuse": "Pass a zod object schema whose fields carry FormFieldMeta; listen to (submitted).",
       "file": "frontend/src/app/forms/schema-form.ts",
+      "language": "typescript",
+      "symbol": "selector"
+    },
+    {
+      "capability": "forms.field-host",
+      "intent": "The cell, its span and its error slot are stated once, not per container.",
+      "reuse": "Render any FieldSpec with its AbstractControl through this component.",
+      "file": "frontend/src/app/forms/controls/field-host.ts",
       "language": "typescript",
       "symbol": "selector"
     },
     {
       "capability": "forms.field-meta",
       "intent": "Field presentation lives on the schema field, not in a parallel config object.",
-      "reuse": "Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field.",
+      "reuse": "Attach with `.meta({...} satisfies FormFieldMeta)` on each zod field, AFTER any .optional()/.nullable()/.default() wrapper where practical.",
       "file": "frontend/src/app/forms/form-field-meta.ts",
       "language": "typescript",
-      "symbol": "ControlKind"
+      "symbol": "ControlKindRegistry"
+    },
+    {
+      "capability": "forms.field-spec",
+      "intent": "The render tree is data derived from the schema, never hand-authored.",
+      "reuse": "Produced by SchemaFormBuilder.fieldsFromSchema; consumed by SchemaForm and every control.",
+      "file": "frontend/src/app/forms/field-spec.ts",
+      "language": "typescript",
+      "symbol": "FieldSpec"
+    },
+    {
+      "capability": "forms.schema-form-builder",
+      "intent": "One walk of the schema produces both the render tree and the control tree.",
+      "reuse": "Inject it; call fieldsFromSchema(node) then buildControl(spec). Both work on any node.",
+      "file": "frontend/src/app/forms/schema-form-builder.ts",
+      "language": "typescript",
+      "symbol": "SchemaFormBuilder"
     },
     {
       "capability": "forms.zod-meta",
       "intent": "Field presentation stays on the zod schema; components read it, never duplicate it.",
-      "reuse": "Call formMeta(schema) in a form component; pair with validateStandardSchema for validation.",
+      "reuse": "Call resolveMeta(node, path) for one node, or formMeta(objectSchema) for a whole shape.",
       "file": "frontend/src/app/forms/zod-meta.ts",
       "language": "typescript",
-      "symbol": "formMeta"
+      "symbol": "resolveMeta"
     },
     {
       "capability": "repositories.user",

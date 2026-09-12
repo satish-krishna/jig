@@ -14,6 +14,7 @@ import { provideSpartanHlm } from '@spartan-ng/helm/utils';
 
 import { routes } from './app.routes';
 import { provideTransport } from './transport';
+import { provideDefaultFormControls } from './forms/controls';
 import { provideUsersMenu } from './features/users/users.commands';
 import { provideShowcaseMenu } from './showcase/showcase.commands';
 
@@ -28,6 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withXhr()),
     provideSpartanHlm(),
+    provideDefaultFormControls(),
     provideTransport(API_BASE_URL),
     provideIcons({
       lucideUsers,
