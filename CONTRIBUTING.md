@@ -29,7 +29,9 @@ Per language:
 
 - **.NET:** unit tests against handlers with FakeItEasy doubles; integration tests through the FastEndpoints test host per endpoint (real routing, real validation, SQLite in-memory or Testcontainers per ADR 0001). Assert the Result envelope, not thrown exceptions, for expected failures.
 - **Angular:** ViewModels tested as plain classes with a fake `Transport` implementing the operation registry (this is why the port exists). Components via Angular's `TestBed` under Vitest. One Playwright smoke that boots the SPA and drives the `users` slice.
+<!-- thick:start -->
 - **Rust:** every Tauri command has a test that calls it directly with a payload matching the operation registry's `req` shape and asserts the `res` shape. Keep the command layer thin; unit-test the logic it delegates to in isolation.
+<!-- thick:end -->
 
 The `users` slice ships with tests at all three levels as the reference pattern future features copy.
 
@@ -112,7 +114,9 @@ For iterative work, do not full-build after every change. Start the watchers and
 
 - `npm run dev` runs the Angular dev server (frontend HMR) and `dotnet watch` (backend hot reload) together, output line-prefixed `[web]` / `[api]`. Run it in the background and watch it for compile errors.
 - **LSP is the type-check backup:** `workspace/symbol`, hover, and diagnostics catch type errors with no build at all.
+<!-- thick:start -->
 - For the desktop shell (Rust + WebView), use `cargo tauri dev` instead; it opens a window, so it is on-demand.
+<!-- thick:end -->
 
 This is the inner loop, not the gate. HMR being green means the code compiles, not that it is correct — it runs no tests. Run `npm run verify` before you commit. (In dev the frontend on `:4200` calling the API will hit CORS on live data; compile feedback is unaffected. Add CORS to the API if you want live cross-calls in the browser.)
 

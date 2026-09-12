@@ -21,6 +21,7 @@ This is a template, not a product. It ships one worked vertical slice, `users`, 
    ```
    node tools/init/init.ts AcmePortal
    node tools/init/init.ts AcmePortal --bundle-id=io.acme.desktop
+   node tools/init/init.ts AcmePortal --thin   # web only: no Tauri shell, no Rust core
    ```
 
    This rewrites every `Jig`/`jig` identifier in the right form (`AcmePortal` for .NET, `acme-portal` for npm/Angular, `acme_portal` for the Rust lib, `com.acmeportal.app` for the bundle), strips the template-only files (this section, the bootstrap prompt, the design specs, and the init tooling), re-inits git with clean history, regenerates the catalog, runs `npm run verify`, and commits. When it finishes, `AcmePortal` is a fresh app with no trace of Jig.
@@ -31,17 +32,17 @@ Everything below this line is the app's own documentation and survives the renam
 <!-- template:start -->
 ## Web-only: Angular + .NET without the desktop shell
 
-If you only want the web pairing — the Angular SPA against the .NET API over HTTP — you do not touch the application code. The transport already decides the wire at bootstrap: `provideTransport()` calls `isTauri()`, which is `false` in a browser, so a web build runs HTTP-only on its own. Point `API_BASE_URL` in `frontend/src/app/app.config.ts` at your API and the running app is done. There is no registration to flip.
+If you only want the web pairing — the Angular SPA against the .NET API over HTTP — pass `--thin` to init:
 
-What actually assumes Rust is the **toolchain**, and it fails hard without it: `npm run setup` lists `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer` as required, `npm run verify` runs `cargo test`, and CI installs the Rust toolchain. Do this rip-out **before** `node tools/init/init.ts`, because init ends by running `npm run verify` — leave the Rust step in and init will demand a toolchain you are removing.
+```
+node tools/init/init.ts AcmePortal --thin
+```
 
-1. **Delete the desktop shell:** remove `apps/desktop/`.
-2. **`tools/setup/setup.ts`** — drop the `rustc`, `cargo`, `tauri-cli`, and `rust-analyzer (LSP)` entries from the toolchain-check list, and the `cargo fetch` step.
-3. **`tools/verify/verify.ts`** — remove the `['rust tests', 'cargo test', SRC_TAURI]` entry from the `steps` array (and the now-unused `SRC_TAURI` constant).
-4. **`.github/workflows/verify.yml`** — remove the `dtolnay/rust-toolchain`, `Swatinem/rust-cache`, and `cargo test` steps.
-5. **Prerequisites** — drop the Rust toolchain, Tauri CLI, and `rust-analyzer` from the list below.
+The thin cut deletes `apps/desktop/`, drops the IPC transport and the `@tauri-apps/api` dependency, collapses `provideTransport` to HTTP only, and removes the Rust toolchain from `npm run setup`, `npm run verify`, and CI. What survives is the whole fixture minus the second wire: the transport port and its error seam, the operation registry, the forms, the architecture analyzer, the lint ruleset, and the `users` slice.
 
-The frontend still carries `@tauri-apps/api` (used by `provideTransport` and `IpcTransport`). Leaving it is harmless — `isTauri()` is a cheap runtime check and the IPC branch is never taken in a browser. Removing it is the one part that is a code change rather than configuration: drop the dependency from `frontend/package.json`, delete `frontend/src/app/transport/ipc.transport.ts`, and simplify `provide-transport.ts` to register `HttpTransport` unconditionally. Everything else — the architecture analyzer, the forms, the contracts registry, the `users` slice — is wire-agnostic and unaffected.
+`--thick` is the default and names it explicitly; passing it changes nothing. Both wires ship unless you ask for the cut.
+
+Do the cut through init rather than by hand. Init ends by running `npm run verify`, so the toolchain requirements and the gate steps have to come out in the same pass that removes the code — which is what `--thin` is for.
 <!-- template:end -->
 
 ## One-command setup
@@ -79,7 +80,9 @@ flowchart TD
 - **Contracts** (`frontend/src/app/contracts`): one typed operation registry is the single source of truth for every request and response shape. Response types are the OpenAPI-generated DTOs, so HTTP and IPC cannot disagree.
 - **Transport** (`frontend/src/app/transport`): the only place that knows two wires exist. The wire is chosen once, at bootstrap, by `isTauri()`. Errors from either wire fold into one `AppError` at a single seam.
 - **Backend** (`services/api`): .NET FastEndpoints with a Result envelope, FluentValidation, and EF Core, in clean-architecture layers (Api, Application, Domain, Infrastructure).
+<!-- thick:start -->
 - **Rust core** (`apps/desktop/src-tauri`): thin Tauri commands over a store that mirrors the API's use-cases, so both wires behave the same.
+<!-- thick:end -->
 - **Forms** (`frontend/src/app/forms`): one zod schema per form owns shape, validation, and field metadata; a single renderer turns it into controls.
 
 ## Working here

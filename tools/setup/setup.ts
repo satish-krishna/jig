@@ -36,10 +36,12 @@ const CHECKS = [
   { slot: 'git', required: true, candidates: [['git', ['--version']]] },
   { slot: 'node', required: true, candidates: [['node', ['--version']]], node: true },
   { slot: '.NET SDK', required: true, candidates: [['dotnet', ['--version']]] },
+  // thick:start
   { slot: 'rustc', required: true, candidates: [['rustc', ['--version']]] },
   { slot: 'cargo', required: true, candidates: [['cargo', ['--version']]] },
   { slot: 'tauri-cli', required: true, candidates: [['cargo-tauri', ['--version']], ['cargo', ['tauri', '--version']]] },
   { slot: 'rust-analyzer (LSP)', required: true, candidates: [['rust-analyzer', ['--version']]] },
+  // thick:end
   { slot: 'TypeScript LSP', required: true, candidates: [['typescript-language-server', ['--version']], ['vtsls', ['--version']]] },
   { slot: 'C# LSP', required: true, candidates: [['csharp-ls', ['--version']]] },
 ];
@@ -117,11 +119,13 @@ function restoreBackend() {
   ok('dotnet restore complete');
 }
 
+// thick:start
 function fetchRust() {
   log('\nRust crates:');
   execSync('cargo fetch', { cwd: join(ROOT, 'apps', 'desktop', 'src-tauri'), stdio: 'inherit' });
   ok('cargo fetch complete');
 }
+// thick:end
 
 function generateCatalog() {
   log('\nCapability catalog:');
@@ -139,7 +143,9 @@ function main() {
   installDeps();
   installFrontend();
   restoreBackend();
+  // thick:start
   fetchRust();
+  // thick:end
   generateCatalog();
   log('\nSetup complete. Run `npm run verify` to confirm the fixture is green.');
   log('Next: read CLAUDE.md and .bob/registry/CATALOG.md.');

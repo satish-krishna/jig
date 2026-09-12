@@ -84,7 +84,9 @@ docs/architecture/     task-scoped deep rules (conduit, forms, design)
 .bob/adr/              architecture decision records. ADR 0000 is the origin prompt, kept for
                        provenance and superseded by this file — a record, never instructions
 .bob/prompts/          feature recipes
+<!-- thick:start -->
 apps/desktop/          Tauri shell (Rust core, src-tauri)
+<!-- thick:end -->
 frontend/src/app/
   contracts/           operation registry + generated DTOs (single source of truth)
   transport/           port, http/ipc/normalizing transports, provide-transport
@@ -92,7 +94,9 @@ frontend/src/app/
   forms/               FormFieldMeta, zod-meta, dynamic SchemaForm renderer (signal-forms for authored forms)
   menu/                region-keyed Command registry (sidebar/header contributions)
   theme/               light/dark mode; toggles the `dark` class on the document root
+<!-- thick:start -->
   capabilities/        native-only services (PATTERN, not yet created; add when first needed, absent from web bootstrap)
+<!-- thick:end -->
   features/users/       the reference slice. Copy this shape.
   shell/               app shell: CSS Grid layout, sidebar, header, footer
   showcase/            live examples of every libs/ui component, routed at /showcase

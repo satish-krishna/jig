@@ -42,8 +42,10 @@ The `users` slice is the worked example for every one of these. Copy its shape r
 
 These are the boundaries the architecture depends on. Crossing one is the kind of thing the analyzer and the transport design exist to prevent:
 
+<!-- thick:start -->
 - **A repository talks to the `Transport` port, never to a concrete wire.** Do not `import` `HttpTransport` or `IpcTransport` into a repository — inject the `Transport` abstraction.
 - **`isTauri()` is called in exactly one place: `provide-transport.ts`.** A service that branches on `isTauri()` has pulled the two-wire decision out of its one home. Read `docs/architecture/conduit.md` before touching the transport seam.
+<!-- thick:end -->
 - **Request and response shapes come from the contracts registry**, not hand-written interfaces. Response types are the OpenAPI-generated DTOs, so HTTP and IPC cannot disagree.
 
 When in doubt about the wire-agnostic side of this, the `conduit` skill covers the transport seam in depth.

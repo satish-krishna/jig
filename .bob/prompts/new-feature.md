@@ -23,10 +23,12 @@ Copy the `users` backend:
 
 Then `npm run codegen` so the frontend DTOs regenerate.
 
+<!-- thick:start -->
 ## 3. Rust (TDD)
 
 Add commands whose `req`/`res` match the registry in `apps/desktop/src-tauri/src/commands.rs`, delegating to a store like `users.rs`. Write the store tests first; keep the commands thin. Register the commands in `src/lib.rs`.
 
+<!-- thick:end -->
 ## 4. Frontend (TDD)
 
 - Repository in `frontend/src/app/repositories` that speaks operations only (like `user.repository.ts`).
