@@ -63,6 +63,7 @@ interface Step {
 const steps: Step[] = [
   { name: 'catalog freshness', cmd: 'node tools/catalog/catalog.ts --check', cwd: ROOT, areas: ['dotnet', 'rust', 'frontend', 'tools'] },
   { name: 'showcase api freshness', cmd: 'node tools/showcase-api/showcase-api.ts --check', cwd: ROOT, areas: ['frontend', 'tools'] },
+  { name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'dotnet', 'rust', 'tools', 'contracts'] },
   { name: 'tools typecheck', cmd: 'npm run typecheck', cwd: ROOT, areas: ['tools'] },
   { name: 'tooling tests', cmd: 'node --test "tools/**/*.test.ts"', cwd: ROOT, areas: ['tools'] },
   { name: 'backend tests (.NET)', cmd: 'dotnet test services/api/Jig.sln --nologo -v q', cwd: ROOT, areas: ['dotnet'], native: true },

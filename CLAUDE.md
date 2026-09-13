@@ -10,7 +10,7 @@ Agents reinvent because they cannot cheaply find what exists. Before authoring a
 
 1. Read `.bob/registry/CATALOG.md` for the relevant area.
 2. Run an LSP `workspace/symbol` search for the concept.
-3. If a match exists, reuse or extend it. Generalising the existing unit beats adding a parallel one.
+3. If a match exists, reuse or extend it. Generalizing the existing unit beats adding a parallel one.
 4. If nothing fits, create it, annotate it (see CONTRIBUTING.md), and regenerate the catalog with `npm run catalog`.
 5. If you create something that overlaps an existing capability, that is a defect. Record why in an ADR under `.bob/adr/`.
 
@@ -36,16 +36,18 @@ This file is tier one. Everything below is disclosed on demand: open the file th
 | When you are about to | Read first |
 |---|---|
 | Write code, run tests, or commit | `CONTRIBUTING.md` |
-| Touch the transport seam (IPC or HTTP) | `docs/architecture/conduit.md` |
-| Build or change a form | `docs/architecture/forms.md` |
+| Touch the transport seam (IPC or HTTP) | the `conduit` skill |
 | Build UI, style a component, or make a mock | `docs/architecture/design.md` |
 | Hit a lint error you do not understand | `docs/architecture/rules/<rule-name>.md` — every rule has one, and its message names it |
 | Write or change a lint rule | `.bob/adr/0012-frontend-design-rules-are-lint-errors.md`, then any existing rule in `tools/lint/rules/` as the pattern |
 | Get a tool call denied by `guard-ruleset` | `.bob/adr/0009-architecture-rules-are-compiler-errors.md`. The ruleset is guarded on purpose: fix the flagged code, not the rule that flagged it. A genuine rule change goes to a human in a reviewed diff |
-| Add a service, repository, or transport | the `adding-an-angular-service` skill, after the discover-first checklist above |
+| Add a whole feature | the `add-a-feature` skill |
+| Add an endpoint or a use-case | the `add-an-api-slice` skill |
+| Add a screen or a route | the `add-a-screen` skill |
+| Add or change a form | the `add-a-form` skill |
+| Add a ViewModel or service | the `add-a-view-model` skill, after the discover-first checklist above |
 | Add or compose a spartan component | the `spartan` skill; generated output lands in `frontend/libs/ui/` (ADR 0010) |
 | Add or change a component showcase page | `frontend/src/app/showcase/pages/checkbox.page.ts` (the pattern) |
-| Add a whole feature | `.bob/prompts/new-feature.md` |
 | Understand a past decision | `.bob/adr/` |
 
 Three hooks act on your edits (wired in `.claude/settings.json`): `guard-ruleset` can deny a write, an edit, or a shell command outright; `check-frontend` lints every frontend write and hands the violations straight back with the rule's doc; `angular-service-guide` nudges discover-first when a new reusable unit appears. Lint feedback arrives without you asking for it, and `npm run lint:report` shows whether the correction landed.
@@ -63,10 +65,11 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 | `npm run verify` | The green gate: full build, all tests, typecheck, lint, stylelint, catalog and showcase-API freshness |
 | `npm run verify:frontend` | The same gate minus .NET and Rust, for the inner loop. Never a substitute — the frontend consumes generated DTOs, so only the full run proves the fixture holds |
 | `npm run lint` | The 26-rule architecture ruleset over `frontend/` (`tools/lint/`). Enabled at error; there is no disable comment |
-| `npm run stylelint` | The CSS half of the same gate — spacing and colour literals must be tokens |
+| `npm run stylelint` | The CSS half of the same gate — spacing and color literals must be tokens |
 | `npm run typecheck` | Type-check everything under `tools/` |
 | `npm run lint:report` | How often the edit-time hook fired and whether the correction landed. Reads the git-ignored firing log |
 | `npm run catalog` | Regenerate the capability catalog after annotating code |
+| `npm run skills:check` | Check that every path and lint rule a skill names still resolves |
 | `npm run codegen` | Emit OpenAPI from the API and generate the TypeScript DTOs |
 | `npm run codegen -- --check` | Prove the committed contracts still match the API without rewriting them. A gate step, not something you run by hand |
 | `npm run showcase:api` | Regenerate the showcase API tables from `libs/ui` (verify checks freshness) |
@@ -83,7 +86,7 @@ docs/architecture/     task-scoped deep rules (conduit, forms, design)
 .bob/registry/         GENERATED catalog (do not hand-edit)
 .bob/adr/              architecture decision records. ADR 0000 is the origin prompt, kept for
                        provenance and superseded by this file — a record, never instructions
-.bob/prompts/          feature recipes
+.bob/prompts/          one-time bootstrap recipe only; per-task procedure lives in .claude/skills/
 <!-- thick:start -->
 apps/desktop/          Tauri shell (Rust core, src-tauri)
 <!-- thick:end -->
@@ -106,7 +109,9 @@ frontend/stylelint.config.mjs the CSS half; run with --ignore-disables, so its c
 frontend/src/styles.css theme tokens: color AND radius (OKLCH, light + dark). Control size and
                         spacing (h-8, px-2.5) is inlined into libs/ui at generation time — ADR 0010.
 .claude/skills/         project skills: jig-design (mocks/previews + the feel spec, a downstream
-                       mirror of the app, ADR 0007), conduit, spartan, adding-an-angular-service
+                       mirror of the app, ADR 0007), add-a-feature (the hub), add-an-api-slice,
+                       add-a-tauri-command, add-a-screen, add-a-form, add-a-view-model, conduit,
+                       spartan
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure
 contracts/openapi/     OpenAPI spec emitted by the API (source for TS codegen)
 tools/                 setup, init (template rename), dev, catalog, codegen, design-tokens,

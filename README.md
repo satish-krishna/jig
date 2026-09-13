@@ -94,7 +94,7 @@ flowchart TD
 
 ## Adding a feature
 
-Follow `.bob/prompts/new-feature.md` and copy the `users` slice end to end. Discover first, annotate what you build, regenerate the catalog, and commit at a green gate with a Conventional Commits message.
+Start with the `add-a-feature` skill — it owns the build order for a whole vertical slice and hands each layer to its own spoke skill. Discover first, annotate what you build, regenerate the catalog, and commit at a green gate with a Conventional Commits message.
 
 ## Commands
 

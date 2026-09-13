@@ -29,10 +29,15 @@ export const THIN_DELETE: readonly string[] = [
   'apps',
   'frontend/src/app/transport/ipc.transport.ts',
   'frontend/src/app/transport/ipc.transport.spec.ts',
-  // The conduit skill's entire subject is choosing between two wires. Trimming it
-  // to one leaves 200 lines answering a question the app no longer has, so the thin
-  // cut drops it whole and keeps `docs/architecture/conduit.md` as the seam doc.
-  '.claude/skills/conduit',
+  // The conduit skill itself survives: its subject is the contract seam — the
+  // operations registry, the codegen ordering trap and the facade a ViewModel calls —
+  // all of which a thin app has, and the second wire is marked as thick-only inside
+  // it. This one reference page is the exception: it is wholly about the Rust command
+  // side of the IPC wire, so there is nothing left of it once the core is gone.
+  '.claude/skills/conduit/references/rust-command-side.md',
+  // The whole subject of this skill is a Rust core the thin cut deletes outright,
+  // so the skill goes with it rather than carrying thick markers through every line.
+  '.claude/skills/add-a-tauri-command',
 ];
 
 /** The frontend dependency only the IPC wire needed. Uninstalled, so the lockfile stays honest. */
@@ -237,18 +242,18 @@ export const COMMANDS: { [K in OperationName]: string } = {
     ],
   },
   {
-    path: 'frontend/src/app/repositories/user.repository.ts',
+    path: 'frontend/src/app/operations/user.operations.ts',
     edits: [
       [
-        ` * The user repository: speaks operations, never URLs or command names. Identical
+        ` * The user operations facade: speaks operations, never URLs or command names. Identical
  * across both wires because it only ever talks to the Transport port.
  *
- * @capability repositories.user
+ * @capability operations.user
  * @intent Domain-facing user data access that is oblivious to HTTP vs IPC.`,
-        ` * The user repository: speaks operations, never URLs. It only ever talks to the
+        ` * The user operations facade: speaks operations, never URLs. It only ever talks to the
  * Transport port, so route knowledge stays in the registry.
  *
- * @capability repositories.user
+ * @capability operations.user
  * @intent Domain-facing user data access that is oblivious to the wire.`,
       ],
     ],
@@ -359,8 +364,10 @@ export const COMMANDS: { [K in OperationName]: string } = {
       ],
       ['| The same gate minus .NET and Rust, for the inner loop.', '| The same gate minus .NET, for the inner loop.'],
       [
-        'mirror of the app, ADR 0007), conduit, spartan, adding-an-angular-service',
-        'mirror of the app, ADR 0007), spartan, adding-an-angular-service',
+        'mirror of the app, ADR 0007), add-a-feature (the hub), add-an-api-slice,\n' +
+          '                       add-a-tauri-command, add-a-screen, add-a-form, add-a-view-model, conduit,',
+        'mirror of the app, ADR 0007), add-a-feature (the hub), add-an-api-slice,\n' +
+          '                       add-a-screen, add-a-form, add-a-view-model, conduit,',
       ],
     ],
   },
@@ -377,6 +384,10 @@ export const COMMANDS: { [K in OperationName]: string } = {
       ['checks the toolchain and all three language servers,', 'checks the toolchain and both language servers,'],
       ['`dotnet test services/api/Jig.sln`, `cargo test` (in `apps/desktop/src-tauri`), `npm --prefix frontend test`', '`dotnet test services/api/Jig.sln`, `npm --prefix frontend test`'],
       ['The `users` slice ships with tests at all three levels as the reference pattern future features copy.', 'The `users` slice ships with tests at both levels as the reference pattern future features copy.'],
+      [
+        'it owns the build order for a whole vertical slice and hands each layer to its own spoke skill (`add-an-api-slice`, `add-a-tauri-command`, `add-a-view-model`, `add-a-screen`, `add-a-form`).',
+        'it owns the build order for a whole vertical slice and hands each layer to its own spoke skill (`add-an-api-slice`, `add-a-view-model`, `add-a-screen`, `add-a-form`).',
+      ],
     ],
   },
   {
@@ -454,17 +465,22 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
       ['doc-comment syntax (`///` Rust, `/** */` JS/TS,', 'doc-comment syntax (`/** */` JS/TS,'],
     ],
   },
+  // The conduit skill carries its thick prose in marked blocks. Two things cannot be
+  // marked. The mermaid edge naming the second transport: a marker line inside a
+  // ```mermaid fence is not a valid flowchart statement, so it is dropped by exact
+  // match instead, the same way README.md and docs/architecture/conduit.md drop
+  // theirs. And the frontmatter description, which is one line of YAML with no room
+  // for a marker — it must lose its two-wire trigger phrases or a thin clone ships a
+  // skill that fires on "dual transport" and then has nothing to say about it.
   {
-    path: '.bob/prompts/new-feature.md',
+    path: '.claude/skills/conduit/SKILL.md',
     edits: [
-      [
-        'and their HTTP route and IPC command to `frontend/src/app/contracts/registry.ts` (`ROUTES` and `COMMANDS`). The mapped types force both wires to cover every operation.',
-        'and their HTTP route to `frontend/src/app/contracts/registry.ts` (`ROUTES`). The mapped type forces the wire to cover every operation.',
-      ],
+      ['    Norm -. "chosen at bootstrap" .-> Ipc["IpcTransport -> Rust core"]\n', ''],
+      ['"one frontend two wires", "dual transport", ', ''],
     ],
   },
   {
-    path: '.claude/skills/adding-an-angular-service/SKILL.md',
+    path: '.claude/skills/add-a-view-model/SKILL.md',
     edits: [
       ['| is the wire itself (HTTP, IPC, error normalizing) | **transport** |', '| is the wire itself (HTTP, error normalizing) | **transport** |'],
       ['Response types are the OpenAPI-generated DTOs, so HTTP and IPC cannot disagree.', 'Response types are the OpenAPI-generated DTOs, so the client and the API cannot disagree.'],
@@ -549,6 +565,10 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
         "{ name: 'catalog freshness', cmd: 'node tools/catalog/catalog.ts --check', cwd: ROOT, areas: ['dotnet', 'frontend', 'tools'] },",
       ],
       [
+        "{ name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'dotnet', 'rust', 'tools', 'contracts'] },",
+        "{ name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'dotnet', 'tools', 'contracts'] },",
+      ],
+      [
         "console.log('Frontend gate: skipping .NET and Rust. Run `npm run verify` before committing.');",
         "console.log('Frontend gate: skipping .NET. Run `npm run verify` before committing.');",
       ],
@@ -563,8 +583,8 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
     edits: [
       ['// possibly be broken by, so a Rust-only change stops running Playwright and a', '// possibly be broken by, so a backend-only change stops running Playwright and a'],
       [
-        "export const ALL_AREAS = ['dotnet', 'rust', 'frontend', 'tools', 'contracts'] as const;",
-        "export const ALL_AREAS = ['dotnet', 'frontend', 'tools', 'contracts'] as const;",
+        "export const ALL_AREAS = ['dotnet', 'rust', 'frontend', 'tools', 'contracts', 'skills'] as const;",
+        "export const ALL_AREAS = ['dotnet', 'frontend', 'tools', 'contracts', 'skills'] as const;",
       ],
       ["  if (p.startsWith('apps/')) return 'rust';\n", ''],
     ],

@@ -34,6 +34,11 @@ describe('classify', () => {
     assert.equal(classify('some/new/thing.txt'), 'unknown');
     assert.equal(classify('package.json'), 'unknown');
   });
+
+  test('skills are procedure, not prose', () => {
+    assert.equal(classify('.claude/skills/add-a-feature/SKILL.md'), 'skills');
+    assert.equal(classify('.claude/skills/spartan/rules/composition.md'), 'skills');
+  });
 });
 
 describe('activeAreas', () => {
@@ -54,6 +59,10 @@ describe('activeAreas', () => {
 
   test('an empty change set fails safe too', () => {
     assert.deepEqual([...activeAreas([])].sort(), [...ALL_AREAS].sort());
+  });
+
+  test('a skills-only change activates the skills area', () => {
+    assert.deepEqual(activeAreas(['.claude/skills/add-a-form/SKILL.md']), new Set(['skills']));
   });
 });
 

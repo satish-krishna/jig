@@ -4,15 +4,15 @@
 
 ## What it forbids
 
-Any file that declares a `@Component` class and also has an `ImportDeclaration` whose source matches `/\/(repositories|transport)(\/|$)/` — that is, an import path containing a `repositories/` or `transport/` path segment. The rule collects candidate import nodes as it walks the file and a separate visitor tracks whether any class in the file carries `@Component`; the two are reconciled in `Program:exit`, and the candidate imports are reported only when the file actually declares a component. A file with a matching import but no `@Component` class — a ViewModel, a repository itself, a plain helper — reports nothing.
+Any file that declares a `@Component` class and also has an `ImportDeclaration` whose source matches `/\/(operations|transport)(\/|$)/` — that is, an import path containing an `operations/` or `transport/` path segment. The rule collects candidate import nodes as it walks the file and a separate visitor tracks whether any class in the file carries `@Component`; the two are reconciled in `Program:exit`, and the candidate imports are reported only when the file actually declares a component. A file with a matching import but no `@Component` class — a ViewModel, a repository itself, a plain helper — reports nothing.
 
 ## Why
 
-A component reaches data through its ViewModel. The View should not know a transport or a repository exists at all — not import one, not inject one, not have an opinion on whether the wire is IPC or HTTP. `repositories/` and `transport/` are this app's only two data-access seams (`docs/architecture/conduit.md`), so a path check against those two folders is exact in both directions: it catches `inject(WIRE)` from `../transport` (a raw transport handle, not even a repository) the way a `*Service`/`*Repository` naming heuristic would not, since `WIRE` carries neither suffix, and it does not catch `MenuService` or `ThemeService`, which are UI-tier registries that happen to end in `Service` but hold no data-access code.
+A component reaches data through its ViewModel. The View should not know a transport or a repository exists at all — not import one, not inject one, not have an opinion on whether the wire is IPC or HTTP. `operations/` and `transport/` are this app's only two data-access seams (`docs/architecture/conduit.md`), so a path check against those two folders is exact in both directions: it catches `inject(WIRE)` from `../transport` (a raw transport handle, not even a repository) the way a `*Service`/`*Repository` naming heuristic would not, since `WIRE` carries neither suffix, and it does not catch `MenuService` or `ThemeService`, which are UI-tier registries that happen to end in `Service` but hold no data-access code.
 
 ### Why the two-pass structure, not a report-on-every-match import visitor
 
-A single `ImportDeclaration` visitor that reports immediately on every matching import is wrong: it cannot yet know whether the file it is looking at is a component or a ViewModel, because ESLint visits nodes in document order and an import always sits above the class that uses it. `frontend/src/app/features/users/user-list.view-model.ts` imports `UserRepository` legitimately — that import is the entire point of the ViewModel layer — and an immediate-report visitor would flag it exactly as hard as it flags a component doing the same thing. Deferring the report to `Program:exit`, once the whole file (and therefore every class in it) has been visited, is what lets the rule tell the two cases apart.
+A single `ImportDeclaration` visitor that reports immediately on every matching import is wrong: it cannot yet know whether the file it is looking at is a component or a ViewModel, because ESLint visits nodes in document order and an import always sits above the class that uses it. `frontend/src/app/features/users/user-list.view-model.ts` imports `UserOperations` legitimately — that import is the entire point of the ViewModel layer — and an immediate-report visitor would flag it exactly as hard as it flags a component doing the same thing. Deferring the report to `Program:exit`, once the whole file (and therefore every class in it) has been visited, is what lets the rule tell the two cases apart.
 
 ### This rule absorbs `no-presentational-inject`
 
@@ -21,11 +21,11 @@ An earlier design considered a `src/app/ui/` split with two inverted rules: one 
 ## Accepted form
 
     // frontend/src/app/features/users/user-list.view-model.ts
-    import { UserRepository } from '../../repositories/user.repository';
+    import { UserOperations } from '../../operations/user.operations';
 
     @Injectable()
     export class UserListViewModel {
-      private readonly repo = inject(UserRepository);
+      private readonly ops = inject(UserOperations);
     }
 
 ## Rejected form
@@ -40,4 +40,4 @@ An earlier design considered a `src/app/ui/` split with two inverted rules: one 
 
 ## Known blind spots
 
-The path check is a regex over the import specifier string, not a resolved module path: an import that reaches a repository or transport module through an intermediate re-export whose own specifier does not contain `repositories` or `transport` (a barrel file at some other path) would not match. It also reports the whole file's matching imports once every candidate is collected, not per-class — a file with two component classes and one data import reports the import once, attributed to the import node itself, not once per component class that might use it. The same collect-then-attribute shape produces a false positive in one arrangement: a single file declaring BOTH a component and a ViewModel reports the ViewModel's entirely legitimate repository import, because the rule asks only whether the file declares a component, never which class holds the import. No file in this app declares two components, or a component beside a ViewModel, so neither case has mattered in practice; jig's convention is one class per file and the reference pair `user-list.view.ts` / `user-list.view-model.ts` is deliberately split.
+The path check is a regex over the import specifier string, not a resolved module path: an import that reaches an operations or transport module through an intermediate re-export whose own specifier does not contain `operations` or `transport` (a barrel file at some other path) would not match. It also reports the whole file's matching imports once every candidate is collected, not per-class — a file with two component classes and one data import reports the import once, attributed to the import node itself, not once per component class that might use it. The same collect-then-attribute shape produces a false positive in one arrangement: a single file declaring BOTH a component and a ViewModel reports the ViewModel's entirely legitimate operations import, because the rule asks only whether the file declares a component, never which class holds the import. No file in this app declares two components, or a component beside a ViewModel, so neither case has mattered in practice; jig's convention is one class per file and the reference pair `user-list.view.ts` / `user-list.view-model.ts` is deliberately split.

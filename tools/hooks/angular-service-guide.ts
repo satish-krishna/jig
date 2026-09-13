@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // PostToolUse guide: when a new Angular reusable unit is written, remind the agent to
-// load the adding-an-angular-service skill and run discover-first before it builds on
-// top of a capability that may already exist.
+// load the guide skill named by GUIDE_SKILL below and run discover-first before it
+// builds on top of a capability that may already exist.
 //
 // This is a catch-net, not a gate. The skill triggers on its own description; this fires
 // only when an agent went straight to writing a file without loading it. It nudges on
@@ -20,17 +20,20 @@ export function isReusableUnit(path) {
   if (p.endsWith('.spec.ts')) return false; // a test is not a new unit
   // Anchor on (^|/) so both relative ("frontend/...") and absolute paths match, since a
   // hook may receive either.
-  if (/(^|\/)frontend\/src\/app\/.*\.(repository|service|transport)\.ts$/.test(p)) return true;
+  if (/(^|\/)frontend\/src\/app\/.*\.(operations|repository|service|transport)\.ts$/.test(p)) return true;
   if (/(^|\/)frontend\/src\/app\/capabilities\/.*\.ts$/.test(p)) return true;
   return false;
 }
 
+/** The skill this nudge points at. `angular-service-guide.test.ts` asserts it exists. */
+export const GUIDE_SKILL = 'add-a-view-model';
+
 const REMINDER =
-  'A new Angular reusable unit was just written. Before building on it, load the ' +
-  'adding-an-angular-service skill and run discover-first: read .bob/registry/CATALOG.md, ' +
+  `A new Angular reusable unit was just written. Before building on it, load the ` +
+  `${GUIDE_SKILL} skill and run discover-first: read .bob/registry/CATALOG.md, ` +
   'LSP workspace/symbol search for the concept, reuse or extend before creating, annotate ' +
   'the new unit with @capability, and run npm run catalog. Confirm it is in the right layer ' +
-  '(repository vs capability vs feature service) and crosses no seam (a repository injects ' +
+  '(operations facade vs capability vs feature service) and crosses no seam (a repository injects ' +
   'the Transport port, never a concrete wire; isTauri() lives only in provide-transport.ts).';
 
 function main() {

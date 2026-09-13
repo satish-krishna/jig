@@ -2,7 +2,7 @@ import { hasDecorator } from '../ast.ts';
 
 /**
  * A path rule, not a *Service suffix heuristic. jig's data access lives under
- * repositories/ and transport/, so this is exact in both directions: MenuService
+ * operations/ and transport/, so this is exact in both directions: MenuService
  * and ThemeService are UI registries and pass, while inject(WIRE) from
  * ../transport is caught, which a suffix rule would miss entirely.
  *
@@ -11,13 +11,13 @@ import { hasDecorator } from '../ast.ts';
  * populations to check against each other, only one predicate — does this
  * component import a data path — applied to every @Component file.
  */
-const DATA_PATHS = /\/(repositories|transport)(\/|$)/;
+const DATA_PATHS = /\/(operations|transport)(\/|$)/;
 
 export default {
   meta: {
     type: 'problem' as const,
     docs: {
-      description: 'A component reaches data through its ViewModel, never a repository or transport directly.',
+      description: 'A component reaches data through its ViewModel, never an operations facade or transport directly.',
       url: 'docs/architecture/rules/no-feature-inject-data.md',
     },
     schema: [],
@@ -25,8 +25,8 @@ export default {
       featureInjectsData:
         "This component's file imports from '{{source}}'. A component reaches data through its " +
         'ViewModel, so the view never knows a transport or a repository exists. ' +
-        'Good: @Injectable() class XViewModel { private readonly repo = inject(UserRepository); }  ' +
-        'Bad: inject(UserRepository) in the component. ' +
+        'Good: @Injectable() class XViewModel { private readonly ops = inject(UserOperations); }  ' +
+        'Bad: inject(UserOperations) in the component. ' +
         'Copy frontend/src/app/features/users/user-list.view-model.ts.',
     },
   },

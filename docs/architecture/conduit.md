@@ -30,8 +30,8 @@ Everything else is identical across wires. These three are the only sanctioned d
 1. **Transport selection** happens once, at the bootstrap factory, via `isTauri`. Nowhere above it.
 2. **Auth is HTTP-only** (an interceptor). IPC trusts the local origin; the Rust core holds the real credentials.
 3. **Native-only capabilities** (tray, file watch, local config) are thick-only. They live behind a capability service that is simply not provided in the web bootstrap. They never enter the shared operation map as "throws on HTTP" stubs.
-<!-- thick:end -->
 
+<!-- thick:end -->
 ## Smells that mean it is breaking
 
 <!-- thick:start -->

@@ -16,6 +16,7 @@
     "verify:frontend": "node tools/verify/verify.ts --frontend",
     "catalog": "node tools/catalog/catalog.ts",
     "catalog:check": "node tools/catalog/catalog.ts --check",
+    "skills:check": "node tools/verify/skills.ts",
     "typecheck": "tsc -p tsconfig.tools.json",
     "codegen": "node tools/codegen/generate.ts",
     "test:tools": "node --test \"tools/**/*.test.ts\"",

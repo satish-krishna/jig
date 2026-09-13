@@ -13,6 +13,7 @@ import {
   toThin,
 } from './thin.ts';
 import { stripTemplateBlocks } from './rename.ts';
+import { TEMPLATE_ONLY } from './init.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -43,7 +44,7 @@ test('neither cut leaves a thick marker in the initialized app', () => {
 
   for (const rel of tracked) {
     if (BINARY.some((e) => rel.endsWith(e))) continue;
-    if (rel.startsWith('tools/init/')) continue; // deleted by init; defines the markers
+    if (TEMPLATE_ONLY.some((p) => rel === p || rel.startsWith(`${p}/`))) continue; // deleted by init
     const source = stripTemplateBlocks(readFileSync(join(ROOT, rel), 'utf8'));
     for (const [shape, text] of [['thick', stripThickMarkers(source)], ['thin', toThin(rel, source)]]) {
       if (text.includes('thick:start') || text.includes('thick:end')) survivors.push(`${rel} (${shape})`);
@@ -51,6 +52,41 @@ test('neither cut leaves a thick marker in the initialized app', () => {
   }
 
   assert.deepEqual(survivors, [], `marker left in the initialized app:\n${survivors.join('\n')}`);
+});
+
+// A marked block's trailing blank line must sit INSIDE the markers: that blank
+// belongs to the paragraph the block removes. Put it outside instead and the thin
+// cut deletes the block but leaves the blank behind, next to the blank that was
+// already there on the other side, so the cut paragraph leaves a stray double blank
+// line. This is the generic guard for that whole class, not a rule about any one
+// block: it runs the same walk as the marker-residue test above and fails on any
+// file, anywhere, where either thick cut produces two consecutive blank lines.
+//
+// Unlike the marker-residue and Rust-residue tests, this one does NOT pre-strip
+// template blocks first: `template:start`/`template:end` is a separate mechanism
+// (`rename.ts`, used only while renaming the template) with its own blank-line
+// behavior, and mixing it in here would blame a thick-marker test for a template
+// defect. Feeding the raw tracked file isolates the check to exactly what
+// `toThin`/`stripThickMarkers` themselves are responsible for.
+test('neither cut leaves three or more consecutive newlines behind', () => {
+  const tracked = execSync('git ls-files', { cwd: ROOT, encoding: 'utf8' }).split('\n').filter(Boolean);
+  const survivors: string[] = [];
+
+  for (const rel of tracked) {
+    if (BINARY.some((e) => rel.endsWith(e))) continue;
+    if (TEMPLATE_ONLY.some((p) => rel === p || rel.startsWith(`${p}/`))) continue; // deleted by init
+    const source = readFileSync(join(ROOT, rel), 'utf8');
+    for (const [shape, text] of [['thick', stripThickMarkers(source)], ['thin', toThin(rel, source)]]) {
+      if (/\n{3,}/.test(text)) survivors.push(`${rel} (${shape})`);
+    }
+  }
+
+  assert.deepEqual(survivors, [], `a thick block's trailing blank line landed outside its markers in:\n${survivors.join('\n')}`);
+});
+
+test('the marker scan skips every path init deletes, not only tools/init', () => {
+  assert.ok(TEMPLATE_ONLY.includes('docs/superpowers'), 'docs/superpowers is template-only');
+  assert.ok(TEMPLATE_ONLY.includes('tools/init'), 'tools/init is template-only');
 });
 
 test('toThin throws rather than silently skipping when an anchor is missing', () => {

@@ -11,8 +11,14 @@
 // So every ambiguity here resolves toward running more: an unrecognized path
 // activates every area, and so does an empty change set.
 
-/** The subsystems a step can be broken by. `docs` is deliberately not one — it is inert. */
-export const ALL_AREAS = ['dotnet', 'rust', 'frontend', 'tools', 'contracts'] as const;
+/**
+ * The subsystems a step can be broken by. `docs` is deliberately not one — it is inert.
+ *
+ * `skills` is not inert, and the distinction is the point. A stale ADR misleads a human
+ * who is reading skeptically; a stale skill hands an agent a path and gets confidently
+ * wrong code written against it. See .bob/adr/0014-procedure-lives-in-skills.md.
+ */
+export const ALL_AREAS = ['dotnet', 'rust', 'frontend', 'tools', 'contracts', 'skills'] as const;
 
 export type Area = (typeof ALL_AREAS)[number];
 
@@ -38,6 +44,10 @@ export interface Selectable {
  * generated artifact whose freshness is a gate step, and a diff that touches it
  * alone means either the generator's input moved or somebody hand-edited generated
  * output, which CLAUDE.md forbids. That is exactly when you want the check to run.
+ *
+ * `.claude/skills/` is NOT prose either. It is the procedure agents execute, and
+ * `tools/verify/skills.ts` checks that every path and rule id it names still resolves.
+ * A blanket `*.md` skip would let a skill cite a file that moved three refactors ago.
  */
 export function classify(path: string): Area | 'docs' | 'unknown' {
   const p = path.replace(/\\/g, '/');
@@ -49,6 +59,7 @@ export function classify(path: string): Area | 'docs' | 'unknown' {
 
   if (p.startsWith('docs/architecture/rules/')) return 'tools';
   if (p.startsWith('.bob/registry/')) return 'tools';
+  if (p.startsWith('.claude/skills/')) return 'skills';
 
   if (p.endsWith('.md')) return 'docs';
   if (p.startsWith('docs/')) return 'docs';

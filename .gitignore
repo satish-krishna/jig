@@ -14,8 +14,8 @@ obj/
 # Rust / Tauri
 target/
 apps/desktop/src-tauri/target/
-# thick:end
 
+# thick:end
 # Editors / OS
 .DS_Store
 Thumbs.db

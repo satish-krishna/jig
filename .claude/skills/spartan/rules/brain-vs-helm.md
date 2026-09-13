@@ -54,6 +54,6 @@ MCP rather than guessing.
 
 - **select / toggle-group / radio-group / accordion / tabs**: the Brain layer owns
   keyboard/selection behavior; you compose Helm items inside the Helm group as shown in
-  `rules/composition.md`.
+  `composition.md`.
 - **dialog / sheet / popover / tooltip / menus**: rely on the Angular CDK overlay (a peer
-  dependency). Do not manage z-index yourself (see `rules/styling.md`).
+  dependency). Do not manage z-index yourself (see `styling.md`).

@@ -4,15 +4,15 @@ import type { SaveUserInput, UserDto } from '../contracts';
 import { Transport } from '../transport';
 
 /**
- * The user repository: speaks operations, never URLs or command names. Identical
+ * The user operations facade: speaks operations, never URLs or command names. Identical
  * across both wires because it only ever talks to the Transport port.
  *
- * @capability repositories.user
+ * @capability operations.user
  * @intent Domain-facing user data access that is oblivious to HTTP vs IPC.
- * @reuse Inject UserRepository from ViewModels; copy this shape for new feature repositories.
+ * @reuse Inject UserOperations from ViewModels; copy this shape for new feature facades.
  */
 @Injectable({ providedIn: 'root' })
-export class UserRepository {
+export class UserOperations {
   private readonly transport = inject(Transport);
 
   list(): Observable<UserDto[]> {

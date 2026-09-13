@@ -42,7 +42,7 @@ ng g @spartan-ng/cli:info --json         # Angular CLI
 This is read-only and prints JSON with:
 
 - `workspaceType` - `nx` | `angular-cli` (decides which runner to use above).
-- `config.componentsPath` - where Helm components are copied (e.g. `libs/ui`).
+- `config.componentsPath` - where Helm components are copied (e.g. libs/ui, project-relative).
 - `config.importAlias` - the import prefix for Helm, default `@spartan-ng/helm`.
 - `config.generateAs` - `library` | `entrypoint` (Nx layout choice).
 - `versions` - Angular, Angular CDK, Tailwind, `@spartan-ng/brain`, `@spartan-ng/cli`.

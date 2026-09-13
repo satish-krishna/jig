@@ -122,4 +122,4 @@ This is the inner loop, not the gate. HMR being green means the code compiles, n
 
 ## Adding a feature
 
-Follow `.bob/prompts/new-feature.md` and copy the `users` slice end to end. Discover first (the prime directive in `CLAUDE.md`), annotate what you build, regenerate the catalog, commit at green.
+Start with the `add-a-feature` skill — it owns the build order for a whole vertical slice and hands each layer to its own spoke skill (`add-an-api-slice`, `add-a-tauri-command`, `add-a-view-model`, `add-a-screen`, `add-a-form`). Discover first (the prime directive in `CLAUDE.md`), annotate what you build, regenerate the catalog, commit at green.
