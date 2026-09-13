@@ -24,19 +24,21 @@ The smell test for each of these is in `CONTRIBUTING.md`.
 
 ## The order
 
-| Step | What | Owner |
-|---|---|---|
-| 1 | .NET slice: domain → application + `Result<T>` → infrastructure → endpoint, TDD at each step | add-an-api-slice |
-| 2 | `npm run codegen` — DTOs regenerate. **The trap.** Nothing downstream exists without it | hub |
-| 3 | Contract: `operations.ts` + `registry.ts` `ROUTES` | `.claude/skills/conduit/SKILL.md` |
+Discover (above) is the prerequisite, not a build step, so numbering here starts at 1. Each item states its own step number as text rather than relying on list auto-numbering, because an ordered list renumbers sequentially from whichever item renders first — the thin cut removes step 4 entirely, and a renumbered list would silently relabel "step 5" as "step 4" for a thin-client reader.
+
+- **Step 1:** .NET slice: domain → application + `Result<T>` → infrastructure → endpoint, TDD at each step — owner: add-an-api-slice
+- **Step 2:** `npm run codegen` — DTOs regenerate. **The trap.** Nothing downstream exists without it — owner: hub
+- **Step 3:** Contract: `operations.ts` + `registry.ts` `ROUTES` — owner: `.claude/skills/conduit/SKILL.md`
+
 <!-- thick:start -->
-| 4 | Rust command matching the registry, TDD (thick only) | add-a-tauri-command |
+- **Step 4:** Rust command matching the registry, TDD (thick only) — owner: add-a-tauri-command
 <!-- thick:end -->
-| 5 | Data access: `UserOperations` facade, then a ViewModel exposing signals | `.claude/skills/conduit/SKILL.md`, add-a-view-model |
-| 6 | Screen: view + route + menu command contribution | add-a-screen |
-| 7 | Form, when the feature has one: zod schema → `z.infer` → `SchemaForm` | add-a-form |
-| 8 | Annotate every reusable unit, then `npm run catalog` | hub |
-| 9 | `npm run verify`, conventional commit, feature branch | hub |
+
+- **Step 5:** Data access: `UserOperations` facade, then a ViewModel exposing signals — owner: `.claude/skills/conduit/SKILL.md`, add-a-view-model
+- **Step 6:** Screen: view + route + menu command contribution — owner: add-a-screen
+- **Step 7:** Form, when the feature has one: zod schema → `z.infer` → `SchemaForm` — owner: add-a-form
+- **Step 8:** Annotate every reusable unit, then `npm run catalog` — owner: hub
+- **Step 9:** `npm run verify`, conventional commit, feature branch — owner: hub
 
 <!-- thick:start -->
 Step 3 also fills in `registry.ts`'s `COMMANDS` map, one entry per operation, so the IPC wire has a command to call.
@@ -44,15 +46,14 @@ Step 3 also fills in `registry.ts`'s `COMMANDS` map, one entry per operation, so
 
 ```mermaid
 flowchart TD
-    D[0. Discover] --> A[1. .NET slice]
-    A --> C[2. npm run codegen]
-    C --> R[3. Contract: operations + registry]
-    R --> O[5. UserOperations + ViewModel]
-    O --> S[6. Screen: view, route, menu]
-    S --> F[7. Form, if any]
-    F --> N[8. Annotate + catalog]
+    A[.NET slice] --> C[npm run codegen]
+    C --> R[Contract: operations + registry]
+    R --> O[UserOperations + ViewModel]
+    O --> S[Screen: view, route, menu]
+    S --> F[Form, if any]
+    F --> N[Annotate + catalog]
     S --> N
-    N --> G[9. verify, commit at green]
+    N --> G[verify, commit at green]
 ```
 
 <!-- thick:start -->
