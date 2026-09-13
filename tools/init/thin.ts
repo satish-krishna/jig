@@ -563,8 +563,8 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
     edits: [
       ['// possibly be broken by, so a Rust-only change stops running Playwright and a', '// possibly be broken by, so a backend-only change stops running Playwright and a'],
       [
-        "export const ALL_AREAS = ['dotnet', 'rust', 'frontend', 'tools', 'contracts'] as const;",
-        "export const ALL_AREAS = ['dotnet', 'frontend', 'tools', 'contracts'] as const;",
+        "export const ALL_AREAS = ['dotnet', 'rust', 'frontend', 'tools', 'contracts', 'skills'] as const;",
+        "export const ALL_AREAS = ['dotnet', 'frontend', 'tools', 'contracts', 'skills'] as const;",
       ],
       ["  if (p.startsWith('apps/')) return 'rust';\n", ''],
     ],
