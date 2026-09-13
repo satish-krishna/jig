@@ -38,6 +38,24 @@ test('citedRuleIds reads only the rules section', () => {
   assert.deepEqual(citedRuleIds(body), ['no-ng-model', 'no-raw-control']);
 });
 
+test('citedRuleIds ignores a non-rule code fragment backticked next to a real rule name', () => {
+  const body = [
+    '## Rules that bite here',
+    '- `no-legacy-control-flow` — modern control flow only, never `@if` or `FormGroup`.',
+  ].join('\n');
+  assert.deepEqual(citedRuleIds(body), ['no-legacy-control-flow']);
+});
+
+test('citedRuleIds still returns a misspelled kebab-case rule name, and unknownRuleIds still reports it', () => {
+  const body = [
+    '## Rules that bite here',
+    '- `no-ng-modle` — bind through the control registry.',
+  ].join('\n');
+  const ids = citedRuleIds(body);
+  assert.deepEqual(ids, ['no-ng-modle']);
+  assert.deepEqual(unknownRuleIds(ids), ['no-ng-modle']);
+});
+
 test('unknownRuleIds resolves against the real plugin, stripping any jig/ prefix', () => {
   assert.deepEqual(unknownRuleIds(['no-ng-model', 'jig/no-raw-control']), []);
   assert.deepEqual(unknownRuleIds(['no-such-rule']), ['no-such-rule']);

@@ -87,6 +87,15 @@ export function citedPaths(text: string): string[] {
 const RULES_HEADING = /^##\s+Rules that bite here\s*$/;
 const ANY_HEADING = /^##\s/;
 
+// Every rule the jig plugin defines is kebab-case lowercase — verified against all
+// 26 keys, zero exceptions. A "Rules that bite here" section also explains what a
+// rule catches, and that prose backticks code fragments (`@if`, `FormGroup`,
+// `signal()`) that are not rule names. Filtering candidates by this shape before
+// resolving them tells the two apart without weakening the check: a misspelled rule
+// name is still kebab-case, so it still matches, still fails resolution, and the
+// gate still catches it.
+const RULE_ID_SHAPE = /^(jig\/)?[a-z0-9]+(-[a-z0-9]+)*$/;
+
 /**
  * The lint rule names a skill claims bite in its area.
  *
@@ -104,6 +113,9 @@ export function citedRuleIds(text: string): string[] {
     for (const [, token] of line.matchAll(BACKTICKED)) {
       // A doc path in this section is checked by citedPaths, not here.
       if (token.includes('/') && !token.startsWith('jig/')) continue;
+      // Prose explaining a rule backticks code fragments too; only a kebab-case
+      // token is a candidate rule id.
+      if (!RULE_ID_SHAPE.test(token)) continue;
       ids.push(token);
     }
   }
