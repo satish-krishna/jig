@@ -84,8 +84,7 @@ test('neither cut leaves three or more consecutive newlines behind', () => {
   assert.deepEqual(survivors, [], `a thick block's trailing blank line landed outside its markers in:\n${survivors.join('\n')}`);
 });
 
-test('the marker scan skips every path init deletes, not only tools/init', async () => {
-  const { TEMPLATE_ONLY } = await import('./init.ts');
+test('the marker scan skips every path init deletes, not only tools/init', () => {
   assert.ok(TEMPLATE_ONLY.includes('docs/superpowers'), 'docs/superpowers is template-only');
   assert.ok(TEMPLATE_ONLY.includes('tools/init'), 'tools/init is template-only');
 });

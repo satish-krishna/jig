@@ -5,13 +5,13 @@ description: Use when adding or changing a ViewModel, a capability service, or a
 
 # Add a ViewModel or service
 
-Two things go wrong when an agent adds an Angular ViewModel or service: it rebuilds a capability that already exists because it could not cheaply find it, and it puts the new unit in the wrong layer so a seam leaks. This skill is the discover-first checklist for the first and the placement-and-shape rules for the second. It is guidance, not a gate — the catalog freshness check and the architecture analyzer are the gates.
+Two things go wrong when an agent adds an Angular ViewModel or service: it rebuilds a capability that already exists because it could not cheaply find it, and it puts the new unit in the wrong layer so a seam leaks. This skill is the discover-first checklist for the first and the placement-and-shape rules for the second.
 
 ## Where you are
 
 This is step 5 of `.claude/skills/add-a-feature/SKILL.md`: the ViewModel that sits between the operations facade and the View, exposing signals for the View to bind to. The facade it injects is built by `.claude/skills/conduit/SKILL.md`, not by this skill.
 
-## First: discover before you build
+## Discover first
 
 This is the CLAUDE.md prime directive, made concrete for the frontend. Run it in order before writing a new reusable unit:
 
@@ -21,7 +21,7 @@ This is the CLAUDE.md prime directive, made concrete for the frontend. Run it in
 4. **If nothing fits, create it and annotate it.** Add the `@capability`, `@intent`, `@reuse` annotations (copy the shape from `frontend/src/app/operations/user.operations.ts`), then run `npm run catalog`. An un-annotated unit is invisible to the next agent, which is how the reinvention starts again.
 5. **If you created something that overlaps an existing capability, that is a defect.** Record why in an ADR under `.bob/adr/`.
 
-## Then: which unit is this, and where does it live
+## Which unit is this, and where does it live
 
 Pick the layer by what the thing actually does. Putting a unit in the wrong folder is how a seam leaks.
 
@@ -30,7 +30,9 @@ The operations facade that speaks typed operations to the backend (list users, s
 | It... | is a | lives in |
 |---|---|---|
 | is the wire itself (HTTP, IPC, error normalizing) | **transport** | `frontend/src/app/transport/` — you almost never add here |
-| wraps a native-only ability (filesystem, OS keychain, notifications) | **capability** | frontend/src/app/capabilities/ — not created yet (see CLAUDE.md's map); add it when the first capability is needed, absent from the web bootstrap by design |
+<!-- thick:start -->
+| wraps a native-only ability (filesystem, OS keychain, notifications) | **capability** | a capabilities folder under `frontend/src/app/`. It does not exist yet (see CLAUDE.md's map) — create it when the first capability needs one |
+<!-- thick:end -->
 | holds a screen's state and view logic, exposed as signals | **ViewModel** | `frontend/src/app/features/<slice>/*.view-model.ts` |
 | is reused UI with no data access | **shared component** | the `ui` library / feature-agnostic component folder |
 
@@ -40,8 +42,16 @@ The `users` slice is the worked example for every one of these. Copy its shape r
 
 - **`inject()` over constructor DI.** The codebase uses the `inject()` function, not constructor parameters. Match it.
 - **Signals for state.** Reactive state is a `signal` / `computed`, exposed read-only, and it lives on the ViewModel — never on the component. No `BehaviorSubject` for local state.
-- **Provided at the component, never in root.** A ViewModel is scoped to the component that owns the screen, so each instance of the screen gets its own state; a capability is registered only in the native bootstrap, never the web one.
+- **Provided at the component, never in root.** A ViewModel is scoped to the component that owns the screen, so each instance of the screen gets its own state.
+<!-- thick:start -->
+- **A capability is provided only in the native bootstrap.** The web bootstrap leaves it out, so a browser build cannot inject something only the desktop shell can do. ViewModels that need it inject it; the rest never see it.
+<!-- thick:end -->
 - **A colocated `*.spec.ts`, written first.** TDD is a non-negotiable here — the failing test exists before the class does.
+
+## What the hooks will say
+
+- `angular-service-guide` (`tools/hooks/angular-service-guide.ts`) is the one hook that names this skill, and this is the only area it fires in. It runs after a Write of a new `*.operations.ts`, `*.repository.ts`, `*.service.ts` or `*.transport.ts` under `frontend/src/app/`, or of any file in a capabilities folder there, and hands back a reminder as extra context — it never blocks, and it stays silent on Edit so an iteration loop is not nagged. The reminder says to run discover-first, annotate the new unit with `@capability`, run `npm run catalog`, and confirm the unit sits in the right layer and crosses no seam. The correct response is to do that before writing anything on top of the new unit, not to acknowledge it and carry on.
+- `check-frontend` returns lint violations with the offending rule's doc path attached, unasked, after every write under `frontend/src/`. Fix the code. `eslint-disable` does nothing — `noInlineConfig` is on.
 
 ## Rules that bite here
 
@@ -60,4 +70,4 @@ These are the boundaries the architecture depends on. Crossing one is the kind o
 <!-- thick:end -->
 - **Request and response shapes come from the contracts registry**, not hand-written interfaces. Response types are the OpenAPI-generated DTOs, so HTTP and IPC cannot disagree.
 
-When in doubt about the wire-agnostic side of this, the `conduit` skill covers the transport seam in depth.
+When in doubt about the wire-agnostic side of this, `.claude/skills/conduit/SKILL.md` covers the transport seam in depth.

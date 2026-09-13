@@ -7,7 +7,7 @@ description: Use when touching the contract seam — the operations registry, th
 
 ## Where you are
 
-This skill owns the contract and the data-access facade in `.claude/skills/add-a-feature/SKILL.md`. The .NET endpoint whose shapes the contract names belongs to `.claude/skills/add-an-api-slice/SKILL.md`, and the ViewModel that injects the facade belongs to add-a-view-model. `docs/architecture/conduit.md` is the one-page reference for the same seam; this file is the reasoning behind it.
+This skill owns the contract and the data-access facade in `.claude/skills/add-a-feature/SKILL.md`. The .NET endpoint whose shapes the contract names belongs to `.claude/skills/add-an-api-slice/SKILL.md`, and the ViewModel that injects the facade belongs to `.claude/skills/add-a-view-model/SKILL.md`. `docs/architecture/conduit.md` is the one-page reference for the same seam; this file is the reasoning behind it.
 
 ## What the seam is
 
@@ -79,7 +79,7 @@ Root-provided, one injected dependency — the `Transport` port — and one meth
 
 It is named for what it does, and it is not a repository. It persists nothing and holds no collection — there is no store behind it for it to be the gateway to. The repository pattern does exist in this codebase, at `services/api/src/Jig.Application/IUserRepository.cs`, where there is an actual database on the other side. There is no repositories/ directory under `frontend/src/app`, and the urge to create one is the first symptom of this seam being misread.
 
-ViewModels inject the facade and expose signals; the View binds to the ViewModel and sees none of this. That half belongs to add-a-view-model.
+ViewModels inject the facade and expose signals; the View binds to the ViewModel and sees none of this. That half belongs to `.claude/skills/add-a-view-model/SKILL.md`.
 
 ## Cross-cutting behavior lives at the seam
 

@@ -9,7 +9,7 @@ This skill owns the build order for a whole vertical slice, backend data through
 
 ## Where you are
 
-This skill covers the whole slice, front to back; if you only need one layer, skip straight to that spoke instead of working through every step below — add-an-api-slice, add-a-screen, add-a-form, or add-a-view-model.
+This skill covers the whole slice, front to back; if you only need one layer, skip straight to that spoke instead of working through every step below — `.claude/skills/add-an-api-slice/SKILL.md`, `.claude/skills/add-a-screen/SKILL.md`, `.claude/skills/add-a-form/SKILL.md`, or `.claude/skills/add-a-view-model/SKILL.md`.
 
 ## Discover first
 
@@ -24,19 +24,23 @@ The smell test for each of these is in `CONTRIBUTING.md`.
 
 ## The order
 
-Discover (above) is the prerequisite, not a build step, so numbering here starts at 1. Each item states its own step number as text rather than relying on list auto-numbering, because an ordered list renumbers sequentially from whichever item renders first — the thin cut removes step 4 entirely, and a renumbered list would silently relabel "step 5" as "step 4" for a thin-client reader.
+Discover (above) is the prerequisite, not a build step, so numbering here starts at 1. Each item states its own step number as text rather than relying on list auto-numbering, so every step keeps the same number whatever the list around it looks like. A gap in the sequence is deliberate; nothing is missing from it.
 
-- **Step 1:** .NET slice: domain → application + `Result<T>` → infrastructure → endpoint, TDD at each step — owner: add-an-api-slice
+<!-- thick:start -->
+The gap is step 4, which the thin cut removes outright. An ordered list renumbers sequentially from whichever item renders first, so it would silently relabel "step 5" as "step 4" for a thin-client reader.
+
+<!-- thick:end -->
+- **Step 1:** .NET slice: domain → application + `Result<T>` → infrastructure → endpoint, TDD at each step — owner: `.claude/skills/add-an-api-slice/SKILL.md`
 - **Step 2:** `npm run codegen` — DTOs regenerate. **The trap.** Nothing downstream exists without it — owner: hub
 - **Step 3:** Contract: `operations.ts` + `registry.ts` `ROUTES` — owner: `.claude/skills/conduit/SKILL.md`
 
 <!-- thick:start -->
-- **Step 4:** Rust command matching the registry, TDD (thick only) — owner: add-a-tauri-command
+- **Step 4:** Rust command matching the registry, TDD (thick only) — owner: `.claude/skills/add-a-tauri-command/SKILL.md`
 
 <!-- thick:end -->
-- **Step 5:** Data access: `UserOperations` facade, then a ViewModel exposing signals — owner: `.claude/skills/conduit/SKILL.md`, add-a-view-model
-- **Step 6:** Screen: view + route + menu command contribution — owner: add-a-screen
-- **Step 7:** Form, when the feature has one: zod schema → `z.infer` → `SchemaForm` — owner: add-a-form
+- **Step 5:** Data access: `UserOperations` facade, then a ViewModel exposing signals — owner: `.claude/skills/conduit/SKILL.md`, `.claude/skills/add-a-view-model/SKILL.md`
+- **Step 6:** Screen: view + route + menu command contribution — owner: `.claude/skills/add-a-screen/SKILL.md`
+- **Step 7:** Form, when the feature has one: zod schema → `z.infer` → `SchemaForm` — owner: `.claude/skills/add-a-form/SKILL.md`
 - **Step 8:** Annotate every reusable unit, then `npm run catalog` — owner: hub
 - **Step 9:** `npm run verify`, conventional commit, feature branch — owner: hub
 
@@ -57,7 +61,7 @@ flowchart TD
 ```
 
 <!-- thick:start -->
-Thick clients insert step 4 between the contract and data access: a Rust command matching the registry, owned by add-a-tauri-command, TDD at each step.
+Thick clients insert step 4 between the contract and data access: a Rust command matching the registry, owned by `.claude/skills/add-a-tauri-command/SKILL.md`, TDD at each step.
 
 <!-- thick:end -->
 The trap is step 2. Response types resolve to generated DTOs, so the API shapes exist first, `npm run codegen` runs second, and the contract is written third. Writing the contract first, the order the file names invite, produces a hand-typed interface that compiles and quietly drifts from the API it claims to describe.

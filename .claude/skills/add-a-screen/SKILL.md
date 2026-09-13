@@ -7,7 +7,7 @@ description: Use when adding or changing a page in the app — a new route, a li
 
 ## Where you are
 
-This is step 6 of `.claude/skills/add-a-feature/SKILL.md`: the View half of the MVVM pair, plus the route and menu wiring that make it reachable. The ViewModel is the input to this step, not something it builds — if it does not exist yet, go build it with add-a-view-model before coming back here.
+This is step 6 of `.claude/skills/add-a-feature/SKILL.md`: the View half of the MVVM pair, plus the route and menu wiring that make it reachable. The ViewModel is the input to this step, not something it builds — if it does not exist yet, go build it with `.claude/skills/add-a-view-model/SKILL.md` before coming back here.
 
 ## Copy this
 

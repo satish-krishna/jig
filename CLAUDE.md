@@ -36,8 +36,7 @@ This file is tier one. Everything below is disclosed on demand: open the file th
 | When you are about to | Read first |
 |---|---|
 | Write code, run tests, or commit | `CONTRIBUTING.md` |
-| Touch the transport seam (IPC or HTTP) | `docs/architecture/conduit.md` |
-| Build or change a form | `docs/architecture/forms.md` |
+| Touch the transport seam (IPC or HTTP) | the `conduit` skill |
 | Build UI, style a component, or make a mock | `docs/architecture/design.md` |
 | Hit a lint error you do not understand | `docs/architecture/rules/<rule-name>.md` — every rule has one, and its message names it |
 | Write or change a lint rule | `.bob/adr/0012-frontend-design-rules-are-lint-errors.md`, then any existing rule in `tools/lint/rules/` as the pattern |
