@@ -170,27 +170,27 @@ Repositories call operations, never URLs or command names.
 
 ```ts
 @Injectable({ providedIn: 'root' })
-export class UserRepository {
+export class UserOperations {
   private transport = inject(Transport);
-  get(id: string)       { return this.transport.request('users.get',  { id }); }
-  list(page: number)    { return this.transport.request('users.list', { page }); }
-  save(user: UserInput) { return this.transport.request('users.save', { user }); }
+  get(id: string)           { return this.transport.request('users.get',  { id }); }
+  list()                    { return this.transport.request('users.list', {}); }
+  save(user: SaveUserInput) { return this.transport.request('users.save', user); }
 }
 ```
 
-ViewModels depend only on repositories and expose signals. The View has no idea any of this exists.
+ViewModels depend only on operations facades and expose signals. The View has no idea any of this exists.
 
 ```ts
 @Injectable()
 export class UserListViewModel {
-  private repo = inject(UserRepository);
+  private repo = inject(UserOperations);
   readonly users   = signal<User[]>([]);
   readonly loading = signal(false);
 
-  load(page = 1) {
+  load() {
     this.loading.set(true);
-    this.repo.list(page).subscribe(p => {
-      this.users.set(p.items);
+    this.repo.list().subscribe(users => {
+      this.users.set(users);
       this.loading.set(false);
     });
   }

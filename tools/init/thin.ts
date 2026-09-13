@@ -237,18 +237,18 @@ export const COMMANDS: { [K in OperationName]: string } = {
     ],
   },
   {
-    path: 'frontend/src/app/repositories/user.repository.ts',
+    path: 'frontend/src/app/operations/user.operations.ts',
     edits: [
       [
-        ` * The user repository: speaks operations, never URLs or command names. Identical
+        ` * The user operations facade: speaks operations, never URLs or command names. Identical
  * across both wires because it only ever talks to the Transport port.
  *
- * @capability repositories.user
+ * @capability operations.user
  * @intent Domain-facing user data access that is oblivious to HTTP vs IPC.`,
-        ` * The user repository: speaks operations, never URLs. It only ever talks to the
+        ` * The user operations facade: speaks operations, never URLs. It only ever talks to the
  * Transport port, so route knowledge stays in the registry.
  *
- * @capability repositories.user
+ * @capability operations.user
  * @intent Domain-facing user data access that is oblivious to the wire.`,
       ],
     ],

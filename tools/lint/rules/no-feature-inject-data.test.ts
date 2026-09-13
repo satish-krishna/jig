@@ -16,7 +16,7 @@ test('no-feature-inject-data', () => {
       // here, and frontend/src/app/features/users/user-list.view-model.ts
       // legitimately imports UserRepository.
       {
-        code: `import { UserRepository } from '../../repositories/user.repository'; @Injectable() class XViewModel { repo = inject(UserRepository); }`,
+        code: `import { UserRepository } from '../../operations/user.operations'; @Injectable() class XViewModel { repo = inject(UserRepository); }`,
         filename: '/app/features/users/x.view-model.ts',
       },
       // UI registries are not data access.
@@ -35,13 +35,13 @@ test('no-feature-inject-data', () => {
       // A plain file with no @Component declared, importing a data path, is out
       // of scope for this rule (it is not a view).
       {
-        code: `import { UserRepository } from '../../repositories/user.repository'; export function helper() {}`,
+        code: `import { UserRepository } from '../../operations/user.operations'; export function helper() {}`,
         filename: '/app/features/users/x.helper.ts',
       },
     ],
     invalid: [
       {
-        code: `import { UserRepository } from '../../repositories/user.repository'; @Component({}) class X { repo = inject(UserRepository); }`,
+        code: `import { UserRepository } from '../../operations/user.operations'; @Component({}) class X { repo = inject(UserRepository); }`,
         filename: '/app/features/users/x.ts',
         errors: [{ messageId: 'featureInjectsData' }],
       },

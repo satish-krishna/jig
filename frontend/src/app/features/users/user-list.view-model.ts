@@ -1,11 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
 import type { SaveUserInput, UserDto } from '../../contracts';
 import type { AppError } from '../../transport';
-import { UserRepository } from '../../repositories/user.repository';
+import { UserOperations } from '../../operations/user.operations';
 
 /**
  * ViewModel for the users slice. Exposes signals only; the View binds to them and
- * never touches a repository or transport. Depends on UserRepository, which speaks
+ * never touches a facade or transport. Depends on UserOperations, which speaks
  * operations, so this class is identical whether the wire is IPC or HTTP.
  *
  * This is the reference ViewModel: copy its shape for new features. It is not a
@@ -13,7 +13,7 @@ import { UserRepository } from '../../repositories/user.repository';
  */
 @Injectable()
 export class UserListViewModel {
-  private readonly repo = inject(UserRepository);
+  private readonly ops = inject(UserOperations);
 
   readonly users = signal<UserDto[]>([]);
   readonly loading = signal(false);
@@ -26,7 +26,7 @@ export class UserListViewModel {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.repo.list().subscribe({
+    this.ops.list().subscribe({
       next: (users) => {
         this.users.set(users);
         this.loading.set(false);
@@ -41,7 +41,7 @@ export class UserListViewModel {
   save(input: SaveUserInput): void {
     this.error.set(null);
     this.saving.set(true);
-    this.repo.save(input).subscribe({
+    this.ops.save(input).subscribe({
       next: () => { this.saving.set(false); this.formOpen.set(false); this.load(); },
       error: (err: AppError) => { this.saving.set(false); this.error.set(err); },
     });

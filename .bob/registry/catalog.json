@@ -243,12 +243,12 @@
       "symbol": "resolveMeta"
     },
     {
-      "capability": "repositories.user",
+      "capability": "operations.user",
       "intent": "Domain-facing user data access that is oblivious to HTTP vs IPC.",
-      "reuse": "Inject UserRepository from ViewModels; copy this shape for new feature repositories.",
-      "file": "frontend/src/app/repositories/user.repository.ts",
+      "reuse": "Inject UserOperations from ViewModels; copy this shape for new feature facades.",
+      "file": "frontend/src/app/operations/user.operations.ts",
       "language": "typescript",
-      "symbol": "UserRepository"
+      "symbol": "UserOperations"
     },
     {
       "capability": "shell.user-store",

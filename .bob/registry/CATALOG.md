@@ -160,12 +160,12 @@
 - **Reuse:** Call resolveMeta(node, path) for one node, or formMeta(objectSchema) for a whole shape.
 - **Where:** `frontend/src/app/forms/zod-meta.ts`
 
-## repositories
+## operations
 
-### `repositories.user` — UserRepository (typescript)
+### `operations.user` — UserOperations (typescript)
 - **Intent:** Domain-facing user data access that is oblivious to HTTP vs IPC.
-- **Reuse:** Inject UserRepository from ViewModels; copy this shape for new feature repositories.
-- **Where:** `frontend/src/app/repositories/user.repository.ts`
+- **Reuse:** Inject UserOperations from ViewModels; copy this shape for new feature facades.
+- **Where:** `frontend/src/app/operations/user.operations.ts`
 
 ## shell
 
