@@ -12,7 +12,7 @@ Two things go wrong when an agent adds an Angular service: it rebuilds a capabil
 This is the CLAUDE.md prime directive, made concrete for the frontend. Run it in order before writing a new reusable unit:
 
 1. **Read the catalog.** Open `.bob/registry/CATALOG.md` and scan the area — repositories, transport, capabilities, shared components. It is generated from `@capability` annotations, so it is the fastest index of what already exists.
-2. **LSP-search the concept, do not grep.** Use `workspace/symbol` for the noun you are about to introduce (the entity, the operation, the capability). Find-references on a near-match tells you whether to extend it.
+2. **LSP-search the concept, do not grep.** Use the LSP workspace-symbol search for the noun you are about to introduce (the entity, the operation, the capability). Find-references on a near-match tells you whether to extend it.
 3. **Reuse or extend before creating.** Generalising the existing unit beats adding a parallel one. A second repository that speaks the same operations, or a second service that wraps the same capability, is a DRY defect.
 4. **If nothing fits, create it and annotate it.** Add the `@capability`, `@intent`, `@reuse` annotations (copy the shape from `frontend/src/app/operations/user.operations.ts`), then run `npm run catalog`. An un-annotated unit is invisible to the next agent, which is how the reinvention starts again.
 5. **If you created something that overlaps an existing capability, that is a defect.** Record why in an ADR under `.bob/adr/`.
@@ -25,7 +25,7 @@ Pick the layer by what the thing actually does. Putting a unit in the wrong fold
 |---|---|---|
 | speaks typed operations to the backend (list users, save user) | **operations facade** | `frontend/src/app/operations/*.operations.ts` |
 | is the wire itself (HTTP, IPC, error normalizing) | **transport** | `frontend/src/app/transport/` — you almost never add here |
-| wraps a native-only ability (filesystem, OS keychain, notifications) | **capability** | `frontend/src/app/capabilities/` — absent from the web bootstrap by design |
+| wraps a native-only ability (filesystem, OS keychain, notifications) | **capability** | frontend/src/app/capabilities/ — not created yet (see CLAUDE.md's map); add it when the first capability is needed, absent from the web bootstrap by design |
 | holds feature state or view logic for one slice | **feature service** | `frontend/src/app/features/<slice>/` |
 | is reused UI with no data access | **shared component** | the `ui` library / feature-agnostic component folder |
 

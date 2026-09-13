@@ -21,7 +21,7 @@ ng g @spartan-ng/cli:init
 ```
 
 `components.json` is not written by `init`; it is created on the first `ui` run, which prompts for
-the components path (e.g. `libs/ui`), the import alias (default `@spartan-ng/helm`), and on Nx
+the components path (e.g. libs/ui, project-relative), the import alias (default `@spartan-ng/helm`), and on Nx
 whether libraries are buildable and the `generateAs` strategy.
 
 ### `ui`

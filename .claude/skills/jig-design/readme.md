@@ -19,7 +19,7 @@ static HTML, slides) renders pixel-accurate jig UI without an Angular/Tailwind b
 Everything here was derived from the attached repository — explore it to build
 richer, more accurate jig designs:
 
-- **GitHub:** `satish-krishna/jig` — https://github.com/satish-krishna/jig (private)
+- **GitHub:** satish-krishna/jig — https://github.com/satish-krishna/jig (private)
   - `frontend/src/styles.css` — the theme tokens (OKLCH neutral scale, light + dark).
   - `frontend/libs/ui/*` — the Spartan `hlm*` directives (button, input, label, field, separator). Heights and radii were copied verbatim from these files; padding/margin/gap were snapped onto jig's app-authored 4px scale instead (ADR 0011) — see "Spacing & density" below.
 - **Spartan / shadcn reference:** the Spartan Figma docs — https://spartan.ng/documentation/figma — informed the card, badge, and sidebar treatments that jig's token set (`--card`, `--sidebar-*`) implies but the copied subset didn't yet instantiate. See "Intentional additions" below.
