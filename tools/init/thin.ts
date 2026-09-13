@@ -483,7 +483,7 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
     ],
   },
   {
-    path: '.claude/skills/adding-an-angular-service/SKILL.md',
+    path: '.claude/skills/add-a-view-model/SKILL.md',
     edits: [
       ['| is the wire itself (HTTP, IPC, error normalizing) | **transport** |', '| is the wire itself (HTTP, error normalizing) | **transport** |'],
       ['Response types are the OpenAPI-generated DTOs, so HTTP and IPC cannot disagree.', 'Response types are the OpenAPI-generated DTOs, so the client and the API cannot disagree.'],

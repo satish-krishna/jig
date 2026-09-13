@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // PostToolUse guide: when a new Angular reusable unit is written, remind the agent to
-// load the adding-an-angular-service skill and run discover-first before it builds on
+// load the add-a-view-model skill and run discover-first before it builds on
 // top of a capability that may already exist.
 //
 // This is a catch-net, not a gate. The skill triggers on its own description; this fires
