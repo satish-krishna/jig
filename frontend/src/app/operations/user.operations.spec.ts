@@ -5,7 +5,7 @@ import { UserOperations } from './user.operations';
 import { Transport } from '../transport';
 import type { OperationName, Req, Res } from '../contracts';
 
-/** Records which operations the repository asks the transport for. */
+/** Records which operations the facade asks the transport for. */
 class RecordingTransport extends Transport {
   readonly calls: Array<{ op: string; payload: unknown }> = [];
   request<K extends OperationName>(op: K, payload: Req<K>): Observable<Res<K>> {

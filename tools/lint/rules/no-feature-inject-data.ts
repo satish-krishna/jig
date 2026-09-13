@@ -25,7 +25,7 @@ export default {
       featureInjectsData:
         "This component's file imports from '{{source}}'. A component reaches data through its " +
         'ViewModel, so the view never knows a transport or a repository exists. ' +
-        'Good: @Injectable() class XViewModel { private readonly repo = inject(UserOperations); }  ' +
+        'Good: @Injectable() class XViewModel { private readonly ops = inject(UserOperations); }  ' +
         'Bad: inject(UserOperations) in the component. ' +
         'Copy frontend/src/app/features/users/user-list.view-model.ts.',
     },

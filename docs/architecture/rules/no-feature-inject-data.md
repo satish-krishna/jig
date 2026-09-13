@@ -12,7 +12,7 @@ A component reaches data through its ViewModel. The View should not know a trans
 
 ### Why the two-pass structure, not a report-on-every-match import visitor
 
-A single `ImportDeclaration` visitor that reports immediately on every matching import is wrong: it cannot yet know whether the file it is looking at is a component or a ViewModel, because ESLint visits nodes in document order and an import always sits above the class that uses it. `frontend/src/app/features/users/user-list.view-model.ts` imports `UserRepository` legitimately — that import is the entire point of the ViewModel layer — and an immediate-report visitor would flag it exactly as hard as it flags a component doing the same thing. Deferring the report to `Program:exit`, once the whole file (and therefore every class in it) has been visited, is what lets the rule tell the two cases apart.
+A single `ImportDeclaration` visitor that reports immediately on every matching import is wrong: it cannot yet know whether the file it is looking at is a component or a ViewModel, because ESLint visits nodes in document order and an import always sits above the class that uses it. `frontend/src/app/features/users/user-list.view-model.ts` imports `UserOperations` legitimately — that import is the entire point of the ViewModel layer — and an immediate-report visitor would flag it exactly as hard as it flags a component doing the same thing. Deferring the report to `Program:exit`, once the whole file (and therefore every class in it) has been visited, is what lets the rule tell the two cases apart.
 
 ### This rule absorbs `no-presentational-inject`
 
