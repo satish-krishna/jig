@@ -549,6 +549,10 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
         "{ name: 'catalog freshness', cmd: 'node tools/catalog/catalog.ts --check', cwd: ROOT, areas: ['dotnet', 'frontend', 'tools'] },",
       ],
       [
+        "{ name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'dotnet', 'rust', 'tools', 'contracts'] },",
+        "{ name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'tools', 'contracts'] },",
+      ],
+      [
         "console.log('Frontend gate: skipping .NET and Rust. Run `npm run verify` before committing.');",
         "console.log('Frontend gate: skipping .NET. Run `npm run verify` before committing.');",
       ],
