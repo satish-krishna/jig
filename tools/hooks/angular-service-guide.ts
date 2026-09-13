@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // PostToolUse guide: when a new Angular reusable unit is written, remind the agent to
-// load the add-a-view-model skill and run discover-first before it builds on
-// top of a capability that may already exist.
+// load the guide skill named by GUIDE_SKILL below and run discover-first before it
+// builds on top of a capability that may already exist.
 //
 // This is a catch-net, not a gate. The skill triggers on its own description; this fires
 // only when an agent went straight to writing a file without loading it. It nudges on
@@ -25,9 +25,12 @@ export function isReusableUnit(path) {
   return false;
 }
 
+/** The skill this nudge points at. `angular-service-guide.test.ts` asserts it exists. */
+export const GUIDE_SKILL = 'add-a-view-model';
+
 const REMINDER =
-  'A new Angular reusable unit was just written. Before building on it, load the ' +
-  'add-a-view-model skill and run discover-first: read .bob/registry/CATALOG.md, ' +
+  `A new Angular reusable unit was just written. Before building on it, load the ` +
+  `${GUIDE_SKILL} skill and run discover-first: read .bob/registry/CATALOG.md, ` +
   'LSP workspace/symbol search for the concept, reuse or extend before creating, annotate ' +
   'the new unit with @capability, and run npm run catalog. Confirm it is in the right layer ' +
   '(operations facade vs capability vs feature service) and crosses no seam (a repository injects ' +
