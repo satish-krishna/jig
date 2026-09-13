@@ -33,6 +33,9 @@ export const THIN_DELETE: readonly string[] = [
   // to one leaves 200 lines answering a question the app no longer has, so the thin
   // cut drops it whole and keeps `docs/architecture/conduit.md` as the seam doc.
   '.claude/skills/conduit',
+  // The whole subject of this skill is a Rust core the thin cut deletes outright,
+  // so the skill goes with it rather than carrying thick markers through every line.
+  '.claude/skills/add-a-tauri-command',
 ];
 
 /** The frontend dependency only the IPC wire needed. Uninstalled, so the lockfile stays honest. */
