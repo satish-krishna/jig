@@ -550,7 +550,7 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
       ],
       [
         "{ name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'dotnet', 'rust', 'tools', 'contracts'] },",
-        "{ name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'tools', 'contracts'] },",
+        "{ name: 'skill integrity', cmd: 'node tools/verify/skills.ts', cwd: ROOT, areas: ['skills', 'frontend', 'dotnet', 'tools', 'contracts'] },",
       ],
       [
         "console.log('Frontend gate: skipping .NET and Rust. Run `npm run verify` before committing.');",
