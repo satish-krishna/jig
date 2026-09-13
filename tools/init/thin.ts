@@ -364,8 +364,10 @@ export const COMMANDS: { [K in OperationName]: string } = {
       ],
       ['| The same gate minus .NET and Rust, for the inner loop.', '| The same gate minus .NET, for the inner loop.'],
       [
-        'mirror of the app, ADR 0007), conduit, spartan, adding-an-angular-service',
-        'mirror of the app, ADR 0007), spartan, adding-an-angular-service',
+        'mirror of the app, ADR 0007), add-a-feature (the hub), add-an-api-slice,\n' +
+          '                       add-a-tauri-command, add-a-screen, add-a-form, add-a-view-model, conduit,',
+        'mirror of the app, ADR 0007), add-a-feature (the hub), add-an-api-slice,\n' +
+          '                       add-a-screen, add-a-form, add-a-view-model, conduit,',
       ],
     ],
   },
@@ -382,6 +384,10 @@ export const COMMANDS: { [K in OperationName]: string } = {
       ['checks the toolchain and all three language servers,', 'checks the toolchain and both language servers,'],
       ['`dotnet test services/api/Jig.sln`, `cargo test` (in `apps/desktop/src-tauri`), `npm --prefix frontend test`', '`dotnet test services/api/Jig.sln`, `npm --prefix frontend test`'],
       ['The `users` slice ships with tests at all three levels as the reference pattern future features copy.', 'The `users` slice ships with tests at both levels as the reference pattern future features copy.'],
+      [
+        'it owns the build order for a whole vertical slice and hands each layer to its own spoke skill (`add-an-api-slice`, `add-a-tauri-command`, `add-a-view-model`, `add-a-screen`, `add-a-form`).',
+        'it owns the build order for a whole vertical slice and hands each layer to its own spoke skill (`add-an-api-slice`, `add-a-view-model`, `add-a-screen`, `add-a-form`).',
+      ],
     ],
   },
   {
@@ -457,15 +463,6 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
     path: '.bob/prompts/install-catalog-and-gates.md',
     edits: [
       ['doc-comment syntax (`///` Rust, `/** */` JS/TS,', 'doc-comment syntax (`/** */` JS/TS,'],
-    ],
-  },
-  {
-    path: '.bob/prompts/new-feature.md',
-    edits: [
-      [
-        'and their HTTP route and IPC command to `frontend/src/app/contracts/registry.ts` (`ROUTES` and `COMMANDS`). The mapped types force both wires to cover every operation.',
-        'and their HTTP route to `frontend/src/app/contracts/registry.ts` (`ROUTES`). The mapped type forces the wire to cover every operation.',
-      ],
     ],
   },
   // The conduit skill carries its thick prose in marked blocks. Two things cannot be

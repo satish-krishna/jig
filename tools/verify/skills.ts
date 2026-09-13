@@ -3,8 +3,8 @@
 //
 // Skills are procedure an agent executes, so a path that moved or a rule that was
 // renamed does not merely mislead a careful reader — it gets wrong code written.
-// `.bob/prompts/new-feature.md` died of exactly this: nothing pointed at it and
-// nothing checked it, so nobody found out.
+// The feature-recipe prompt this replaced died of exactly this: nothing pointed at
+// it and nothing checked it, so nobody found out. See ADR 0014.
 //
 // Two checks, both cheap:
 //   1. every repo-relative path a skill cites still resolves
