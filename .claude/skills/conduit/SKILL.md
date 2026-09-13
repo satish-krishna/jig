@@ -1,225 +1,160 @@
 ---
 name: conduit
-description: Design a single transport abstraction so an Angular frontend runs unchanged over both Tauri IPC (invoke) and HTTP to a remote API. Use this whenever the user is building a Tauri desktop app plus a web build from one Angular codebase, or asks how to make an MVVM/repository layer agnostic to the wire (IPC vs HTTP), how to swap transports at bootstrap, how to keep View/ViewModel/Model constant while communication varies, or how to stop transport details from leaking into domain code. Reach for this even when the user only says "abstract the protocol", "one frontend two backends", "dual transport", or "make invoke and HttpClient interchangeable".
+description: Use when touching the contract seam — the operations registry, the transport port, or the typed facade a ViewModel calls. Covers adding an operation to frontend/src/app/contracts/operations.ts and its route to registry.ts, why response types must be the generated DTOs rather than hand-written interfaces, and the UserOperations shape a ViewModel injects. Reach for this on "add an operation", "operations registry", "the DTO is missing", "codegen", "add a repository", "UserOperations", "how does the frontend call the API", "one frontend two wires", "dual transport", or before editing anything under frontend/src/app/contracts/ or frontend/src/app/transport/.
 ---
 
-# Conduit: one frontend, two wires
+# Conduit: the contract seam
 
-## The core idea
+## Where you are
 
-A Tauri app and a web app built from the same Angular codebase talk to different worlds. The desktop shell reaches a local Rust core through `invoke` (IPC). The web build reaches a remote .NET API over HTTP. Left alone, that difference smears across the whole app: repositories know about URLs, ViewModels branch on `isTauri()`, error handling forks in two. The point of Conduit is to push that entire difference down to one seam, a transport port that speaks in logical operations, so everything above it stays identical no matter which wire is underneath.
+This skill owns the contract and the data-access facade in `.claude/skills/add-a-feature/SKILL.md`. The .NET endpoint whose shapes the contract names belongs to `.claude/skills/add-an-api-slice/SKILL.md`, and the ViewModel that injects the facade belongs to add-a-view-model. `docs/architecture/conduit.md` is the one-page reference for the same seam; this file is the reasoning behind it.
 
-The port is the only object in the system that knows two worlds exist. View, ViewModel, Model, and repositories never find out. That is the whole win, and every rule below exists to protect it.
+## What the seam is
 
-## When this applies
+Everything above the seam speaks logical operations — `users.list`, `users.get`, `users.save` — and nothing else. No URL, no HTTP verb, no request body shape exists above it. Three files carry the whole thing:
 
-Reach for Conduit when all of these hold: one Angular codebase, two runtime contexts (Tauri shell and browser), and a domain layer that should not care which is active. If there is only ever HTTP, this is over-engineering, a plain `HttpClient` service is correct. If the two worlds share almost no operations, Conduit still helps for the shared subset but do not force the divergent parts through it (see Asymmetry 3).
+- `frontend/src/app/contracts/operations.ts` — the registry: every operation name with its request and response type.
+- `frontend/src/app/contracts/registry.ts` — the descriptors: how each operation turns into a real request.
+- `frontend/src/app/transport/transport.port.ts` — the port: an abstract class that doubles as its own Angular DI token, so callers inject `Transport` and get an `Observable` back.
 
-## Architecture
+The port is the only object in the frontend that knows how a call actually travels. View, ViewModel, and the operations facade never find out. That is the whole win, and every rule below exists to protect it.
+
+<!-- thick:start -->
+It is also what lets one Angular codebase run over two wires. The desktop shell reaches a local Rust core through `invoke` (IPC) and the browser build reaches the .NET API over HTTP, so the port hides not one wire but a choice between two. Left alone that difference smears everywhere: facades learn URLs, ViewModels branch on `isTauri()`, error handling forks in two.
+<!-- thick:end -->
 
 ```mermaid
 flowchart TD
     View["View (template + bindings)"] --> VM["ViewModel (signals)"]
-    VM --> Repo["Repository (operation calls)"]
-    Repo --> Norm["NormalizingTransport (decorator)"]
-    Norm --> Port["Transport port (abstract)"]
-    Port -. isTauri picks one at bootstrap .-> Http["HttpTransport to .NET API"]
-    Port -. .-> Ipc["IpcTransport to Rust commands"]
-
-    subgraph Constant["constant across both contexts"]
-        View
-        VM
-        Repo
-    end
-    subgraph Swapped["chosen once at bootstrap"]
-        Http
-        Ipc
-    end
+    VM --> Ops["UserOperations (typed facade)"]
+    Ops --> Port["Transport port (abstract)"]
+    Port --> Norm["NormalizingTransport (one error shape)"]
+    Norm --> Http["HttpTransport -> .NET API"]
+    Norm -. "chosen at bootstrap" .-> Ipc["IpcTransport -> Rust core"]
 ```
 
-## Build order
+## The trap: the response type is not yours to write
 
-Build in this sequence. Each step depends only on the ones above it, so the abstraction stays honest.
+Every `res` in the registry resolves to a generated DTO under `frontend/src/app/contracts/generated/`, emitted from the API's OpenAPI document by `npm run codegen`. The endpoint therefore has to exist before the contract can be written, which is the opposite of the order the file names invite. Write the contract first and you get a hand-typed interface that compiles, matches nothing, and drifts from the API it claims to describe with no test able to notice.
 
-### 1. One typed operation registry
+If the DTO you want is missing, the endpoint is not built or `npm run codegen` has not run. That is never a reason to write the type by hand. `.claude/skills/add-a-feature/SKILL.md` owns the full order; this is the half of it that bites here.
 
-This is the single source of truth for every request and response shape. Both transports key off it, so TypeScript forces both to cover the same operations and the contract cannot drift.
+## Adding an operation
 
-```ts
-// contracts/operations.ts
-export interface Operations {
-  'users.get':  { req: { id: string };      res: User };
-  'users.list': { req: { page: number };    res: Page<User> };
-  'users.save': { req: { user: UserInput };  res: User };
-}
-export type OperationKey = keyof Operations;
-```
+Each item depends on the one above it.
 
-If the project generates TypeScript from OpenAPI, the `res` types here are the generated response DTOs. Both transports reference the same ones, so HTTP and IPC cannot disagree about a shape.
+- **Register it.** Add the key to `Operations` in `frontend/src/app/contracts/operations.ts` with its `req` and its `res`. The `res` is an alias of a generated DTO. A request with no fields is typed `Record<string, never>`, not an empty object literal type.
 
-### 2. The transport port
+- **Route it.** Add the entry to `ROUTES` in `frontend/src/app/contracts/registry.ts`: the method, a `path` function typed to that operation's request, and `hasBody`. `ROUTES` is a mapped type over `OperationName`, so a forgotten operation is a compile error rather than a 404 in the wild.
 
-An abstract class, which doubles as its own Angular DI token. It returns Observables so the HTTP world (`HttpClient`) and the Promise world (`invoke`) look identical to every caller.
+<!-- thick:start -->
+- **Name the command.** Add the entry to `COMMANDS` in the same file — the Tauri command name the IPC wire invokes. Same mapped type, same compile error when it is missing. The Rust side that answers it belongs to `.claude/skills/add-a-tauri-command/SKILL.md`, and the mapping in depth is in `references/rust-command-side.md`.
+<!-- thick:end -->
 
-```ts
-// transport/transport.port.ts
-export abstract class Transport {
-  abstract request<K extends OperationKey>(
-    op: K,
-    payload: Operations[K]['req'],
-  ): Observable<Operations[K]['res']>;
-}
-```
+- **Expose it.** Add one method to the feature's operations facade, below.
 
-### 3. Two transports, same keys
+No transport is edited to add an operation. If you find yourself opening one, the operation is being added in the wrong place.
 
-Each transport maps a logical operation onto its native form: HTTP carries a route table, IPC carries a command table. Both are `Record<OperationKey, ...>`, so leaving an operation out is a compile error.
+## The operations facade
+
+`frontend/src/app/operations/user.operations.ts` is the shape to copy for every feature:
 
 ```ts
-// transport/http.transport.ts
-type Route = {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  path: (r: any) => string;
-  body?: (r: any) => unknown;
-  query?: (r: any) => Record<string, any>;
-};
+@Injectable({ providedIn: 'root' })
+export class UserOperations {
+  private readonly transport = inject(Transport);
 
-const ROUTES: Record<OperationKey, Route> = {
-  'users.get':  { method: 'GET',  path: r => `/users/${r.id}` },
-  'users.list': { method: 'GET',  path: () => `/users`, query: r => ({ page: r.page }) },
-  'users.save': { method: 'POST', path: () => `/users`, body: r => r.user },
-};
+  list(): Observable<UserDto[]> {
+    return this.transport.request('users.list', {});
+  }
 
-@Injectable()
-export class HttpTransport extends Transport {
-  private http = inject(HttpClient);
-  private base = inject(API_BASE_URL);
+  get(id: string): Observable<UserDto> {
+    return this.transport.request('users.get', { id });
+  }
 
-  request<K extends OperationKey>(op: K, payload: Operations[K]['req']) {
-    const r = ROUTES[op];
-    return this.http.request<Operations[K]['res']>(
-      r.method, `${this.base}${r.path(payload)}`,
-      { body: r.body?.(payload), params: r.query?.(payload) as any },
-    );
+  save(user: SaveUserInput): Observable<UserDto> {
+    return this.transport.request('users.save', user);
   }
 }
 ```
 
-```ts
-// transport/ipc.transport.ts
-import { invoke, InvokeArgs } from '@tauri-apps/api/core';
+Root-provided, one injected dependency — the `Transport` port — and one method per operation that names the operation and passes the payload through. No caching, no mapping, no branching, no state. A method that has grown a body is a use-case sitting in the wrong layer: move it to the ViewModel if it is presentation, or into the .NET application layer if it is domain.
 
-const COMMANDS: Record<OperationKey, string> = {
-  'users.get':  'get_user',
-  'users.list': 'list_users',
-  'users.save': 'save_user',
-};
+It is named for what it does, and it is not a repository. It persists nothing and holds no collection — there is no store behind it for it to be the gateway to. The repository pattern does exist in this codebase, at `services/api/src/Jig.Application/IUserRepository.cs`, where there is an actual database on the other side. There is no repositories/ directory under frontend/src/app, and the urge to create one is the first symptom of this seam being misread.
 
-@Injectable()
-export class IpcTransport extends Transport {
-  request<K extends OperationKey>(op: K, payload: Operations[K]['req']) {
-    return from(invoke<Operations[K]['res']>(COMMANDS[op], payload as InvokeArgs));
-  }
-}
-```
+ViewModels inject the facade and expose signals; the View binds to the ViewModel and sees none of this. That half belongs to add-a-view-model.
 
-The Rust command side that these map onto is in `references/rust-command-side.md`. Read it when wiring the desktop backend so the `res` shapes line up with the generated OpenAPI DTOs.
+## Cross-cutting behavior lives at the seam
 
-### 4. Normalize failure at one seam (do not skip this)
+`frontend/src/app/transport/normalizing.transport.ts` decorates the transport and folds every failure into one `AppError`. `HttpClient` throws `HttpErrorResponse` carrying a status code, a ProblemDetails body, or a bare network failure, and no ViewModel above should ever see those shapes.
 
-The two transports fail in completely different shapes. `HttpClient` throws `HttpErrorResponse` with status codes and runs through interceptors. A rejected `invoke` throws whatever string or serialized value the Rust command returned, with no interceptor path at all. If those leak upward, every ViewModel grows two error branches and the abstraction is already broken. Wrap the chosen transport in a decorator that folds both into one app error type, and put any uniform retry or logging here too.
+<!-- thick:start -->
+The second wire turns this from tidy into non-negotiable. A rejected `invoke` throws whatever string or serialized value the Rust command returned, with no interceptor path at all, so the two wires fail in shapes that have nothing in common. Let them leak and every ViewModel grows two error branches, at which point the abstraction is already broken.
+<!-- thick:end -->
 
-```ts
-// transport/normalizing.transport.ts
-@Injectable()
-export class NormalizingTransport extends Transport {
-  constructor(private inner: Transport) { super(); }
-  request<K extends OperationKey>(op: K, payload: Operations[K]['req']) {
-    return this.inner.request(op, payload).pipe(
-      catchError(e => throwError(() => toAppError(op, e))),
-    );
-  }
-}
-```
+Uniform retry and logging belong here too, for the same reason: one place, one behavior.
 
-### 5. Pick the wire once, at bootstrap
+Auth is the other cross-cutting concern, and it is the wire's business. Attach the bearer token in an `HttpInterceptor` or inside `frontend/src/app/transport/http.transport.ts` — never in a facade or a ViewModel. Token logic above the seam puts wire knowledge back into domain code, which is the exact coupling the port removed.
 
-The entire "which world" decision collapses to one factory. Let Angular construct both concrete transports so their own injected dependencies wire up, choose with v2's `isTauri()` rather than sniffing `window`, then wrap the choice in the normalizer so cross-cutting behavior lives in exactly one place.
+## Bootstrap
+
+`frontend/src/app/transport/provide-transport.ts` is the only place a concrete transport is constructed; everything else injects the `Transport` port. It takes the API base URL from the app config and wraps the transport in the normalizer, so error shaping has exactly one home.
+
+<!-- thick:start -->
+It is also the only place allowed to ask `isTauri()`. Let Angular construct both concrete transports so their own injected dependencies wire up, choose between them with `isTauri()` from `@tauri-apps/api/core` rather than sniffing `window`, then wrap the choice:
 
 ```ts
-// transport/provide-transport.ts
-import { isTauri } from '@tauri-apps/api/core';
-
-export function provideTransport(): EnvironmentProviders {
+export function provideTransport(apiBaseUrl: string): EnvironmentProviders {
   return makeEnvironmentProviders([
     HttpTransport,
     IpcTransport,
+    { provide: API_BASE_URL, useValue: apiBaseUrl },
+    { provide: WIRE, useValue: isTauri() ? 'ipc' : 'http' },
     {
       provide: Transport,
-      useFactory: () => new NormalizingTransport(
-        isTauri() ? inject(IpcTransport) : inject(HttpTransport),
-      ),
+      useFactory: () => new NormalizingTransport(isTauri() ? inject(IpcTransport) : inject(HttpTransport)),
     },
   ]);
 }
 ```
 
-### 6. Everything above speaks operations
+## Where the two wires disagree
 
-Repositories call operations, never URLs or command names.
+The skeleton is clean, but three real differences between the wires leak if they are ignored. Handle each at the seam, never above it.
 
-```ts
-@Injectable({ providedIn: 'root' })
-export class UserOperations {
-  private transport = inject(Transport);
-  get(id: string)           { return this.transport.request('users.get',  { id }); }
-  list()                    { return this.transport.request('users.list', {}); }
-  save(user: SaveUserInput) { return this.transport.request('users.save', user); }
-}
-```
+- **Errors.** Covered above. The rule: no `HttpErrorResponse` and no raw `invoke` rejection may reach a facade or a ViewModel. If either type is caught above the normalizer, the abstraction has failed.
 
-ViewModels depend only on operations facades and expose signals. The View has no idea any of this exists.
+- **Auth.** Over IPC there is usually no token to attach — the Rust core holds the real credential and the local origin is already trusted. The port hides that difference, which is correct, and it stays correct only while token logic lives on the HTTP side.
 
-```ts
-@Injectable()
-export class UserListViewModel {
-  private repo = inject(UserOperations);
-  readonly users   = signal<User[]>([]);
-  readonly loading = signal(false);
+- **Native-only capabilities.** The desktop shell grows operations the browser build has no equivalent for: tray control, file watching, reading local config. Do not force these into the shared `Operations` map with a stub that throws on HTTP, because that converts a compile-time guarantee into a runtime surprise. Keep the registry for genuinely symmetric domain calls and put native-only work behind a capability service that is simply not provided in the web bootstrap. ViewModels that need it inject it; the rest never see it.
+<!-- thick:end -->
 
-  load() {
-    this.loading.set(true);
-    this.repo.list().subscribe(users => {
-      this.users.set(users);
-      this.loading.set(false);
-    });
-  }
-}
-```
+## Smells that mean the seam is breaking
 
-## The three asymmetries you must design for
+- A URL or an HTTP verb appearing anywhere above `frontend/src/app/transport/`.
+- A `catch` above the normalizer that inspects `.status`.
+- A method on an operations facade with a body — a `map`, a cache, a conditional.
+- A hand-written interface standing in for a response shape instead of a generated DTO.
+- An operation added to `Operations` and kept out of `ROUTES` by a cast rather than fixed.
 
-The skeleton is clean but three real differences between the wires will leak if ignored. Handle each at the seam, never above it.
-
-1. **Errors.** Covered in build step 4. The non-negotiable rule: no `HttpErrorResponse` and no raw `invoke` rejection may reach a repository or ViewModel. If either type is caught above the normalizer, the abstraction has failed.
-
-2. **Auth.** Over HTTP you attach a bearer token, best done in an `HttpInterceptor` so it stays out of domain code. Over IPC there is usually no token to attach: the Rust core holds the real credential and the local origin is already trusted. The port hides this, which is correct. The rule that keeps it correct: token logic lives inside the HTTP transport or its interceptor, never in a repository, or the coupling you removed comes straight back.
-
-3. **Native-only capabilities.** The desktop shell almost always grows operations the web build has no equivalent for: tray control, file watching, reading local config. Do not cram these into the shared `Operations` map with a "throws on HTTP" stub, because that converts a compile-time guarantee into a runtime surprise. Keep the shared map for genuinely symmetric domain calls only. Put native-only features behind a separate capability service that is simply not provided in the web bootstrap. ViewModels that need it inject it; ones that do not never see it. The shared port stays a real contract instead of a leaky one.
-
-## Smells that mean the pattern is breaking
-
-- `isTauri()` or any `window` check anywhere above the bootstrap factory.
-- A URL string or a Tauri command name appearing in a repository or ViewModel.
-- A `catch` block above the normalizer that inspects `.status` or a Rust error string.
-- An operation in the shared registry that one transport implements as "throw". That belongs in a capability service instead.
-- The two transports referencing different response types for the same operation. They must both point at the one registry entry.
+<!-- thick:start -->
+- `isTauri()` or any `window` check anywhere above `frontend/src/app/transport/provide-transport.ts`.
+- A Tauri command name appearing in a facade or a ViewModel.
+- A `catch` above the normalizer that inspects a Rust error string.
+- An operation in the shared registry that one wire implements as a throw. That belongs in a capability service instead.
+<!-- thick:end -->
 
 ## Checklist before calling it done
 
-- Every `OperationKey` is present in both `ROUTES` and `COMMANDS` (compiler enforces this; do not suppress the error).
-- Both transports resolve to the registry's `res` type, ideally the generated OpenAPI DTO.
-- The normalizer wraps whichever transport the factory selected, and it is the only error-shaping seam.
+- Every `OperationName` resolves its `res` to a generated DTO, not a hand-written shape.
+- Every `OperationName` has a `ROUTES` entry, and the compiler said so rather than a comment.
+- The facade has one no-logic method per operation and injects nothing but `Transport`.
+- No `HttpClient` error shape escapes `frontend/src/app/transport/normalizing.transport.ts`.
 - Auth attachment exists only on the HTTP side.
+
+<!-- thick:start -->
+- Every `OperationName` has a `COMMANDS` entry too.
+- No raw `invoke` rejection escapes the normalizer.
 - No shared operation is a stub on either wire; native-only work lives in a capability service absent from the web bootstrap.
-- View, ViewModel, and Model compile and run unchanged regardless of which transport is provided.
+- View, ViewModel and facade compile and run unchanged whichever transport is provided.
+<!-- thick:end -->

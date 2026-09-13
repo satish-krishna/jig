@@ -29,10 +29,12 @@ export const THIN_DELETE: readonly string[] = [
   'apps',
   'frontend/src/app/transport/ipc.transport.ts',
   'frontend/src/app/transport/ipc.transport.spec.ts',
-  // The conduit skill's entire subject is choosing between two wires. Trimming it
-  // to one leaves 200 lines answering a question the app no longer has, so the thin
-  // cut drops it whole and keeps `docs/architecture/conduit.md` as the seam doc.
-  '.claude/skills/conduit',
+  // The conduit skill itself survives: its subject is the contract seam — the
+  // operations registry, the codegen ordering trap and the facade a ViewModel calls —
+  // all of which a thin app has, and the second wire is marked as thick-only inside
+  // it. This one reference page is the exception: it is wholly about the Rust command
+  // side of the IPC wire, so there is nothing left of it once the core is gone.
+  '.claude/skills/conduit/references/rust-command-side.md',
   // The whole subject of this skill is a Rust core the thin cut deletes outright,
   // so the skill goes with it rather than carrying thick markers through every line.
   '.claude/skills/add-a-tauri-command',
@@ -465,6 +467,14 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
         'and their HTTP route to `frontend/src/app/contracts/registry.ts` (`ROUTES`). The mapped type forces the wire to cover every operation.',
       ],
     ],
+  },
+  // The conduit skill carries its thick prose in marked blocks. Only the mermaid
+  // diagram needs a patch: a marker line inside a ```mermaid fence is not a valid
+  // flowchart statement, so the second wire's edge is dropped by exact match instead,
+  // the same way README.md and docs/architecture/conduit.md drop theirs.
+  {
+    path: '.claude/skills/conduit/SKILL.md',
+    edits: [['    Norm -. "chosen at bootstrap" .-> Ipc["IpcTransport -> Rust core"]\n', '']],
   },
   {
     path: '.claude/skills/adding-an-angular-service/SKILL.md',
