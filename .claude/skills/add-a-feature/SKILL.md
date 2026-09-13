@@ -32,8 +32,8 @@ Discover (above) is the prerequisite, not a build step, so numbering here starts
 
 <!-- thick:start -->
 - **Step 4:** Rust command matching the registry, TDD (thick only) — owner: add-a-tauri-command
-<!-- thick:end -->
 
+<!-- thick:end -->
 - **Step 5:** Data access: `UserOperations` facade, then a ViewModel exposing signals — owner: `.claude/skills/conduit/SKILL.md`, add-a-view-model
 - **Step 6:** Screen: view + route + menu command contribution — owner: add-a-screen
 - **Step 7:** Form, when the feature has one: zod schema → `z.infer` → `SchemaForm` — owner: add-a-form
@@ -42,8 +42,8 @@ Discover (above) is the prerequisite, not a build step, so numbering here starts
 
 <!-- thick:start -->
 Step 3 also fills in `registry.ts`'s `COMMANDS` map, one entry per operation, so the IPC wire has a command to call.
-<!-- thick:end -->
 
+<!-- thick:end -->
 ```mermaid
 flowchart TD
     A[.NET slice] --> C[npm run codegen]
@@ -58,8 +58,8 @@ flowchart TD
 
 <!-- thick:start -->
 Thick clients insert step 4 between the contract and data access: a Rust command matching the registry, owned by add-a-tauri-command, TDD at each step.
-<!-- thick:end -->
 
+<!-- thick:end -->
 The trap is step 2. Response types resolve to generated DTOs, so the API shapes exist first, `npm run codegen` runs second, and the contract is written third. Writing the contract first, the order the file names invite, produces a hand-typed interface that compiles and quietly drifts from the API it claims to describe.
 
 ## What the hooks will say

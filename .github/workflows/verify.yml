@@ -69,8 +69,8 @@ jobs:
         if: contains(steps.select.outputs.areas, 'rust')
         with:
           workspaces: apps/desktop/src-tauri
-      # thick:end
 
+      # thick:end
       - name: Install root tooling
         if: steps.select.outputs.areas != ''
         run: npm install

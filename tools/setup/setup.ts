@@ -125,8 +125,8 @@ function fetchRust() {
   execSync('cargo fetch', { cwd: join(ROOT, 'apps', 'desktop', 'src-tauri'), stdio: 'inherit' });
   ok('cargo fetch complete');
 }
-// thick:end
 
+// thick:end
 function generateCatalog() {
   log('\nCapability catalog:');
   execSync('node tools/catalog/catalog.ts', { cwd: ROOT, stdio: 'inherit' });

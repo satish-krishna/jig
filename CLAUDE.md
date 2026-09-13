@@ -10,7 +10,7 @@ Agents reinvent because they cannot cheaply find what exists. Before authoring a
 
 1. Read `.bob/registry/CATALOG.md` for the relevant area.
 2. Run an LSP `workspace/symbol` search for the concept.
-3. If a match exists, reuse or extend it. Generalising the existing unit beats adding a parallel one.
+3. If a match exists, reuse or extend it. Generalizing the existing unit beats adding a parallel one.
 4. If nothing fits, create it, annotate it (see CONTRIBUTING.md), and regenerate the catalog with `npm run catalog`.
 5. If you create something that overlaps an existing capability, that is a defect. Record why in an ADR under `.bob/adr/`.
 
@@ -66,7 +66,7 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 | `npm run verify` | The green gate: full build, all tests, typecheck, lint, stylelint, catalog and showcase-API freshness |
 | `npm run verify:frontend` | The same gate minus .NET and Rust, for the inner loop. Never a substitute — the frontend consumes generated DTOs, so only the full run proves the fixture holds |
 | `npm run lint` | The 26-rule architecture ruleset over `frontend/` (`tools/lint/`). Enabled at error; there is no disable comment |
-| `npm run stylelint` | The CSS half of the same gate — spacing and colour literals must be tokens |
+| `npm run stylelint` | The CSS half of the same gate — spacing and color literals must be tokens |
 | `npm run typecheck` | Type-check everything under `tools/` |
 | `npm run lint:report` | How often the edit-time hook fired and whether the correction landed. Reads the git-ignored firing log |
 | `npm run catalog` | Regenerate the capability catalog after annotating code |

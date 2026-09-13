@@ -17,7 +17,7 @@ This is the CLAUDE.md prime directive, made concrete for the frontend. Run it in
 
 1. **Read the catalog.** Open `.bob/registry/CATALOG.md` and scan the area — ViewModels, capabilities, shared components. It is generated from `@capability` annotations, so it is the fastest index of what already exists.
 2. **LSP-search the concept, do not grep.** Use the LSP workspace-symbol search for the noun you are about to introduce (the entity, the operation, the capability). Find-references on a near-match tells you whether to extend it.
-3. **Reuse or extend before creating.** Generalising the existing unit beats adding a parallel one. A second ViewModel that exposes the same state, or a second service that wraps the same capability, is a DRY defect.
+3. **Reuse or extend before creating.** Generalizing the existing unit beats adding a parallel one. A second ViewModel that exposes the same state, or a second service that wraps the same capability, is a DRY defect.
 4. **If nothing fits, create it and annotate it.** Add the `@capability`, `@intent`, `@reuse` annotations (copy the shape from `frontend/src/app/operations/user.operations.ts`), then run `npm run catalog`. An un-annotated unit is invisible to the next agent, which is how the reinvention starts again.
 5. **If you created something that overlaps an existing capability, that is a defect.** Record why in an ADR under `.bob/adr/`.
 

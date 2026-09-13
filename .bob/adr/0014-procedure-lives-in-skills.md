@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-09-12
 - Scope: `.claude/skills`, `.bob/prompts`
-- Amends: ADR 0003
+- Amends: ADR 0003, whose Tier 2 bullet "`.bob/prompts/new-feature.md` — the feature recipe." is amended by this record.
 
 ## Context
 
