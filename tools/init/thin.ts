@@ -468,13 +468,19 @@ The port is a DI seam: an app that later grows a second wire supplies another \`
       ],
     ],
   },
-  // The conduit skill carries its thick prose in marked blocks. Only the mermaid
-  // diagram needs a patch: a marker line inside a ```mermaid fence is not a valid
-  // flowchart statement, so the second wire's edge is dropped by exact match instead,
-  // the same way README.md and docs/architecture/conduit.md drop theirs.
+  // The conduit skill carries its thick prose in marked blocks. Two things cannot be
+  // marked. The mermaid edge naming the second transport: a marker line inside a
+  // ```mermaid fence is not a valid flowchart statement, so it is dropped by exact
+  // match instead, the same way README.md and docs/architecture/conduit.md drop
+  // theirs. And the frontmatter description, which is one line of YAML with no room
+  // for a marker — it must lose its two-wire trigger phrases or a thin clone ships a
+  // skill that fires on "dual transport" and then has nothing to say about it.
   {
     path: '.claude/skills/conduit/SKILL.md',
-    edits: [['    Norm -. "chosen at bootstrap" .-> Ipc["IpcTransport -> Rust core"]\n', '']],
+    edits: [
+      ['    Norm -. "chosen at bootstrap" .-> Ipc["IpcTransport -> Rust core"]\n', ''],
+      ['"one frontend two wires", "dual transport", ', ''],
+    ],
   },
   {
     path: '.claude/skills/adding-an-angular-service/SKILL.md',
