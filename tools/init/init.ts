@@ -19,7 +19,7 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, renameSync, rmSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { deriveNames, renameContent, renamePath, stripTemplateBlocks } from './rename.ts';
 import { THIN_DELETE, THIN_DROP_DEPENDENCY, stripThickMarkers, toThin } from './thin.ts';
 
@@ -34,7 +34,7 @@ const BINARY = ['.png', '.ico', '.icns', '.jpg', '.jpeg', '.gif', '.woff', '.wof
 // author's firing telemetry on disk for a freshly cloned app to silently inherit as
 // its own enforcement baseline. That is a measurement lying about whose drift it
 // recorded, so it is listed here even though no other step would ever touch it.
-const TEMPLATE_ONLY = ['.bob/adr/0000-origin-prompt.md', 'docs/superpowers', 'tools/init', '.claude/hook-firings.jsonl'];
+export const TEMPLATE_ONLY = ['.bob/adr/0000-origin-prompt.md', 'docs/superpowers', 'tools/init', '.claude/hook-firings.jsonl'];
 
 function parseArgs(argv) {
   const args = argv.slice(2);
@@ -175,4 +175,7 @@ function main() {
   );
 }
 
-main();
+// Run only when invoked directly, so importing this for tests does not run the initializer.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

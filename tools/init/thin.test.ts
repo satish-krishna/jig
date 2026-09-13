@@ -13,6 +13,7 @@ import {
   toThin,
 } from './thin.ts';
 import { stripTemplateBlocks } from './rename.ts';
+import { TEMPLATE_ONLY } from './init.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -43,7 +44,7 @@ test('neither cut leaves a thick marker in the initialized app', () => {
 
   for (const rel of tracked) {
     if (BINARY.some((e) => rel.endsWith(e))) continue;
-    if (rel.startsWith('tools/init/')) continue; // deleted by init; defines the markers
+    if (TEMPLATE_ONLY.some((p) => rel === p || rel.startsWith(`${p}/`))) continue; // deleted by init
     const source = stripTemplateBlocks(readFileSync(join(ROOT, rel), 'utf8'));
     for (const [shape, text] of [['thick', stripThickMarkers(source)], ['thin', toThin(rel, source)]]) {
       if (text.includes('thick:start') || text.includes('thick:end')) survivors.push(`${rel} (${shape})`);
@@ -51,6 +52,12 @@ test('neither cut leaves a thick marker in the initialized app', () => {
   }
 
   assert.deepEqual(survivors, [], `marker left in the initialized app:\n${survivors.join('\n')}`);
+});
+
+test('the marker scan skips every path init deletes, not only tools/init', async () => {
+  const { TEMPLATE_ONLY } = await import('./init.ts');
+  assert.ok(TEMPLATE_ONLY.includes('docs/superpowers'), 'docs/superpowers is template-only');
+  assert.ok(TEMPLATE_ONLY.includes('tools/init'), 'tools/init is template-only');
 });
 
 test('toThin throws rather than silently skipping when an anchor is missing', () => {
