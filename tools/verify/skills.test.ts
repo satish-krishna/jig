@@ -1,11 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { writeFileSync, unlinkSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { citedPaths, citedRuleIds, unknownRuleIds, checkSkills } from './skills.ts';
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 test('citedPaths reads a backticked repo-relative path', () => {
   assert.deepEqual(
@@ -46,26 +44,34 @@ test('unknownRuleIds resolves against the real plugin, stripping any jig/ prefix
 });
 
 test('checkSkills resolves a root-relative citation written with a leading slash, when the file exists', () => {
-  const fixture = join(ROOT, '.claude/skills/__fixture_leading_slash_real__.md');
-  writeFileSync(fixture, 'Real file: `/frontend/src/app/operations/user.operations.ts`.\n');
+  const root = mkdtempSync(join(tmpdir(), 'jig-skills-'));
   try {
-    const failures = checkSkills().filter((line) => line.includes('__fixture_leading_slash_real__'));
-    assert.deepEqual(failures, []);
+    mkdirSync(join(root, '.claude/skills/fixture'), { recursive: true });
+    mkdirSync(join(root, 'some/real'), { recursive: true });
+    writeFileSync(join(root, 'some/real/target.ts'), '');
+    writeFileSync(
+      join(root, '.claude/skills/fixture/SKILL.md'),
+      'Real file: `/some/real/target.ts`.\n',
+    );
+    assert.deepEqual(checkSkills(root), []);
   } finally {
-    unlinkSync(fixture);
+    rmSync(root, { recursive: true, force: true });
   }
 });
 
 test('checkSkills reports a root-relative citation written with a leading slash, when the file does not exist', () => {
-  const fixture = join(ROOT, '.claude/skills/__fixture_leading_slash_missing__.md');
-  writeFileSync(fixture, 'Broken file: `/frontend/src/app/nope/missing.ts`.\n');
+  const root = mkdtempSync(join(tmpdir(), 'jig-skills-'));
   try {
-    const failures = checkSkills().filter((line) => line.includes('__fixture_leading_slash_missing__'));
-    assert.deepEqual(failures, [
-      '.claude/skills/__fixture_leading_slash_missing__.md: cites a path that does not exist: frontend/src/app/nope/missing.ts',
+    mkdirSync(join(root, '.claude/skills/fixture'), { recursive: true });
+    writeFileSync(
+      join(root, '.claude/skills/fixture/SKILL.md'),
+      'Broken file: `/some/nope/missing.ts`.\n',
+    );
+    assert.deepEqual(checkSkills(root), [
+      '.claude/skills/fixture/SKILL.md: cites a path that does not exist: some/nope/missing.ts',
     ]);
   } finally {
-    unlinkSync(fixture);
+    rmSync(root, { recursive: true, force: true });
   }
 });
 
