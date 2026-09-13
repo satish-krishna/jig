@@ -50,13 +50,23 @@ export function skillFiles(root: string = ROOT): string[] {
 
 // A cited path is backticked, contains a slash, and is not something else that
 // happens to contain one. Globs, type signatures, shell commands and URLs all do —
-// and so, it turns out, do three more shapes the real corpus contains: an npm scoped
-// package specifier (`@spartan-ng/brain`), an absolute web route (`/users`), and a
-// custom URI scheme (`spartan://component/{name}/api`). None of those are ever
-// spelled as a repo-relative path in this codebase, so they are excluded on shape
-// rather than by an allowlist of literal tokens.
+// and so, it turns out, do two more shapes the real corpus contains: an npm scoped
+// package specifier (`@spartan-ng/brain`) and a custom URI scheme
+// (`spartan://component/{name}/api`). Neither is ever spelled as a repo-relative
+// path in this codebase, so they are excluded on shape rather than by an allowlist
+// of literal tokens.
 const BACKTICKED = /`([^`\n]+)`/g;
-const NOT_A_PATH = /[*<>()\s?|{}$]|^[a-zA-Z][\w+.-]*:\/\/|^\.{3}|^@|^\//;
+const NOT_A_PATH = /[*<>()\s?|{}$]|^[a-zA-Z][\w+.-]*:\/\/|^\.{3}|^@/;
+
+// A leading slash is ambiguous on its own: `/users` is a web route, but
+// `/frontend/src/app/foo.ts` is a repo path written root-relative, a markdown
+// convention this corpus also uses. Shape, not the slash, tells them apart — a
+// route has no file extension on its last segment, a real path does. Excluding
+// every leading-slash token regardless of extension let a typo'd or genuinely
+// broken root-relative citation pass the check silently; checking only the
+// extension-less ones as routes closes that hole without reintroducing the
+// route false positives.
+const HAS_FILE_EXTENSION = /\.[A-Za-z0-9]+\/?$/;
 
 /** The repo-relative paths a skill body cites. */
 export function citedPaths(text: string): string[] {
@@ -64,6 +74,11 @@ export function citedPaths(text: string): string[] {
   for (const [, token] of text.matchAll(BACKTICKED)) {
     if (!token.includes('/')) continue;
     if (NOT_A_PATH.test(token)) continue;
+    if (token.startsWith('/')) {
+      if (!HAS_FILE_EXTENSION.test(token)) continue; // a route, e.g. `/users`
+      found.push(token.slice(1)); // root-relative markdown convention
+      continue;
+    }
     found.push(token);
   }
   return found;
