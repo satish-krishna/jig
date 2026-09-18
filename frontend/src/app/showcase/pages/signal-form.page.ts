@@ -31,7 +31,8 @@ type Profile = z.infer<typeof profileSchema>;
 const EMPTY: Profile = { displayName: '', email: '' };
 
 /**
- * Signal-forms usages: the compile-time half of docs/architecture/forms.md.
+ * Signal-forms usages: the exception docs/architecture/forms.md carves out, for a form
+ * whose fields you must bind one by one.
  *
  * Each usage gets its own model and form because they demonstrate different
  * states of the same pattern, and a shared instance would make one usage's

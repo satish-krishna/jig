@@ -76,7 +76,7 @@ describe('SignalFormPage', () => {
     expect(stage(3).querySelector('[data-slot="payload"]')?.textContent).toContain('ada@example.io');
   });
 
-  it('points at the canonical reference instead of documenting a second one', () => {
+  it('states that the schema and the form are authored together, now that this page is the reference', () => {
     expect(host.textContent).toContain('The schema and the form are authored together.');
   });
 
