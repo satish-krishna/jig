@@ -11,11 +11,7 @@
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
-
-/** kebab-case, hyphen-joined -> space-joined words, for a human-facing label. */
-function label(kebab: string): string {
-  return kebab.replace(/-/g, ' ');
-}
+import { label } from './naming.ts';
 
 // ---------------------------------------------------------------------------
 // The zod-type fragment and per-field .meta() block, shared by the schema file.

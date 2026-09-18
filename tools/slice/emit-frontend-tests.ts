@@ -12,13 +12,7 @@
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
-
-/** kebab-case, hyphen-joined -> space-joined words, for a human-facing label. Duplicated
- * from emit-frontend.ts's private helper of the same name and shape; promote to a shared
- * module if a third emitter needs it. */
-function label(kebab: string): string {
-  return kebab.replace(/-/g, ' ');
-}
+import { label } from './naming.ts';
 
 /**
  * A TS-literal sample value for a field, distinct per variant (0 or 1). Mirrors
@@ -222,6 +216,13 @@ describe('${n.pascal}ListView', () => {
     const fixture = render(() => throwError(() => err));
 
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('offline');
+  });
+
+  it('reports a failure through the alert primitive', () => {
+    const err: AppError = { kind: 'network', message: 'offline', operation: '${n.opPrefix}.list' };
+    const alert = render(() => throwError(() => err)).nativeElement.querySelector('[role="alert"]');
+
+    expect(alert.hasAttribute('hlmAlert')).toBe(true);
   });
 
   it('titles the page with a typography primitive, not a bare heading', () => {
