@@ -1,8 +1,14 @@
 // Tests for the slice CLI: argument parsing, product detection, and the pure plan() that
 // composes every earlier task's emitters and injectors into one write-and-edit list. main()
 // itself is impure (disk, git, dotnet, npm) and is deliberately untested here — see the task
-// brief's "do not run main() against the real repository" rule and acceptance.test.ts, which
-// exercises plan() against the live registries instead.
+// brief's "do not run main() against the real repository" rule. Task 9's acceptance.test.ts
+// is meant to exercise plan() against the live registries the same way; it does not exist
+// yet as of this file.
+//
+// Two tests below (`plan(..., true)` behavior — the "thick checkout" cases) are wrapped in
+// thick-cut markers: after a thin cut, plan() has no thick branch at all, so plan(spec, p,
+// true) behaves exactly like plan(spec, p, false) and those assertions would go false. A
+// thin clone must not carry assertions that fail against its own thinned copy of slice.ts.
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -60,9 +66,11 @@ test('plan emits no desktop-native file for a thin checkout', () => {
   assert.ok(!edits.some((e) => e.path.endsWith('lib.rs')));
 });
 
-test('plan emits the desktop-native file and the lib.rs edit for a thick checkout', () => {
+// thick:start
+test('plan emits the desktop-native file and the lib.rs and command-adapter edits for a thick checkout', () => {
   const { edits } = plan(spec, 'Jig', true);
   assert.ok(edits.some((e) => e.path.endsWith('lib.rs')));
+  assert.ok(edits.some((e) => e.path.endsWith('commands.rs')));
 });
 
 test('plan writes each group in full for the thick case', () => {
@@ -75,3 +83,4 @@ test('plan writes each group in full for the thick case', () => {
   assert.equal(count((p) => p.endsWith('.rs')), 1);
   assert.equal(writes.length, 24);
 });
+// thick:end
