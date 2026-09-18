@@ -74,8 +74,20 @@ test('a number field emits a numeric zod type and a coercing control', () => {
 test('the form component renders through SchemaForm and wires nothing per field', () => {
   const ts = at('order-form')!.text;
   assert.match(ts, /<app-schema-form \[schema\]="orderFormSchema"/);
-  assert.match(ts, /\(submitted\)="saved\.emit\(\$event\)"/);
+  assert.match(ts, /\(submitted\)="onSubmitted\(\$event\)"/);
   assert.doesNotMatch(ts, /<hlm-field>|\[formField\]|ngModel|formControlName|FormsModule/);
+});
+
+// SchemaForm.submitted is output<Record<string, unknown>>, so $event in the template
+// is Record<string, unknown> — Angular templates have no `as`, so an inline
+// `saved.emit($event)` binding fails strict template type-checking (TS2345):
+// Record<string, unknown> is not assignable to a type with required typed properties.
+// The narrowing has to happen in a handler method instead.
+test('the form narrows the payload through a handler, not an inline emit in the template', () => {
+  const ts = at('order-form')!.text;
+  assert.match(ts, /protected onSubmitted\(value: Record<string, unknown>\): void \{/);
+  assert.match(ts, /this\.saved\.emit\(value as OrderFormModel\)/);
+  assert.doesNotMatch(ts, /saved\.emit\(\$event\)/);
 });
 
 test('no form ViewModel is emitted — SchemaForm owns the form state', () => {
@@ -88,4 +100,14 @@ test('the commands file registers a nav command and an action command', () => {
   assert.match(ts, /icon: 'lucideBox'/);
   assert.match(ts, /route: '\/orders'/);
   assert.match(ts, /export function provideOrdersMenu\(\): EnvironmentProviders/);
+});
+
+test('a boolean field emits z.boolean() with no min or email validator', () => {
+  const ts = emitFrontend(validateSpec({
+    name: 'Flag', icon: 'lucideFlag',
+    fields: [{ name: 'active', type: 'boolean', label: 'Active' }],
+  })).find((f) => f.path.endsWith('flag-form.schema.ts'))!.text;
+  assert.match(ts, /active: z\n?\s*\.boolean\(\)/);
+  assert.doesNotMatch(ts, /\.min\(1,/);
+  assert.doesNotMatch(ts, /\.email\(/);
 });

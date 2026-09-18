@@ -126,6 +126,14 @@ export function validateSpec(raw: unknown): SliceSpec {
     if ('format' in f && f.format !== undefined && f.format !== 'email') {
       throw new Error('Field format must be email');
     }
+    // 'email' formats a string's presentation and validation. A number or boolean field
+    // has no textual representation for .email() to check, so a downstream emitter
+    // handed one would have to either silently ignore it or emit a bogus zod call
+    // (z.number().email(...)); rejecting the combination here means no emitter has to
+    // decide which of those two wrong things to do.
+    if (f.format !== undefined && f.type !== 'string') {
+      throw new Error('Field format is only valid on a string field');
+    }
     if ('placeholder' in f && f.placeholder !== undefined && typeof f.placeholder !== 'string') {
       throw new Error('Field placeholder must be a string');
     }

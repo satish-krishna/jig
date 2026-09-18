@@ -258,11 +258,20 @@ import { ${n.camel}FormSchema, type ${n.pascal}FormModel } from './${n.kebab}-fo
 @Component({
   selector: 'app-${n.kebab}-form',
   imports: [SchemaForm],
-  template: \`<app-schema-form [schema]="${n.camel}FormSchema" submitLabel="Save ${n.camel}" (submitted)="saved.emit($event)" />\`,
+  template: \`<app-schema-form [schema]="${n.camel}FormSchema" submitLabel="Save ${n.camel}" (submitted)="onSubmitted($event)" />\`,
 })
 export class ${n.pascal}Form {
   protected readonly ${n.camel}FormSchema = ${n.camel}FormSchema;
   readonly saved = output<${n.pascal}FormModel>();
+
+  // SchemaForm.submitted is output<Record<string, unknown>> because it renders a
+  // schema it only knows about at runtime; Angular templates have no \`as\`, so the
+  // narrowing to this form's own model has to happen here rather than inline in the
+  // binding above. It only ever emits after safeParse against ${n.camel}FormSchema (the
+  // very schema passed to it above), so the payload is this model by construction.
+  protected onSubmitted(value: Record<string, unknown>): void {
+    this.saved.emit(value as ${n.pascal}FormModel);
+  }
 }
 `,
   };

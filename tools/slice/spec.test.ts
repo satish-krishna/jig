@@ -90,6 +90,13 @@ test('validateSpec rejects a unique boolean field', () => {
   );
 });
 
+test('validateSpec rejects format on a non-string field', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'a', type: 'number', label: 'A', format: 'email' }] }),
+    /format.*string field/,
+  );
+});
+
 test('validateSpec accepts specs with no optional fields', () => {
   const spec = validateSpec({ ...base, fields: [{ name: 'a', type: 'number', label: 'Count' }] });
   assert.equal(spec.name, 'Order');
