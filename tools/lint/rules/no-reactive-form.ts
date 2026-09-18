@@ -2,26 +2,26 @@ import { classOf, componentImports, decoratorMetadata, hasDecorator, metadataPro
 
 /**
  * Container-tier only, for the same reason no-forms-module is: ReactiveFormsModule
- * is used in 17 files in this app and every one is legitimate — forms/schema-form.ts
- * builds a reactive FormGroup from a runtime schema by design
- * (docs/architecture/forms.md), and the showcase pages demo spartan controls
- * against reactive forms deliberately. features/ and shell/ have zero reactive
- * forms today, so this rule is prevention. See docs/architecture/rules/no-reactive-form.md.
+ * is used in 25 files in this app and every one is legitimate — forms/schema-form.ts
+ * builds a reactive FormGroup from the schema by design (docs/architecture/forms.md),
+ * and the showcase pages demo spartan controls against reactive forms deliberately
+ * (8 under frontend/src/app/forms/controls/, 16 showcase pages, 1 schema-form.ts,
+ * zero specs). features/ and shell/ have zero reactive forms today, so this rule is
+ * prevention. See docs/architecture/rules/no-reactive-form.md.
  */
 export default {
   meta: {
     type: 'problem' as const,
     docs: {
-      description: 'A container component does not build a reactive form by hand. Signal-forms owns known forms.',
+      description: 'A container component does not build a reactive form by hand. SchemaForm renders it from the schema.',
       url: 'docs/architecture/rules/no-reactive-form.md',
     },
     schema: [],
     messages: {
       reactiveForm:
-        'ReactiveFormsModule and a hand-built FormGroup are the dynamic-renderer API, reserved ' +
-        'for forms/schema-form.ts rendering an unknown runtime schema. A feature form is known at ' +
-        'compile time, so it uses signal-forms instead. ' +
-        'Good: form(this.model, (path) => validateStandardSchema(path, userFormSchema))  ' +
+        'ReactiveFormsModule and a hand-built FormGroup restate by hand what forms/schema-form.ts ' +
+        'already builds from the zod schema, and the renderer is the default for every form here. ' +
+        'Good: <app-schema-form [schema]="userFormSchema" (submitted)="onSubmitted($event)" />  ' +
         'Bad: imports: [ReactiveFormsModule] with new FormGroup({ ... }). ' +
         'Copy frontend/src/app/features/users/user-form.ts.',
     },

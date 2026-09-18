@@ -21,7 +21,8 @@ test('no-reactive-form', () => {
         code: `@Component({ imports: [ReactiveFormsModule] }) export class X { f = new FormGroup({}); }`,
         filename: '/repo/frontend/src/app/showcase/pages/input.page.ts',
       },
-      // signal-forms is the container-tier pattern and stays untouched.
+      // A signal-forms form() is neither ReactiveFormsModule nor a hand-built FormGroup, so it
+      // is not this rule's business either way.
       {
         code: `@Component({}) export class X { readonly form = form(this.model, validateStandardSchema); }`,
         filename: '/repo/frontend/src/app/features/users/x.ts',

@@ -1,0 +1,8 @@
+{
+  "name": "User",
+  "icon": "lucideUsers",
+  "fields": [
+    { "name": "name", "type": "string", "label": "Name", "placeholder": "Ada Lovelace" },
+    { "name": "email", "type": "string", "label": "Email", "placeholder": "ada@example.io", "unique": true, "format": "email" }
+  ]
+}

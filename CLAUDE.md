@@ -93,8 +93,8 @@ apps/desktop/          Tauri shell (Rust core, src-tauri)
 frontend/src/app/
   contracts/           operation registry + generated DTOs (single source of truth)
   transport/           port, http/ipc/normalizing transports, provide-transport
-  repositories/        speak operations only
-  forms/               FormFieldMeta, zod-meta, dynamic SchemaForm renderer (signal-forms for authored forms)
+  operations/          speak operations only
+  forms/               FormFieldMeta, zod-meta, control registry, SchemaForm renderer (every app form)
   menu/                region-keyed Command registry (sidebar/header contributions)
   theme/               light/dark mode; toggles the `dark` class on the document root
 <!-- thick:start -->

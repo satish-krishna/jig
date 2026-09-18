@@ -26,6 +26,14 @@ display, and tracks validation state.
 
 ## Signal Forms
 
+> **jig-specific note, not spartan's:** the `required(...)`/`minLength(...)` shape below is
+> spartan's own documentation of what Signal Forms supports as a library, and it is accurate
+> for that purpose — left as-is rather than rewritten. In this app, that shape is forbidden
+> by jig's own `no-restated-validator` lint rule: a zod schema is always the single source of
+> truth for validation, so restating a rule as a programmatic validator is a defect here, not
+> a style choice. See `docs/architecture/rules/no-restated-validator.md` and
+> `docs/architecture/forms.md` for what this app does instead.
+
 The same `hlmField` and controls work with Angular's Signal Forms. Build the model with
 `form()` from `@angular/forms/signals`, bind the control with `[formField]`, and wrap the `<form>`
 with `[formRoot]`. Errors come from the field's `errors()` signal rather than the control's

@@ -17,7 +17,7 @@ export interface Names {
 }
 
 /** Split a name given in Pascal/camel/kebab/snake/spaced form into its words. */
-function words(raw: string): string[] {
+export function words(raw: string): string[] {
   return raw
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .split(/[\s\-_]+/)

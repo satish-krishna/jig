@@ -8,7 +8,7 @@
 
 ## Why
 
-`docs/architecture/forms.md` mandates two form systems — signal-forms (`[formField]="form.name"`, bound with spartan controls inside `hlm-field`) for a form you author, and the dynamic `SchemaForm` renderer (`[formControlName]`) for a runtime schema. `ngModel` is neither: it is the template-driven forms API, which this app does not use at all. A stray `[(ngModel)]` bypasses the zod schema entirely — no shared validation, no shared labels, and a binding the signal-forms and reactive-forms machinery both ignore.
+`docs/architecture/forms.md` mandates two form systems — the dynamic `SchemaForm` renderer (`[formControlName]`, resolved from the zod type) as the default for every form, and signal-forms (`[formField]="form.name"`, bound with spartan controls inside `hlm-field`) for the exception, a form whose fields you must bind one by one. `ngModel` is neither: it is the template-driven forms API, which this app does not use at all. A stray `[(ngModel)]` bypasses the zod schema entirely — no shared validation, no shared labels, and a binding the signal-forms and reactive-forms machinery both ignore.
 
 ## Accepted form
 

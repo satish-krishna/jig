@@ -8,15 +8,17 @@ import { SchemaFormBuilder } from './schema-form-builder';
 import { applyZodIssues, clearZodIssues } from './schema-form.util';
 
 /**
- * Dynamic renderer for a zod schema known only at runtime. It builds a control
- * tree from the schema, renders each field through the control registered for
- * its zod type, and validates through the schema on submit, folding issues back
- * onto the matching controls by path.
+ * Dynamic renderer for a zod schema, known at compile time or only at runtime. It
+ * builds a control tree from the schema, renders each field through the control
+ * registered for its zod type, and validates through the schema on submit, folding
+ * issues back onto the matching controls by path.
  *
  * This component knows NOTHING about control kinds. Adding one is a new file
  * plus one entry in controls/index.ts — see ADR on the control registry.
  *
- * For a form you author by hand, prefer signal-forms (features/users/user-form.ts).
+ * This is how the app renders every form, including one whose schema is a literal in
+ * the file next door — see features/users/user-form.ts. Reach for signal-forms only when
+ * a field needs a typed per-field binding; docs/architecture/forms.md draws that line.
  *
  * @capability forms.dynamic-renderer
  * @intent Render any zod schema at runtime; the schema stays the source of truth.

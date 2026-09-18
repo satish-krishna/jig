@@ -1,36 +1,30 @@
 ---
 name: add-a-screen
-description: Use when adding or changing a page in the app — a new route, a list or detail view, a sidebar or header entry, or the View half of an MVVM pair. Covers the view-binds-only-to-the-ViewModel boundary, wiring the route, contributing a menu Command so the screen is reachable, and the control-flow and change-detection rules the linter enforces on every component. Reach for this on "add a screen", "add a page", "new route", "put it in the sidebar", "make it navigable", "the view for X", or before creating any *.view.ts under frontend/src/app/features/.
+description: Use when adding or changing a page in the app — a new route, a list or detail view, a sidebar or header entry, or the View half of an MVVM pair. Covers generating the list screen rather than writing it, the view-binds-only-to-the-ViewModel boundary, wiring a route, contributing a menu Command so the screen is reachable, and the control-flow and change-detection rules the linter enforces on every component. Reach for this on "add a screen", "add a page", "new route", "put it in the sidebar", "make it navigable", "the view for X", or before creating any *.view.ts under frontend/src/app/features/.
 ---
 
 # Add a screen
 
 ## Where you are
 
-This is step 6 of `.claude/skills/add-a-feature/SKILL.md`: the View half of the MVVM pair, plus the route and menu wiring that make it reachable. The ViewModel is the input to this step, not something it builds — if it does not exist yet, go build it with `.claude/skills/add-a-view-model/SKILL.md` before coming back here.
+The View half of the MVVM pair, plus the route and menu wiring that make it reachable. The ViewModel is this step's input, not its output — if it does not exist, build it with `.claude/skills/add-a-view-model/SKILL.md` first.
 
-## Copy this
+A slice's list screen is generated, not written: `npm run slice` emits the view, its ViewModel, their specs and the menu contribution, and wires the route and the icon. Come here for a second screen, a detail view, a screen with no slice behind it, or a change to a generated one.
 
-The `users` slice is the exemplar. Copy its shape rather than inventing a new one:
+## The shape to copy
 
-- View: `frontend/src/app/features/users/user-list.view.ts`
-- View spec: `frontend/src/app/features/users/user-list.view.spec.ts`
-- Menu contribution: `frontend/src/app/features/users/users.commands.ts`
-- Menu contribution spec: `frontend/src/app/features/users/users.commands.spec.ts`
-- Route table: `frontend/src/app/app.routes.ts`
-- The Command abstraction navigation is built on: `frontend/src/app/menu/navigate-command.ts`
+`frontend/src/app/features/users/user-list.view.ts` and `users.commands.ts`, with their specs, are the exemplar and the generator's own output. The route table is `frontend/src/app/app.routes.ts`; the abstraction navigation is built on is `frontend/src/app/menu/navigate-command.ts`.
 
-Navigation is a Command, not a hard-coded router link — see `.bob/adr/0008-actions-are-commands.md` for why: a region-keyed registry lets the sidebar and header stay ignorant of which features exist, and a screen becomes reachable purely by contributing a Command to it.
+Navigation is a Command, not a hard-coded router link — `.bob/adr/0008-actions-are-commands.md` has the why: a region-keyed registry lets the sidebar and header stay ignorant of which features exist. A screen with a route and no Command is unreachable, which is the mistake this step exists to prevent.
 
 ## The sequence (TDD)
 
-**1.** Write the failing view spec first, asserting what renders from the ViewModel's signals.
-**2.** Run `cd frontend && npm test` and see it fail.
+**1.** Failing view spec first, asserting what renders from the ViewModel's signals.
+**2.** `cd frontend && npm test` — see it fail.
 **3.** Write the view, binding only to the ViewModel — no direct data access, no feature service reached into from the template — and provide the ViewModel at the component.
-**4.** Run the test again and see it pass.
-**5.** Add the route in `app.routes.ts`.
-**6.** Add the `*.commands.ts` contribution so the screen appears in the region-keyed menu.
-**7.** Run `cd frontend && npm test` and see it pass.
+**4.** See it pass.
+**5.** Add the route in `app.routes.ts`, then the `*.commands.ts` contribution so the screen appears in the region-keyed menu.
+**6.** `cd frontend && npm test` — see it pass.
 
 ## What the hooks will say
 

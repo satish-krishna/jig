@@ -1,92 +1,81 @@
 import { describe, it, expect } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { UserForm } from './user-form';
+import { SchemaForm } from '../../forms/schema-form';
+import { provideDefaultFormControls } from '../../forms/controls';
 
-// Minimal shape of the signal-form under test. Narrower than 'any' so a rename
-// in the component fails here, without importing Angular's internal field types.
-interface TestField {
-  errors(): readonly { message: string }[];
-  markAsTouched(): void;
-  touched(): boolean;
-}
-interface TestForm {
-  name: () => TestField;
-  email: () => TestField;
-}
-interface TestViewModel {
-  form: TestForm;
-  model: { set: (v: unknown) => void };
+// These assert the RENDERED result, not the wiring that produced it. The component
+// no longer owns a control per field to reach into — the schema does — so a test
+// that poked at named form controls would be testing SchemaForm's internals from
+// the wrong file. What is this component's own is: it passes the right schema, it
+// labels its submit button, and it re-emits SchemaForm's untyped payload as the
+// model. Everything else here is a check that the schema really did drive the DOM.
+function render() {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
+  const fixture = TestBed.createComponent(UserForm);
+  fixture.detectChanges();
+  return fixture;
 }
 
 describe('UserForm', () => {
-  function render() {
-    TestBed.resetTestingModule();
-    const fixture = TestBed.createComponent(UserForm);
-    fixture.detectChanges();
-    return fixture;
-  }
+  it('renders the schema form with a control per field', () => {
+    const host = render().nativeElement;
 
-  it('renders an input per schema field', () => {
-    const fixture = render();
-    expect(fixture.nativeElement.querySelectorAll('input').length).toBe(2);
+    expect(host.querySelector('app-schema-form')).toBeTruthy();
+    expect(host.querySelector('#name'), 'no control for name').toBeTruthy();
+    expect(host.querySelector('#email'), 'no control for email').toBeTruthy();
   });
 
-  it('stacks its fields through the spartan field group, not a class that styles nothing', () => {
-    // It carried class="user-form", which matched no rule in styles.css or any
-    // component stylesheet, so the rows sat flush. hlmFieldGroup is spartan's own
-    // field stack — the reference form should not hand-roll one.
-    const form = render().nativeElement.querySelector('form');
-
-    expect(form.getAttribute('data-slot')).toBe('field-group');
-    expect(form.classList.contains('user-form')).toBe(false);
+  it('labels the submit button with the action, not the default', () => {
+    // The e2e drives this form by that button's accessible name, so the label is
+    // load-bearing beyond looking right.
+    expect(render().nativeElement.querySelector('button[type="submit"]').textContent.trim()).toBe('Add user');
   });
 
-  it('surfaces the zod validation on the matching field (Standard Schema bridge)', () => {
+  it('surfaces the schema validation message on an invalid submit', () => {
     const fixture = render();
-    const form = (fixture.componentInstance as unknown as { vm: TestViewModel }).vm.form;
+    fixture.debugElement.query(By.directive(SchemaForm)).componentInstance.onSubmit(); // every field starts empty
 
-    // The initial empty model violates the zod schema; validation runs natively.
-    const nameErrors = form.name().errors();
-    expect(nameErrors.length).toBeGreaterThan(0);
-    expect(nameErrors.some((e: { message: string }) => /required/i.test(e.message))).toBe(true);
-  });
-
-  it('keeps the validation message hidden until the field is touched', () => {
-    const fixture = render();
-
-    // The empty model is already invalid, so the message exists in the DOM from
-    // the start; hlm-field-error is what decides it is not shown yet.
-    const error = fixture.nativeElement.querySelector('hlm-field-error[data-error-for="name"]');
-    expect(error.hasAttribute('hidden')).toBe(true);
-  });
-
-  it('shows the validation message to the user once the field is touched', () => {
-    const fixture = render();
-    const inst = fixture.componentInstance as unknown as { vm: TestViewModel };
-
-    inst.vm.form.name().markAsTouched();
     fixture.detectChanges();
 
-    const error = fixture.nativeElement.querySelector('hlm-field-error[data-error-for="name"]');
-    expect(error, 'no hlm-field-error rendered for name').toBeTruthy();
-    expect(error.hasAttribute('hidden'), 'error is rendered but hidden').toBe(false);
-    expect(error.textContent.trim().length).toBeGreaterThan(0);
+    const error = fixture.nativeElement.querySelector('[data-error-for="name"]');
+    expect(error.textContent).toContain('Name is required');
   });
 
-  it('emits saved with the model when the form is valid', async () => {
+  it('shows no validation message before the first submit', () => {
+    // The error slot is always in the DOM — hlm-field-error keeps its id stable for
+    // aria-describedby and hides itself instead of unmounting — so "no message" is an
+    // empty slot, not an absent element. Asserting absence here would pass only by
+    // accident of how the host happens to render today.
+    const error = render().nativeElement.querySelector('[data-error-for="name"]');
+
+    expect(error, 'no error slot rendered for name').toBeTruthy();
+    expect(error.textContent.trim()).toBe('');
+  });
+
+  it('narrows the payload SchemaForm emits and re-emits it as the UserFormModel on saved', () => {
     const fixture = render();
-    const inst = fixture.componentInstance as unknown as {
-      saved: { subscribe: (fn: (v: unknown) => void) => void };
-      vm: TestViewModel;
-      onSubmit: (e: Event) => Promise<void>;
-    };
+    const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
     let emitted: unknown;
-    inst.saved.subscribe((v) => (emitted = v));
+    fixture.componentInstance.saved.subscribe((v) => (emitted = v));
 
-    inst.vm.model.set({ name: 'Ada', email: 'ada@example.io' });
-    fixture.detectChanges();
-    await inst.onSubmit(new Event('submit'));
+    schemaForm.form().setValue({ name: 'Ada', email: 'ada@example.io' });
+    schemaForm.onSubmit();
 
     expect(emitted).toEqual({ name: 'Ada', email: 'ada@example.io' });
+  });
+
+  it('does not emit saved when the schema rejects the value', () => {
+    const fixture = render();
+    const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
+    let emitted: unknown;
+    fixture.componentInstance.saved.subscribe((v) => (emitted = v));
+
+    schemaForm.form().setValue({ name: 'Ada', email: 'not-an-email' });
+    schemaForm.onSubmit();
+
+    expect(emitted).toBeUndefined();
   });
 });

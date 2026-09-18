@@ -13,6 +13,11 @@
 //     a Rust core. The marker lives next to what it describes, so anyone editing
 //     that code sees it. Both cuts consume them: `--thin` drops the block, and the
 //     thick default drops just the marker lines (see stripThickMarkers).
+//     A span whose CONTENTS grow has to be a marked block rather than a patch, even
+//     though a patch could express it today. `tools/slice` adds an entry to the transport
+//     registry's COMMANDS map per generated slice, so an anchor quoting that map's entries
+//     stops matching after the first slice and the cut throws for good — the app could
+//     never be thinned again. Markers do not care what is between them.
 //   - What is REWRITTEN is patched by exact match. A sentence that loses a clause,
 //     or `isTauri() ? 'ipc' : 'http'` collapsing to `'http'`, cannot be expressed as
 //     a marked block without writing both variants side by side and letting them
@@ -215,17 +220,6 @@ export const THIN_PATCHES: readonly Patch[] = [
  * @capability contracts.transport-registry
  * @intent Compiler-enforced parity: every operation has a route.
  * @reuse Add the operation to Operations, then its ROUTES entry; omissions fail the build.`,
-      ],
-      [
-        `
-/** The Tauri command name each operation invokes on the IPC wire. */
-export const COMMANDS: { [K in OperationName]: string } = {
-  'users.list': 'users_list',
-  'users.get': 'users_get',
-  'users.save': 'users_save',
-};
-`,
-        '',
       ],
     ],
   },

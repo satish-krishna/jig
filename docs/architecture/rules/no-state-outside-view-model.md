@@ -26,7 +26,7 @@ The reference rule this is derived from flags `computed` alongside `signal`. Thi
 
 A container that builds a signal-forms form directly — `readonly model = signal(...); readonly form = form(this.model, ...)` — is a single MVVM violation: the whole form belongs in a ViewModel, not just half of it. The rule tracks which property name each `form(...)` call's first argument refers to (`this.model` -> `model`) and skips reporting that specific property. It still reports the `form(...)` property itself, and it still reports any *other* signal in the same class that the form does not back — the exemption is precise, not "any signal in a class that also happens to have a form."
 
-`frontend/src/app/features/users/user-form.ts` is the live example: line 51's `form(this.model, ...)` reports, and line 50's `model = signal({...})` — the form's own backing model — does not.
+There is no live example of that shape left. `frontend/src/app/features/users/user-form.ts` was one — its `form(this.model, ...)` reported and its `model = signal({...})` did not — until the form moved to the `SchemaForm` renderer that `docs/architecture/forms.md` now makes the default, taking the `UserFormViewModel` that existed only to hold `form()` with it. The exemption still has to be precise, because the exception `forms.md` keeps for signal-forms puts the shape back the moment a feature takes it; `no-state-outside-view-model.test.ts`'s `RuleTester` cases are what prove it is.
 
 ## Accepted form
 
