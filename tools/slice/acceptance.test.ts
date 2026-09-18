@@ -52,20 +52,39 @@ const PROBE_SPEC = validateSpec({
   ],
 });
 
+// A second spec carrying the two inputs no other fixture in this generator has: an
+// apostrophe in a label (ordinary English copy, and a character that closes an emitted
+// single-quoted literal early) and a boolean as the FIRST field (the case where no
+// required-validation message exists to assert). Both defects produced files that read as
+// TypeScript to a regex and are not TypeScript to a parser, which is exactly what the
+// check below is for. It is parsed only — it is never applied to the live registries, so
+// it needs none of PROBE_SPEC's unshippability.
+const QUIRK_SPEC = validateSpec({
+  name: 'SliceProbeQuirk',
+  icon: 'lucideFlag',
+  fields: [
+    { name: 'done', type: 'boolean', label: 'Done' },
+    { name: 'owner', type: 'string', label: "Owner's name", placeholder: "Ada's" },
+    { name: 'total', type: 'number', label: 'Total' },
+  ],
+});
+
 // Catches an emitter producing text that merely looks like TypeScript — a dangling brace,
 // an unterminated template literal — that string-matching assertions elsewhere would miss.
 test('every emitted TypeScript file parses without syntax errors', () => {
-  const { writes } = plan(PROBE_SPEC, 'Jig', THICK);
-  const tsWrites = writes.filter((w) => w.path.endsWith('.ts'));
-  assert.ok(tsWrites.length > 0, 'plan() produced no TypeScript writes to check');
-  for (const f of tsWrites) {
-    const sf = ts.createSourceFile(f.path, f.text, ts.ScriptTarget.Latest, true);
-    const diagnostics = (sf as unknown as { parseDiagnostics: readonly ts.Diagnostic[] }).parseDiagnostics;
-    assert.equal(
-      diagnostics.length,
-      0,
-      `${f.path}: ${diagnostics.map((d) => ts.flattenDiagnosticMessageText(d.messageText, ' ')).join('; ')}`,
-    );
+  for (const spec of [PROBE_SPEC, QUIRK_SPEC]) {
+    const { writes } = plan(spec, 'Jig', THICK);
+    const tsWrites = writes.filter((w) => w.path.endsWith('.ts'));
+    assert.ok(tsWrites.length > 0, 'plan() produced no TypeScript writes to check');
+    for (const f of tsWrites) {
+      const sf = ts.createSourceFile(f.path, f.text, ts.ScriptTarget.Latest, true);
+      const diagnostics = (sf as unknown as { parseDiagnostics: readonly ts.Diagnostic[] }).parseDiagnostics;
+      assert.equal(
+        diagnostics.length,
+        0,
+        `${f.path}: ${diagnostics.map((d) => ts.flattenDiagnosticMessageText(d.messageText, ' ')).join('; ')}`,
+      );
+    }
   }
 });
 

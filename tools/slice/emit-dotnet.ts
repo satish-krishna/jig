@@ -6,6 +6,7 @@
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
+import { interpolatedString } from './literal.ts';
 
 /** "A" or "An", by the first sound of the noun that follows. Entity names are ordinary
  * English nouns (Order, Item, Address, ...), so a vowel-letter check is good enough. */
@@ -78,7 +79,7 @@ function emitService(spec: SliceSpec, n: SliceNames, product: string): EmittedFi
   const conflictCheck = unique
     ? `        var by${pascalField(unique.name)} = await _repo.GetBy${pascalField(unique.name)}Async(${unique.name}, ct);
         if (by${pascalField(unique.name)} is not null && by${pascalField(unique.name)}.Id != id)
-            return Error.Conflict($"${unique.label} {${unique.name}} is already in use.");
+            return Error.Conflict($"${interpolatedString(unique.label)} {${unique.name}} is already in use.");
 
 `
     : '';
@@ -360,7 +361,7 @@ public sealed class ${n.pascal}Repository : I${n.pascal}Repository
     public ${n.pascal}Repository(${product}DbContext db) => _db = db;
 
     public async Task<IReadOnlyList<${n.pascal}>> GetAllAsync(CancellationToken ct)
-        => await _db.${n.pascalPlural}.AsNoTracking().OrderBy(x => x.Id).ToListAsync(ct);
+        => await _db.${n.pascalPlural}.AsNoTracking().OrderBy(x => x.${pascalField(spec.fields[0].name)}).ToListAsync(ct);
 
     public Task<${n.pascal}?> GetByIdAsync(Guid id, CancellationToken ct)
         => _db.${n.pascalPlural}.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);

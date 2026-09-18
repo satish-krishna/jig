@@ -101,3 +101,64 @@ test('validateSpec accepts specs with no optional fields', () => {
   const spec = validateSpec({ ...base, fields: [{ name: 'a', type: 'number', label: 'Count' }] });
   assert.equal(spec.name, 'Order');
 });
+
+// The doc comment on validateSpec has always claimed field names are checked as camelCase;
+// only their typeof was. A field named "id" emits `public Guid Id` beside `public required
+// string Id`, a C# duplicate-member error nowhere near its cause; a name with a space or a
+// quote emits a property name that is not an identifier in any of the four languages.
+test('validateSpec rejects a field name that is not a camelCase identifier', () => {
+  for (const bad of ['Reference', 'my field', 'total-price', '2fast', "o'brien", '']) {
+    assert.throws(
+      () => validateSpec({ ...base, fields: [{ name: bad, type: 'string', label: 'X' }] }),
+      /camelCase identifier/,
+      `accepted ${JSON.stringify(bad)}`,
+    );
+  }
+});
+
+test('validateSpec accepts the camelCase names the emitters are built for', () => {
+  for (const good of ['reference', 'fullName', 'line2', 'a']) {
+    assert.ok(validateSpec({ ...base, fields: [{ name: good, type: 'string', label: 'X' }] }));
+  }
+});
+
+// Every emitter adds an id of its own — Guid Id, pub id: String, the DTO's id — so a field
+// called id is a collision by construction rather than a matter of taste.
+test('validateSpec reserves the id field name', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'id', type: 'string', label: 'Id' }] }),
+    /reserved/,
+  );
+});
+
+test('validateSpec rejects two fields with the same name', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [
+      { name: 'reference', type: 'string', label: 'A' },
+      { name: 'reference', type: 'number', label: 'B' },
+    ] }),
+    /duplicate/i,
+  );
+});
+
+// Label and placeholder are escaped at every emit site, but a newline cannot be escaped
+// into a single-quoted TypeScript literal at all, so it is refused at the boundary instead.
+test('validateSpec rejects a control character in a label or placeholder', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'a', type: 'string', label: 'Two\nlines' }] }),
+    /control character/,
+  );
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'a', type: 'string', label: 'A', placeholder: 'Two\nlines' }] }),
+    /control character/,
+  );
+});
+
+// name and icon are interpolated into C# namespaces, native module names and TypeScript
+// identifiers, none of which survive a space or a quote. Same boundary, same reasoning.
+test('validateSpec rejects a name or icon that is not an identifier', () => {
+  assert.throws(() => validateSpec({ ...base, name: 'Purchase Order' }), /PascalCase/);
+  assert.throws(() => validateSpec({ ...base, name: 'Order"; x' }), /PascalCase/);
+  assert.throws(() => validateSpec({ ...base, plural: 'Order Items' }), /PascalCase/);
+  assert.throws(() => validateSpec({ ...base, icon: "lucide's" }), /icon must be/);
+});

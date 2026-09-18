@@ -118,3 +118,36 @@ test('an all-boolean spec still emits a well-formed validator', () => {
   assert.match(cs, /public SaveFlagValidator\(\)\s*\{\s*\}/);
   assert.doesNotMatch(cs, /RuleFor/);
 });
+
+// The exemplar (UserRepository.cs) sorts by Name, and the design spec's classification
+// table says {E}Repository.cs varies by "unique field, sort field (first field)". Sorting
+// by Id renders every generated list in Guid order: arbitrary to a reader and reshuffling
+// as rows are added. It compiles and it passes, which is what makes it worth a test.
+test('the repository lists in first-field order, not Guid order', () => {
+  // Infrastructure/, not the bare name: IOrderRepository.cs ends with it too.
+  const cs = at('Infrastructure/OrderRepository.cs').text;
+  assert.match(cs, /GetAllAsync\(CancellationToken ct\)\n\s+=> await _db\.Orders\.AsNoTracking\(\)\.OrderBy\(x => x\.Reference\)\.ToListAsync\(ct\);/);
+  assert.doesNotMatch(cs, /OrderBy\(x => x\.Id\)/);
+});
+
+test('a boolean first field still produces a compiling sort', () => {
+  const boolFirst = emitDotnet(validateSpec({
+    name: 'Flag', icon: 'lucideFlag',
+    fields: [
+      { name: 'enabled', type: 'boolean', label: 'Enabled' },
+      { name: 'title', type: 'string', label: 'Title' },
+    ],
+  }), 'Jig');
+  assert.match(boolFirst.find((f) => f.path.endsWith('Infrastructure/FlagRepository.cs'))!.text, /OrderBy\(x => x\.Enabled\)/);
+});
+
+// The label lands inside a C# interpolated string, where a brace opens a hole and a
+// double quote ends the literal. Both break the build, far from their cause.
+test('a label with a quote or a brace is escaped for the C# interpolated conflict message', () => {
+  const awkward = emitDotnet(validateSpec({
+    name: 'Owner', icon: 'lucideUser',
+    fields: [{ name: 'tag', type: 'string', label: 'The "{x}" tag', unique: true }],
+  }), 'Jig');
+  const cs = awkward.find((f) => f.path.endsWith('OwnerService.cs'))!.text;
+  assert.ok(cs.includes(String.raw`$"The \"{{x}}\" tag {tag} is already in use."`), cs);
+});

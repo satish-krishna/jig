@@ -4,14 +4,16 @@
 // access here — the CLI (a later task) decides where these EmittedFile entries land.
 //
 // The form is rendered through SchemaForm, not hand-wired: no {kebab}-form.view-model.ts
-// is emitted. frontend/src/app/features/users/user-form.ts predates the control registry
-// and hand-wires an <hlm-field> per field; that is a stale exemplar, not the shape to
-// follow (see add-a-form/SKILL.md step 5). The schema file below carries every field's
-// shape, validation, and control kind, and the form component wires nothing per field.
+// is emitted. frontend/src/app/features/users/user-form.ts is now byte-for-byte what
+// emitForm below produces, so the exemplar and the generator cannot disagree by reading;
+// docs/architecture/forms.md makes the renderer the default for every form. The schema
+// file below carries every field's shape, validation, and control kind, and the form
+// component wires nothing per field.
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { label } from './naming.ts';
+import { tsString } from './literal.ts';
 
 // ---------------------------------------------------------------------------
 // The zod-type fragment and per-field .meta() block, shared by the schema file.
@@ -28,11 +30,13 @@ const ZOD_TYPE: Record<FieldSpec['type'], string> = {
 
 function zodField(f: FieldSpec, order: number): string {
   const lines = [`  ${f.name}: ${ZOD_TYPE[f.type]}`];
-  if (f.type === 'string') lines.push(`    .min(1, '${f.label} is required')`);
+  // label and placeholder are the spec author's own words, so they go through tsString
+  // rather than straight into the literal — see literal.ts.
+  if (f.type === 'string') lines.push(`    .min(1, ${tsString(`${f.label} is required`)})`);
   if (f.format === 'email') lines.push(`    .email('Enter a valid email')`);
-  const meta = [`label: '${f.label}'`];
+  const meta = [`label: ${tsString(f.label)}`];
   if (f.format) meta.push(`control: '${f.format}'`);
-  if (f.placeholder) meta.push(`placeholder: '${f.placeholder}'`);
+  if (f.placeholder) meta.push(`placeholder: ${tsString(f.placeholder)}`);
   meta.push(`order: ${order}`);
   lines.push(`    .meta({ ${meta.join(', ')} } satisfies FormFieldMeta),`);
   return lines.join('\n');

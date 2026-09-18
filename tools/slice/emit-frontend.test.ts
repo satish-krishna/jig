@@ -111,3 +111,28 @@ test('a boolean field emits z.boolean() with no min or email validator', () => {
   assert.doesNotMatch(ts, /\.min\(1,/);
   assert.doesNotMatch(ts, /\.email\(/);
 });
+
+// A label is human copy: "Owner's name" is ordinary English. Interpolated raw it closes
+// the emitted single-quoted literal early, and the generated schema is not TypeScript at
+// all — a defect the regex suites here would miss but every clone would ship.
+test('an apostrophe in a label or placeholder emits an escaped literal, not broken TypeScript', () => {
+  const quoted = validateSpec({
+    name: 'Owner',
+    icon: 'lucideUser',
+    fields: [{ name: 'fullName', type: 'string', label: "Owner's name", placeholder: "Ada's" }],
+  });
+  const schema = emitFrontend(quoted).find((f) => f.path.endsWith('owner-form.schema.ts'))!.text;
+  assert.ok(schema.includes(String.raw`.min(1, 'Owner\'s name is required')`), schema);
+  assert.ok(schema.includes(String.raw`label: 'Owner\'s name'`), schema);
+  assert.ok(schema.includes(String.raw`placeholder: 'Ada\'s'`), schema);
+});
+
+test('a backslash in a label is escaped rather than starting an escape sequence', () => {
+  const quoted = validateSpec({
+    name: 'Path',
+    icon: 'lucideFolder',
+    fields: [{ name: 'root', type: 'string', label: String.raw`C:\ root`, placeholder: 'x' }],
+  });
+  const schema = emitFrontend(quoted).find((f) => f.path.endsWith('path-form.schema.ts'))!.text;
+  assert.ok(schema.includes(String.raw`label: 'C:\\ root'`), schema);
+});

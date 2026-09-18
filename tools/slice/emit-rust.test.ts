@@ -65,4 +65,14 @@ test('the unit tests cover list, get, save, and — with a unique field — both
   assert.match(text, /fn save_update_keeps_the_same_reference_without_conflict\(\)/);
   assert.match(text, /fn save_update_of_unknown_id_is_not_found\(\)/);
 });
+
+// The label lands inside a format! string, where a brace opens a placeholder and a double
+// quote ends the literal. Both are compile errors in the generated crate, far from cause.
+test('a label with a quote or a brace is escaped for the format! conflict message', () => {
+  const awkward = emitRustStore(validateSpec({
+    name: 'Owner', icon: 'lucideUser',
+    fields: [{ name: 'tag', type: 'string', label: 'The "{x}" tag', unique: true }],
+  }));
+  assert.ok(awkward.text.includes(String.raw`format!("The \"{{x}}\" tag {tag} is already in use.")`), awkward.text);
+});
 // thick:end

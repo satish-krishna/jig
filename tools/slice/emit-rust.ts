@@ -8,6 +8,7 @@
 // thick:start
 import type { EmittedFile, FieldSpec, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
+import { interpolatedString } from './literal.ts';
 import { uniqueField } from './csharp.ts';
 
 /** Native type for each spec field type, matching the shape of the exemplar's own store. */
@@ -49,7 +50,7 @@ export function emitRustStore(spec: SliceSpec): EmittedFile {
   const conflictCheck = unique
     ? `        if let Some(existing) = ${n.snakePlural}.values().find(|x| x.${unique.name} == ${unique.name}) {
             if Some(&existing.id) != id.as_ref() {
-                return Err(StoreError::Conflict(format!("${unique.label} {${unique.name}} is already in use.")));
+                return Err(StoreError::Conflict(format!("${interpolatedString(unique.label)} {${unique.name}} is already in use.")));
             }
         }
 

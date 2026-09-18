@@ -13,6 +13,7 @@
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { label } from './naming.ts';
+import { tsString } from './literal.ts';
 
 /**
  * A TS-literal sample value for a field, distinct per variant (0 or 1). Mirrors
@@ -243,51 +244,72 @@ describe('${n.pascal}ListView', () => {
 
 // ---------------------------------------------------------------------------
 // frontend/src/app/features/{kebabPlural}/{kebab}-form.spec.ts
-// shape source: schema-form.spec.ts and schema-form.page.spec.ts (the SchemaForm
-// consumption idiom), NOT user-form.spec.ts, whose subject is the old hand-wired form.
+// shape source: user-form.spec.ts. Since Task 10 made user-form.ts byte-for-byte what
+// emit-frontend.ts emits, its spec is the golden suite for the emitted component and all
+// six of its tests are reproduced here — minus the two that need a string field (see
+// below), which the exemplar has and some specs do not.
 // ---------------------------------------------------------------------------
 
 function emitFormSpec(spec: SliceSpec, n: SliceNames): EmittedFile {
-  const firstField = spec.fields[0];
   const idChecks = spec.fields
     .map((f) => `    expect(host.querySelector('#${f.name}'), 'no control for ${f.name}').toBeTruthy();`)
     .join('\n');
-  return {
-    path: `frontend/src/app/features/${n.kebabPlural}/${n.kebab}-form.spec.ts`,
-    text: `import { describe, it, expect } from 'vitest';
-import { TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { ${n.pascal}Form } from './${n.kebab}-form';
-import { SchemaForm } from '../../forms/schema-form';
-import { provideDefaultFormControls } from '../../forms/controls';
 
-function render() {
-  TestBed.resetTestingModule();
-  TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
-  const fixture = TestBed.createComponent(${n.pascal}Form);
-  fixture.detectChanges();
-  return fixture;
-}
+  // Both validation tests read something only emit-frontend.ts's STRING branch produces:
+  // `.min(1, '{label} is required')`. A boolean field emits a bare z.boolean(), so an
+  // unchecked box is valid — no message to surface, and no value the schema rejects. Taking
+  // fields[0] regardless shipped a generated test that threw on a null element for any spec
+  // leading with a number or a boolean. So the pair targets the first STRING field, and a
+  // spec with none gets neither test rather than one that asserts a message nothing emits.
+  // Same guard as emit-dotnet-tests.ts's hasValidatedField.
+  const validated = spec.fields.find((f) => f.type === 'string');
+  const invalidLiteral = validated
+    ? spec.fields.map((f) => `${f.name}: ${f === validated ? `''` : sampleValue(f, 0)}`).join(', ')
+    : '';
 
-describe('${n.pascal}Form', () => {
-  it('renders the schema form with a control per field', () => {
+  // The empty-slot test needs no string field: forms/controls/field-host.ts renders an
+  // hlm-field-error for every field whatever its control kind, so any field's slot proves
+  // the point.
+  const firstField = spec.fields[0];
+
+  const tests = [
+    `  it('renders the schema form with a control per field', () => {
     const host = render().nativeElement;
 
     expect(host.querySelector('app-schema-form')).toBeTruthy();
 ${idChecks}
-  });
+  });`,
+    `  it('labels the submit button with the action, not the default', () => {
+    // The e2e drives this form by that button's accessible name, so the label is
+    // load-bearing beyond looking right.
+    expect(render().nativeElement.querySelector('button[type="submit"]').textContent.trim()).toBe('Save ${n.camel}');
+  });`,
+  ];
 
-  it('surfaces the schema validation message on an invalid submit', () => {
+  if (validated) {
+    tests.push(`  it('surfaces the schema validation message on an invalid submit', () => {
     const fixture = render();
     fixture.debugElement.query(By.directive(SchemaForm)).componentInstance.onSubmit(); // every field starts empty
 
     fixture.detectChanges();
 
-    const error = fixture.nativeElement.querySelector('[data-error-for="${firstField.name}"]');
-    expect(error.textContent).toContain('${firstField.label} is required');
-  });
+    const error = fixture.nativeElement.querySelector('[data-error-for="${validated.name}"]');
+    expect(error.textContent).toContain(${tsString(`${validated.label} is required`)});
+  });`);
+  }
 
-  it('narrows the payload SchemaForm emits and re-emits it as the ${n.pascal}FormModel on saved', () => {
+  tests.push(`  it('shows no validation message before the first submit', () => {
+    // The error slot is always in the DOM — hlm-field-error keeps its id stable for
+    // aria-describedby and hides itself instead of unmounting — so "no message" is an
+    // empty slot, not an absent element. Asserting absence here would pass only by
+    // accident of how the host happens to render today.
+    const error = render().nativeElement.querySelector('[data-error-for="${firstField.name}"]');
+
+    expect(error, 'no error slot rendered for ${firstField.name}').toBeTruthy();
+    expect(error.textContent.trim()).toBe('');
+  });`);
+
+  tests.push(`  it('narrows the payload SchemaForm emits and re-emits it as the ${n.pascal}FormModel on saved', () => {
     const fixture = render();
     const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
     let emitted: unknown;
@@ -297,7 +319,46 @@ ${idChecks}
     schemaForm.onSubmit();
 
     expect(emitted).toEqual({ ${fieldsLiteral(spec, 0)} });
-  });
+  });`);
+
+  if (validated) {
+    tests.push(`  it('does not emit saved when the schema rejects the value', () => {
+    const fixture = render();
+    const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
+    let emitted: unknown;
+    fixture.componentInstance.saved.subscribe((v) => (emitted = v));
+
+    schemaForm.form().setValue({ ${invalidLiteral} });
+    schemaForm.onSubmit();
+
+    expect(emitted).toBeUndefined();
+  });`);
+  }
+
+  return {
+    path: `frontend/src/app/features/${n.kebabPlural}/${n.kebab}-form.spec.ts`,
+    text: `import { describe, it, expect } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { ${n.pascal}Form } from './${n.kebab}-form';
+import { SchemaForm } from '../../forms/schema-form';
+import { provideDefaultFormControls } from '../../forms/controls';
+
+// These assert the RENDERED result, not the wiring that produced it. The component owns no
+// control per field to reach into — the schema does — so a test poking at named form
+// controls would be testing SchemaForm's internals from the wrong file. What is this
+// component's own is: it passes the right schema, it labels its submit button, and it
+// re-emits SchemaForm's untyped payload as the model.
+function render() {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
+  const fixture = TestBed.createComponent(${n.pascal}Form);
+  fixture.detectChanges();
+  return fixture;
+}
+
+describe('${n.pascal}Form', () => {
+${tests.join('\n\n')}
 });
 `,
   };

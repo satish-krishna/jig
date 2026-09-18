@@ -50,11 +50,36 @@ function pluralize(singular: string): string {
   return singular + 's';
 }
 
+/** A PascalCase type name: it becomes a C# class, a native struct, and a TS identifier. */
+const PASCAL_IDENTIFIER = /^[A-Z][A-Za-z0-9]*$/;
+/** A camelCase property name: it becomes a C# property, a native field, and a DOM id. */
+const CAMEL_IDENTIFIER = /^[a-z][A-Za-z0-9]*$/;
+/** A lucide export name, e.g. lucideShoppingCart. Emitted into a TS string literal. */
+const ICON_IDENTIFIER = /^[A-Za-z][A-Za-z0-9]*$/;
+/** Every emitter gives the entity its own id, so a field called id collides with it. */
+const RESERVED_FIELD_NAMES = new Set(['id']);
+
+/**
+ * Human-facing copy (label, placeholder) is escaped at each emit site rather than rejected
+ * here — an apostrophe in an English label is ordinary. A control character is not: a
+ * newline cannot be escaped into a single-quoted TypeScript literal at all, so it is the
+ * one shape of copy this boundary refuses.
+ */
+function assertCopy(value: string, what: string): void {
+  for (const ch of value) {
+    const code = ch.codePointAt(0) ?? 0;
+    if (code < 0x20 || code === 0x7f) {
+      throw new Error(`Field ${what} must not contain a control character`);
+    }
+  }
+}
+
 /**
  * Validate a raw spec object and return a typed SliceSpec. Throws on validation failure
- * with a message that names the constraint violated. Constraints: name must be PascalCase,
- * fields must be non-empty, fields may have at most one unique field, each field must
- * have name (camelCase), type (one of the allowed strings), and label (string).
+ * with a message that names the constraint violated. Constraints: name and plural must be
+ * PascalCase identifiers, icon must be an identifier, fields must be non-empty with at most
+ * one unique field, and each field must have a unique camelCase-identifier name that is not
+ * `id`, a type from the allowed set, and a label free of control characters.
  */
 export function validateSpec(raw: unknown): SliceSpec {
   // Type guard: must be an object
@@ -69,7 +94,7 @@ export function validateSpec(raw: unknown): SliceSpec {
   if (typeof name !== 'string') {
     throw new Error('name must be a string');
   }
-  if (!/^[A-Z]/.test(name)) {
+  if (!PASCAL_IDENTIFIER.test(name)) {
     throw new Error('name must be PascalCase');
   }
 
@@ -77,11 +102,17 @@ export function validateSpec(raw: unknown): SliceSpec {
   if ('plural' in obj && obj.plural !== undefined && typeof obj.plural !== 'string') {
     throw new Error('plural must be a string');
   }
+  if (typeof obj.plural === 'string' && !PASCAL_IDENTIFIER.test(obj.plural)) {
+    throw new Error('plural must be PascalCase');
+  }
 
   // Validate icon: must be a string
   const icon = obj.icon;
   if (typeof icon !== 'string') {
     throw new Error('icon must be a string');
+  }
+  if (!ICON_IDENTIFIER.test(icon)) {
+    throw new Error('icon must be a lucide export name, e.g. lucideShoppingCart');
   }
 
   // Validate fields: must be an array, non-empty, at most one unique
@@ -103,16 +134,30 @@ export function validateSpec(raw: unknown): SliceSpec {
   }
 
   // Validate each field structure
+  const seen = new Set<string>();
   for (const field of fields) {
     if (typeof field !== 'object' || field === null) {
       throw new Error('Each field must be an object');
     }
     const f = field as Record<string, unknown>;
     if (typeof f.name !== 'string') throw new Error('Field name must be a string');
+    // A name that is not an identifier emits a C# property, a native field and a TS key that
+    // no compiler accepts, and the error surfaces in generated code far from this file.
+    if (!CAMEL_IDENTIFIER.test(f.name)) {
+      throw new Error(`Field name must be a camelCase identifier (got ${JSON.stringify(f.name)})`);
+    }
+    if (RESERVED_FIELD_NAMES.has(f.name)) {
+      throw new Error(`Field name ${JSON.stringify(f.name)} is reserved: every entity already has one`);
+    }
+    if (seen.has(f.name)) {
+      throw new Error(`Duplicate field name ${JSON.stringify(f.name)}`);
+    }
+    seen.add(f.name);
     if (typeof f.type !== 'string' || !['string', 'number', 'boolean'].includes(f.type)) {
       throw new Error('Field type must be string, number, or boolean');
     }
     if (typeof f.label !== 'string') throw new Error('Field label must be a string');
+    assertCopy(f.label, 'label');
 
     // Validate optional field members
     if ('unique' in f && f.unique !== undefined && typeof f.unique !== 'boolean') {
@@ -137,6 +182,7 @@ export function validateSpec(raw: unknown): SliceSpec {
     if ('placeholder' in f && f.placeholder !== undefined && typeof f.placeholder !== 'string') {
       throw new Error('Field placeholder must be a string');
     }
+    if (typeof f.placeholder === 'string') assertCopy(f.placeholder, 'placeholder');
   }
 
   return {
