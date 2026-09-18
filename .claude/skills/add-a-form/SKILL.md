@@ -16,7 +16,6 @@ The `users` slice is the exemplar. Copy its shape rather than inventing a new on
 - Zod schema: `frontend/src/app/features/users/user-form.schema.ts`
 - The form component: `frontend/src/app/features/users/user-form.ts`
 - Form spec: `frontend/src/app/features/users/user-form.spec.ts`
-- Form ViewModel: `frontend/src/app/features/users/user-form.view-model.ts`
 - The shared renderer: `frontend/src/app/forms/schema-form.ts`
 - The control registry: `frontend/src/app/forms/control-registry.ts`
 - A worked control: `frontend/src/app/forms/controls/text.control.ts`

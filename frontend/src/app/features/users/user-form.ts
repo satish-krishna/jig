@@ -1,60 +1,33 @@
-import { Component, inject, output } from '@angular/core';
-import { FormField } from '@angular/forms/signals';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmFieldImports } from '@spartan-ng/helm/field';
-import { HlmInputImports } from '@spartan-ng/helm/input';
-import { formMeta } from '../../forms/zod-meta';
+import { Component, output } from '@angular/core';
+import { SchemaForm } from '../../forms/schema-form';
 import { userFormSchema, type UserFormModel } from './user-form.schema';
-import { UserFormViewModel } from './user-form.view-model';
 
 /**
- * Create/edit user form, built on Angular signal-forms with spartan helm controls.
- * The zod schema stays the single source of truth: validation flows through
- * validateStandardSchema (zod is a Standard Schema, so Angular validates it
- * natively) and the field labels come from the schema's `.meta()`. Copy this shape
- * for a new feature form; only the schema and the field bindings change.
+ * The user create/edit form. Renders entirely through SchemaForm: the schema
+ * carries every field's shape, validation, and control kind, so this component
+ * wires nothing per field and holds no form state of its own.
+ *
+ * This is the shape `npm run slice` emits for a generated feature, and the shape
+ * to copy for a new one. It used to hand-wire an `hlm-field` block per field on
+ * signal-forms, which is why a `UserFormViewModel` existed to hold the form state
+ * the linter would not let a component own. With no state left there is nothing
+ * for a ViewModel to hold, and adding a field is now an edit to the schema alone.
  */
 @Component({
   selector: 'app-user-form',
-  imports: [FormField, HlmFieldImports, HlmInputImports, HlmButtonImports],
-  providers: [UserFormViewModel],
-  template: `
-    <!-- hlmFieldGroup is spartan's own field stack; hlm-field lays out one field
-         and says nothing about the gap between rows. -->
-    <form hlmFieldGroup (submit)="onSubmit($event)">
-      <hlm-field>
-        <label hlmFieldLabel for="name">{{ meta['name'].label }}</label>
-        <input hlmInput id="name" [formField]="vm.form.name" [attr.placeholder]="meta['name'].placeholder ?? null" />
-        <!-- No touched() guard: hlm-field-error already gates itself on the field's
-             error state, and only registers its id with the control's
-             aria-describedby while showing. Guarding it here would hide it from
-             assistive tech as well as from sight. -->
-        @for (error of vm.form.name().errors(); track error.kind) {
-          <hlm-field-error data-error-for="name">{{ error.message }}</hlm-field-error>
-        }
-      </hlm-field>
-
-      <hlm-field>
-        <label hlmFieldLabel for="email">{{ meta['email'].label }}</label>
-        <input hlmInput id="email" [formField]="vm.form.email" [attr.placeholder]="meta['email'].placeholder ?? null" />
-        @for (error of vm.form.email().errors(); track error.kind) {
-          <hlm-field-error data-error-for="email">{{ error.message }}</hlm-field-error>
-        }
-      </hlm-field>
-
-      <button hlmBtn type="submit">Add user</button>
-    </form>
-  `,
+  imports: [SchemaForm],
+  template: `<app-schema-form [schema]="userFormSchema" submitLabel="Add user" (submitted)="onSubmitted($event)" />`,
 })
 export class UserForm {
+  protected readonly userFormSchema = userFormSchema;
   readonly saved = output<UserFormModel>();
 
-  protected readonly vm = inject(UserFormViewModel);
-  protected readonly meta = formMeta(userFormSchema);
-
-  protected async onSubmit(event: Event): Promise<void> {
-    event.preventDefault();
-    const value = await this.vm.submit();
-    if (value !== null) this.saved.emit(value);
+  // SchemaForm.submitted is output<Record<string, unknown>> because it renders a
+  // schema it only knows about at runtime; Angular templates have no `as`, so the
+  // narrowing to this form's own model has to happen here rather than inline in the
+  // binding above. It only ever emits after safeParse against userFormSchema (the
+  // very schema passed to it above), so the payload is this model by construction.
+  protected onSubmitted(value: Record<string, unknown>): void {
+    this.saved.emit(value as UserFormModel);
   }
 }
