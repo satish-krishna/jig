@@ -26,7 +26,8 @@
     "showcase:api": "node tools/showcase-api/showcase-api.ts",
     "showcase:shots": "node tools/showcase-shots/showcase-shots.ts",
     "stylelint": "node tools/lint/stylelint-frontend.ts",
-    "ui:style": "node tools/ui-style/ui-style.ts"
+    "ui:style": "node tools/ui-style/ui-style.ts",
+    "slice": "node tools/slice/slice.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
