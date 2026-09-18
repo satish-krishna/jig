@@ -202,10 +202,49 @@ test('injectRegistry adds a ROUTES and a COMMANDS entry for each operation', () 
   assert.match(out, /'orders\.save': 'orders_save',/);
 });
 
+test('injectRegistry is idempotent', () => {
+  const once = injectRegistry(REGISTRY, spec);
+  assert.equal(injectRegistry(once, spec), once);
+});
+
+test('injectRegistry throws when the ROUTES object is gone', () => {
+  assert.throws(
+    () => injectRegistry(REGISTRY.replace('export const ROUTES', 'export const NOT_ROUTES'), spec),
+    /registry\.ts: could not find the ROUTES object literal/,
+  );
+});
+
+test('injectRegistry throws when the COMMANDS object is gone', () => {
+  assert.throws(
+    () => injectRegistry(REGISTRY.replace('export const COMMANDS', 'export const NOT_COMMANDS'), spec),
+    /registry\.ts: could not find the COMMANDS object literal/,
+  );
+});
+
 test('injectRoutes adds the import and the route before the catch-all redirect', () => {
   const out = injectRoutes(ROUTES_FILE, spec);
   assert.match(out, /import \{ OrderListView \} from '\.\/features\/orders\/order-list\.view';/);
   assert.ok(out.indexOf(`path: 'orders'`) < out.indexOf(`pathMatch: 'full'`));
+});
+
+test('injectRoutes is idempotent', () => {
+  const once = injectRoutes(ROUTES_FILE, spec);
+  assert.equal(injectRoutes(once, spec), once);
+});
+
+test('injectRoutes throws when the routes array is gone', () => {
+  assert.throws(
+    () => injectRoutes(ROUTES_FILE.replace('export const routes: Routes = [', 'export const notRoutes: Routes = ['), spec),
+    /app\.routes\.ts: could not find the routes array/,
+  );
+});
+
+test('injectRoutes throws when there is no import to anchor after', () => {
+  const noImports = ROUTES_FILE.replace(
+    `import { Routes } from '@angular/router';\nimport { UserListView } from './features/users/user-list.view';\n\n`,
+    '',
+  );
+  assert.throws(() => injectRoutes(noImports, spec), /app\.routes\.ts: could not find an import to anchor after/);
 });
 
 test('injectAppConfig adds the provider and the icon', () => {
@@ -218,4 +257,47 @@ test('injectAppConfig adds the provider and the icon', () => {
 test('injectAppConfig does not duplicate an icon already imported', () => {
   const withIcon = injectAppConfig(APP_CONFIG, validateSpec({ ...base, name: 'Member', icon: 'lucideUsers' }));
   assert.equal((withIcon.match(/lucideUsers,/g) ?? []).length, 2); // one import, one provideIcons entry
+});
+
+test('injectAppConfig is idempotent across every insertion point', () => {
+  const once = injectAppConfig(APP_CONFIG, spec);
+  const twice = injectAppConfig(once, spec);
+  assert.equal(twice, once);
+  // Assert each insertion point by name, not just string equality, so a future change that
+  // happens to preserve length-and-content equality some other way still gets caught.
+  assert.equal((twice.match(/provideOrdersMenu\(\)/g) ?? []).length, 1); // no duplicate provider call
+  assert.equal((twice.match(/import \{ provideOrdersMenu \}/g) ?? []).length, 1); // no duplicate import
+  assert.equal((twice.match(/lucideBox/g) ?? []).length, 2); // no duplicate icon: one import, one provideIcons entry
+});
+
+// injectAppConfig has five throw paths (missing import anchor, appConfig object, providers
+// array, lucide import, provideIcons call). Rather than cover all five mechanically, these
+// two lock in the ones most likely to actually fire as the app evolves: someone reshaping
+// the providers array, or switching the icon import off the named-import form. The other
+// three guard shapes (no imports at all, appConfig renamed, provideIcons restructured) are
+// far less likely to occur without the whole file changing beyond what a slice generator
+// should paper over.
+test('injectAppConfig throws when the providers array is gone', () => {
+  assert.throws(
+    () => injectAppConfig(APP_CONFIG.replace('providers: [', 'notProviders: ['), spec),
+    /app\.config\.ts: could not find the providers array/,
+  );
+});
+
+test('injectAppConfig throws when the lucide icon import is gone', () => {
+  const noLucideImport = APP_CONFIG.replace(
+    `import {
+  lucideUsers,
+  lucidePlus,
+  lucidePanelLeft,
+  lucideComponent,
+  lucideSun,
+  lucideMoon,
+} from '@ng-icons/lucide';\n`,
+    '',
+  );
+  assert.throws(
+    () => injectAppConfig(noLucideImport, spec),
+    /app\.config\.ts: could not find the @ng-icons\/lucide import/,
+  );
 });

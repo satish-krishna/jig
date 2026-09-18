@@ -54,6 +54,22 @@ function insertAfterOpen(source: string, sf: ts.SourceFile, node: ts.Node, text:
   return spliceAt(source, node.getStart(sf) + 1, text);
 }
 
+/** Every top-level import declaration, in source order. */
+function topLevelImports(sf: ts.SourceFile): ts.ImportDeclaration[] {
+  return sf.statements.filter(ts.isImportDeclaration);
+}
+
+/**
+ * The last of a list of import declarations, to splice a new import in right after. Shared
+ * by injectRoutes and injectAppConfig, both of which anchor their new import the same way;
+ * injectAppConfig also reuses the same `imports` list afterward to find the lucide import.
+ */
+function lastImportOrThrow(imports: readonly ts.ImportDeclaration[], file: string): ts.ImportDeclaration {
+  const last = imports[imports.length - 1];
+  if (!last) throw new Error(`${file}: could not find an import to anchor after`);
+  return last;
+}
+
 // ---------------------------------------------------------------------------
 // contracts/operations.ts
 // ---------------------------------------------------------------------------
@@ -164,9 +180,7 @@ export function injectRoutes(source: string, spec: SliceSpec): string {
   if (source.includes(`import { ${n.pascal}ListView }`)) return source;
 
   const sf = parse('app.routes.ts', source);
-  const imports = sf.statements.filter(ts.isImportDeclaration);
-  const lastImport = imports[imports.length - 1];
-  if (!lastImport) throw new Error('app.routes.ts: could not find an import to anchor after');
+  const lastImport = lastImportOrThrow(topLevelImports(sf), 'app.routes.ts');
 
   const routesArray = sf.statements
     .filter(ts.isVariableStatement)
@@ -210,9 +224,8 @@ export function injectAppConfig(source: string, spec: SliceSpec): string {
   const alreadyWired = source.includes(`provide${n.pascalPlural}Menu`);
 
   const sf = parse('app.config.ts', source);
-  const imports = sf.statements.filter(ts.isImportDeclaration);
-  const lastImport = imports[imports.length - 1];
-  if (!lastImport) throw new Error('app.config.ts: could not find an import to anchor after');
+  const imports = topLevelImports(sf);
+  const lastImport = lastImportOrThrow(imports, 'app.config.ts');
 
   const appConfigInit = sf.statements
     .filter(ts.isVariableStatement)
