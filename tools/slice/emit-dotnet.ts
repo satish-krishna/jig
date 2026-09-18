@@ -19,6 +19,12 @@ function uniqueField(spec: SliceSpec): FieldSpec | undefined {
   return spec.fields.find((f) => f.unique === true);
 }
 
+/** "A" or "An", by the first sound of the noun that follows. Entity names are ordinary
+ * English nouns (Order, Item, Address, ...), so a vowel-letter check is good enough. */
+function articleFor(word: string): 'A' | 'An' {
+  return /^[aeiou]/i.test(word) ? 'An' : 'A';
+}
+
 // ---------------------------------------------------------------------------
 // services/api/src/{P}.Domain/{E}.cs — shape source: Jig.Domain/User.cs
 // ---------------------------------------------------------------------------
@@ -31,7 +37,7 @@ function emitEntity(spec: SliceSpec, n: SliceNames, product: string): EmittedFil
     path: `services/api/src/${product}.Domain/${n.pascal}.cs`,
     text: `namespace ${product}.Domain;
 
-/// <summary>A ${n.camel}.</summary>
+/// <summary>${articleFor(n.camel)} ${n.camel}.</summary>
 public sealed class ${n.pascal}
 {
     public Guid Id { get; set; }
@@ -256,7 +262,7 @@ function emitSaveEndpoint(spec: SliceSpec, n: SliceNames, product: string): Emit
 
 namespace ${product}.Api.${n.pascalPlural};
 
-/// <summary>${n.opPrefix}.save — POST ${n.route}. Creates (null Id) or updates a ${n.camel}.</summary>
+/// <summary>${n.opPrefix}.save — POST ${n.route}. Creates (null Id) or updates ${articleFor(n.camel).toLowerCase()} ${n.camel}.</summary>
 public sealed class Save${n.pascal}Endpoint : ResultEndpoint<Save${n.pascal}Request, ${n.pascal}Response>
 {
     private readonly ${n.pascal}Service _${n.camelPlural};
@@ -281,9 +287,14 @@ public sealed class Save${n.pascal}Endpoint : ResultEndpoint<Save${n.pascal}Requ
 // ---------------------------------------------------------------------------
 
 function emitValidator(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+  // NotEmpty() compares a value type against its default, and default(bool) is false — so a
+  // boolean field would emit a rule that rejects an unchecked checkbox on every save. Booleans
+  // have no meaningful presence rule, so they get no RuleFor line at all.
   const rules = spec.fields
+    .filter((f) => f.type !== 'boolean')
     .map((f) => `        RuleFor(x => x.${pascalField(f.name)}).NotEmpty()${f.format === 'email' ? '.EmailAddress()' : ''};`)
     .join('\n');
+  const body = rules ? `${rules}\n` : '';
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/Save${n.pascal}Validator.cs`,
     text: `using FastEndpoints;
@@ -297,8 +308,7 @@ public sealed class Save${n.pascal}Validator : Validator<Save${n.pascal}Request>
 {
     public Save${n.pascal}Validator()
     {
-${rules}
-    }
+${body}    }
 }
 `,
   };
