@@ -1,0 +1,362 @@
+// Angular test emitters for the vertical-slice generator. Five pure functions, one per
+// Vitest spec file, reproducing the shape of the users reference slice's tests
+// (frontend/src/app/operations/user.operations.spec.ts and the four specs under
+// frontend/src/app/features/users) with the spec's own names substituted in. No disk
+// access here — the CLI (a later task) decides where these EmittedFile entries land.
+//
+// There is no {kebab}-form.view-model.spec.ts: emit-frontend.ts emits no form ViewModel
+// for the same reason — the form renders entirely through SchemaForm, and SchemaForm's
+// own behavior is already covered by frontend/src/app/forms/schema-form.spec.ts. The
+// emitted form spec below tests only the emitted component's own behavior: that it
+// renders the schema form and narrows SchemaForm's untyped payload before re-emitting it.
+
+import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
+import { deriveNames } from './spec.ts';
+
+/** kebab-case, hyphen-joined -> space-joined words, for a human-facing label. Duplicated
+ * from emit-frontend.ts's private helper of the same name and shape; promote to a shared
+ * module if a third emitter needs it. */
+function label(kebab: string): string {
+  return kebab.replace(/-/g, ' ');
+}
+
+/**
+ * A TS-literal sample value for a field, distinct per variant (0 or 1). Mirrors
+ * emit-dotnet-tests.ts's sample() but produces JS literals ('a', 1, true) for a spec
+ * file's object literals instead of C# ones.
+ */
+function sampleValue(f: FieldSpec, variant: 0 | 1): string {
+  if (f.type === 'number') return String(variant + 1);
+  if (f.type === 'boolean') return variant === 0 ? 'true' : 'false';
+  if (f.format === 'email') return variant === 0 ? `'a@x.io'` : `'b@x.io'`;
+  return variant === 0 ? `'a'` : `'b'`;
+}
+
+/** `name: value, name: value` fragment for every field at one sample variant. */
+function fieldsLiteral(spec: SliceSpec, variant: 0 | 1): string {
+  return spec.fields.map((f) => `${f.name}: ${sampleValue(f, variant)}`).join(', ');
+}
+
+/** A sample row object literal carrying an id plus every field, e.g. `{ id: '1', reference: 'a', total: 1 }`. */
+function rowLiteral(spec: SliceSpec, id: string, variant: 0 | 1): string {
+  return `{ id: '${id}', ${fieldsLiteral(spec, variant)} }`;
+}
+
+// ---------------------------------------------------------------------------
+// frontend/src/app/operations/{kebab}.operations.spec.ts
+// shape source: user.operations.spec.ts
+// ---------------------------------------------------------------------------
+
+function emitOperationsSpec(spec: SliceSpec, n: SliceNames): EmittedFile {
+  return {
+    path: `frontend/src/app/operations/${n.kebab}.operations.spec.ts`,
+    text: `import { describe, it, expect } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { type Observable, of, firstValueFrom } from 'rxjs';
+import { ${n.pascal}Operations } from './${n.kebab}.operations';
+import { Transport } from '../transport';
+import type { OperationName, Req, Res } from '../contracts';
+
+/** Records which operations the facade asks the transport for. */
+class RecordingTransport extends Transport {
+  readonly calls: Array<{ op: string; payload: unknown }> = [];
+  request<K extends OperationName>(op: K, payload: Req<K>): Observable<Res<K>> {
+    this.calls.push({ op, payload });
+    return of(undefined as unknown as Res<K>);
+  }
+}
+
+function setup() {
+  const transport = new RecordingTransport();
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({ providers: [{ provide: Transport, useValue: transport }] });
+  return { transport, ops: TestBed.inject(${n.pascal}Operations) };
+}
+
+describe('${n.pascal}Operations', () => {
+  it('list() asks for the ${n.opPrefix}.list operation', async () => {
+    const { transport, ops } = setup();
+    await firstValueFrom(ops.list());
+    expect(transport.calls).toEqual([{ op: '${n.opPrefix}.list', payload: {} }]);
+  });
+
+  it('get() asks for ${n.opPrefix}.get with the id', async () => {
+    const { transport, ops } = setup();
+    await firstValueFrom(ops.get('abc'));
+    expect(transport.calls).toEqual([{ op: '${n.opPrefix}.get', payload: { id: 'abc' } }]);
+  });
+
+  it('save() asks for ${n.opPrefix}.save with the ${n.camel} body', async () => {
+    const { transport, ops } = setup();
+    await firstValueFrom(ops.save({ ${fieldsLiteral(spec, 0)} }));
+    expect(transport.calls).toEqual([{ op: '${n.opPrefix}.save', payload: { ${fieldsLiteral(spec, 0)} } }]);
+  });
+});
+`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// frontend/src/app/features/{kebabPlural}/{kebab}-list.view-model.spec.ts
+// shape source: user-list.view-model.spec.ts
+// ---------------------------------------------------------------------------
+
+function emitListViewModelSpec(spec: SliceSpec, n: SliceNames): EmittedFile {
+  return {
+    path: `frontend/src/app/features/${n.kebabPlural}/${n.kebab}-list.view-model.spec.ts`,
+    text: `import { describe, it, expect } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { type Observable, of, throwError } from 'rxjs';
+import { ${n.pascal}ListViewModel } from './${n.kebab}-list.view-model';
+import { Transport } from '../../transport';
+import type { OperationName, Req, Res } from '../../contracts';
+import type { AppError } from '../../transport';
+
+/** A fake wire whose response (or failure) is supplied per test. */
+class FakeTransport extends Transport {
+  constructor(private readonly impl: () => Observable<unknown>) {
+    super();
+  }
+  request<K extends OperationName>(_op: K, _payload: Req<K>): Observable<Res<K>> {
+    return this.impl() as Observable<Res<K>>;
+  }
+}
+
+function setup(impl: () => Observable<unknown>): ${n.pascal}ListViewModel {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({
+    providers: [${n.pascal}ListViewModel, { provide: Transport, useValue: new FakeTransport(impl) }],
+  });
+  return TestBed.inject(${n.pascal}ListViewModel);
+}
+
+describe('${n.pascal}ListViewModel', () => {
+  it('load() populates the ${n.camelPlural} signal and clears loading', () => {
+    const ${n.camelPlural} = [${rowLiteral(spec, '1', 0)}];
+    const vm = setup(() => of(${n.camelPlural}));
+
+    vm.load();
+
+    expect(vm.${n.camelPlural}()).toEqual(${n.camelPlural});
+    expect(vm.loading()).toBe(false);
+    expect(vm.error()).toBeNull();
+  });
+
+  it('load() puts a failure on the error signal and clears loading', () => {
+    const err: AppError = { kind: 'network', message: 'offline', operation: '${n.opPrefix}.list' };
+    const vm = setup(() => throwError(() => err));
+
+    vm.load();
+
+    expect(vm.error()).toEqual(err);
+    expect(vm.loading()).toBe(false);
+  });
+
+  it('save() reloads the list on success', () => {
+    const ${n.camelPlural} = [${rowLiteral(spec, '1', 0)}];
+    const vm = setup(() => of(${n.camelPlural}));
+
+    vm.save({ ${fieldsLiteral(spec, 0)} });
+
+    expect(vm.${n.camelPlural}()).toEqual(${n.camelPlural});
+  });
+});
+`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// frontend/src/app/features/{kebabPlural}/{kebab}-list.view.spec.ts
+// shape source: user-list.view.spec.ts
+// ---------------------------------------------------------------------------
+
+function emitListViewSpec(spec: SliceSpec, n: SliceNames): EmittedFile {
+  const firstField = spec.fields[0];
+  return {
+    path: `frontend/src/app/features/${n.kebabPlural}/${n.kebab}-list.view.spec.ts`,
+    text: `import { describe, it, expect } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { type Observable, of, throwError } from 'rxjs';
+import { ${n.pascal}ListView } from './${n.kebab}-list.view';
+import { Transport } from '../../transport';
+import type { OperationName, Req, Res } from '../../contracts';
+import type { AppError } from '../../transport';
+
+/** A fake wire whose response (or failure) is supplied per test. Mirrors the ViewModel spec. */
+class FakeTransport extends Transport {
+  constructor(private readonly impl: () => Observable<unknown>) {
+    super();
+  }
+  request<K extends OperationName>(_op: K, _payload: Req<K>): Observable<Res<K>> {
+    return this.impl() as Observable<Res<K>>;
+  }
+}
+
+function render(impl: () => Observable<unknown> = () => of([])) {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({
+    providers: [{ provide: Transport, useValue: new FakeTransport(impl) }],
+  });
+  const fixture = TestBed.createComponent(${n.pascal}ListView);
+  fixture.detectChanges();
+  return fixture;
+}
+
+describe('${n.pascal}ListView', () => {
+  it('renders one row per ${n.camel}', () => {
+    const ${n.camelPlural} = [${rowLiteral(spec, '1', 0)}, ${rowLiteral(spec, '2', 1)}];
+    const list = render(() => of(${n.camelPlural})).nativeElement.querySelectorAll('li');
+
+    expect(list.length).toBe(2);
+    expect(list[0].textContent).toContain('${sampleValue(firstField, 0).replace(/'/g, '')}');
+  });
+
+  it('renders the empty state when the list comes back empty', () => {
+    const fixture = render(() => of([]));
+
+    expect(fixture.nativeElement.textContent).toContain('No ${n.camelPlural} yet');
+  });
+
+  it('surfaces a load failure to the user', () => {
+    const err: AppError = { kind: 'network', message: 'offline', operation: '${n.opPrefix}.list' };
+    const fixture = render(() => throwError(() => err));
+
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('offline');
+  });
+
+  it('titles the page with a typography primitive, not a bare heading', () => {
+    const heading = render().nativeElement.querySelector('h1');
+
+    expect(heading.hasAttribute('hlmH3')).toBe(true);
+  });
+
+  it('renders its list through the typography primitive', () => {
+    const list = render().nativeElement.querySelector('ul');
+
+    expect(list.hasAttribute('hlmUl')).toBe(true);
+  });
+});
+`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// frontend/src/app/features/{kebabPlural}/{kebab}-form.spec.ts
+// shape source: schema-form.spec.ts and schema-form.page.spec.ts (the SchemaForm
+// consumption idiom), NOT user-form.spec.ts, whose subject is the old hand-wired form.
+// ---------------------------------------------------------------------------
+
+function emitFormSpec(spec: SliceSpec, n: SliceNames): EmittedFile {
+  const firstField = spec.fields[0];
+  const idChecks = spec.fields
+    .map((f) => `    expect(host.querySelector('#${f.name}'), 'no control for ${f.name}').toBeTruthy();`)
+    .join('\n');
+  return {
+    path: `frontend/src/app/features/${n.kebabPlural}/${n.kebab}-form.spec.ts`,
+    text: `import { describe, it, expect } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { ${n.pascal}Form } from './${n.kebab}-form';
+import { SchemaForm } from '../../forms/schema-form';
+import { provideDefaultFormControls } from '../../forms/controls';
+
+function render() {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
+  const fixture = TestBed.createComponent(${n.pascal}Form);
+  fixture.detectChanges();
+  return fixture;
+}
+
+describe('${n.pascal}Form', () => {
+  it('renders the schema form with a control per field', () => {
+    const host = render().nativeElement;
+
+    expect(host.querySelector('app-schema-form')).toBeTruthy();
+${idChecks}
+  });
+
+  it('surfaces the schema validation message on an invalid submit', () => {
+    const fixture = render();
+    fixture.debugElement.query(By.directive(SchemaForm)).componentInstance.onSubmit(); // every field starts empty
+
+    fixture.detectChanges();
+
+    const error = fixture.nativeElement.querySelector('[data-error-for="${firstField.name}"]');
+    expect(error.textContent).toContain('${firstField.label} is required');
+  });
+
+  it('narrows the payload SchemaForm emits and re-emits it as the ${n.pascal}FormModel on saved', () => {
+    const fixture = render();
+    const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
+    let emitted: unknown;
+    fixture.componentInstance.saved.subscribe((v) => (emitted = v));
+
+    schemaForm.form().setValue({ ${fieldsLiteral(spec, 0)} });
+    schemaForm.onSubmit();
+
+    expect(emitted).toEqual({ ${fieldsLiteral(spec, 0)} });
+  });
+});
+`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// frontend/src/app/features/{kebabPlural}/{kebabPlural}.commands.spec.ts
+// shape source: users.commands.spec.ts
+// ---------------------------------------------------------------------------
+
+function emitCommandsSpec(n: SliceNames): EmittedFile {
+  return {
+    path: `frontend/src/app/features/${n.kebabPlural}/${n.kebabPlural}.commands.spec.ts`,
+    text: `import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { new${n.pascal}Command, register${n.pascalPlural}Nav } from './${n.kebabPlural}.commands';
+import type { ${n.pascal}ListViewModel } from './${n.kebab}-list.view-model';
+import { MenuService } from '../../menu';
+
+describe('new${n.pascal}Command', () => {
+  it('opens the form on execute and is disabled while saving', () => {
+    const saving = signal(false);
+    const openForm = vi.fn();
+    const vm = { saving, openForm } as unknown as ${n.pascal}ListViewModel;
+    const cmd = new${n.pascal}Command(vm);
+    expect(cmd.id).toBe('new-${n.kebab}');
+    expect(cmd.canExecute()).toBe(true);
+    cmd.execute();
+    expect(openForm).toHaveBeenCalled();
+    saving.set(true);
+    expect(cmd.canExecute()).toBe(false);
+  });
+
+  it('register${n.pascalPlural}Nav registers the ${n.kebabPlural} nav command into the sidebar', () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    const menu = TestBed.inject(MenuService);
+    TestBed.runInInjectionContext(() => register${n.pascalPlural}Nav(menu));
+    const items = menu.items('sidebar')();
+    expect(items.map((c) => c.id)).toEqual(['nav-${n.kebabPlural}']);
+    expect(items[0].label).toBe('${label(n.kebabPlural)}');
+  });
+});
+`,
+  };
+}
+
+/**
+ * Emit the five Angular test files that accompany a generated slice's production
+ * code: the operations facade spec, the list ViewModel spec, the list view spec, the
+ * form component spec, and the nav/action commands spec. There is no form-ViewModel
+ * spec — see the module comment above.
+ */
+export function emitFrontendTests(spec: SliceSpec): EmittedFile[] {
+  const n = deriveNames(spec);
+  return [
+    emitOperationsSpec(spec, n),
+    emitListViewModelSpec(spec, n),
+    emitListViewSpec(spec, n),
+    emitFormSpec(spec, n),
+    emitCommandsSpec(n),
+  ];
+}
