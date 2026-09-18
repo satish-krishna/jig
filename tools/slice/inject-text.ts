@@ -4,13 +4,17 @@
 // anchor string and splices plain text after it — the same anchored-insertion technique
 // tools/init/thin.ts uses for the thin cut, including its loud-failure rule: a missing
 // anchor throws naming the file and the anchor, and an ambiguous one throws too, so a
-// splice never lands silently in the wrong place. Every anchor is a structural signature
+// splice never lands silently in the wrong place. Most anchors are a structural signature
 // the target file cannot lose without ceasing to be that file (a method's opening brace,
-// a class's constructor signature), never a line that only exists because the `users`
-// sample slice was generated — a spec-generated app built with `--sample false` must still
-// splice cleanly. Every function here is pure — a source string, a spec, and an optional
-// product name in, a source string out, no disk access — and every function short-circuits
-// to a no-op when its slice is already present.
+// a class's constructor signature); the one exception is injectLibRs's `.manage()` anchor,
+// `.plugin(tauri_plugin_updater::Builder::new().build())` — an optional plugin, a
+// convention this template happens to ship rather than a structural guarantee, so it
+// throws loudly if removed instead of failing silently, but the anchor could be lost
+// without the file ceasing to be lib.rs. No anchor here is a line that only exists
+// because the `users` sample slice was generated — a spec-generated app built with
+// `--sample false` must still splice cleanly. Every function here is pure — a source
+// string, a spec, and an optional product name in, a source string out, no disk access —
+// and every function short-circuits to a no-op when its slice is already present.
 
 import type { SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';

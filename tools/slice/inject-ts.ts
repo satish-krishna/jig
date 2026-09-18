@@ -8,6 +8,10 @@
 // generated slice would then arrive as a gratuitous whole-file diff that buries the real
 // change. Each function also returns `source` unchanged when the slice is already present,
 // so running the generator twice for the same slice is a no-op rather than a duplicate.
+// The invariant every multi-splice function below hand-derives on its own: when a file
+// gets more than one splice, apply them in descending offset order (largest offset
+// first), because splicing shifts every offset that comes after it, and an offset
+// computed before any splice is only still valid for a splice at or before that point.
 
 import ts from '../../frontend/node_modules/typescript/lib/typescript.js';
 import type { SliceSpec } from './spec.ts';

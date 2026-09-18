@@ -82,7 +82,7 @@ The `users` files carry prose that is exemplar documentation rather than slice s
 
 ### The registries: what must be edited, not created
 
-Eight injection sites. This is the part `dotnet new` cannot do (create-only, [dotnet/templating#2148](https://github.com/dotnet/templating/issues/2148) closed as not planned) and the reason the generator is a script rather than a template engine.
+Ten injection sites. This is the part `dotnet new` cannot do (create-only, [dotnet/templating#2148](https://github.com/dotnet/templating/issues/2148) closed as not planned) and the reason the generator is a script rather than a template engine.
 
 | Site | Insert |
 |---|---|
@@ -93,7 +93,9 @@ Eight injection sites. This is the part `dotnet new` cannot do (create-only, [do
 | `contracts/registry.ts` | three `ROUTES` entries, three `COMMANDS` entries |
 | `app.routes.ts` | one route, one import |
 | `app.config.ts` | `provide{Es}Menu()`, its import, the icon in `provideIcons` |
-| `src-tauri/src/lib.rs` (thick) | `mod {es};` and three `invoke_handler!` entries |
+| `src-tauri/src/lib.rs` (thick) | `mod {es};`, a `use {es}::{E}Store;`, and three `invoke_handler!` entries |
+| `src-tauri/src/lib.rs` (thick) | `.manage({E}Store::default())` registration |
+| `src-tauri/src/commands.rs` (thick) | a `use` import and three `#[tauri::command]` adapter functions |
 
 ## How big is a slice
 
