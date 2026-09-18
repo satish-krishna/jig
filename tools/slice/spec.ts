@@ -73,6 +73,11 @@ export function validateSpec(raw: unknown): SliceSpec {
     throw new Error('name must be PascalCase');
   }
 
+  // Validate plural override: must be a string if present
+  if ('plural' in obj && obj.plural !== undefined && typeof obj.plural !== 'string') {
+    throw new Error('plural must be a string');
+  }
+
   // Validate icon: must be a string
   const icon = obj.icon;
   if (typeof icon !== 'string') {
@@ -108,6 +113,17 @@ export function validateSpec(raw: unknown): SliceSpec {
       throw new Error('Field type must be string, number, or boolean');
     }
     if (typeof f.label !== 'string') throw new Error('Field label must be a string');
+
+    // Validate optional field members
+    if ('unique' in f && f.unique !== undefined && typeof f.unique !== 'boolean') {
+      throw new Error('Field unique must be a boolean');
+    }
+    if ('format' in f && f.format !== undefined && f.format !== 'email') {
+      throw new Error('Field format must be email');
+    }
+    if ('placeholder' in f && f.placeholder !== undefined && typeof f.placeholder !== 'string') {
+      throw new Error('Field placeholder must be a string');
+    }
   }
 
   return {

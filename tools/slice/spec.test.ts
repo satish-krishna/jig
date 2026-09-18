@@ -54,3 +54,36 @@ test('loadSpec loads and validates the users example', () => {
   const n = deriveNames(spec);
   assert.equal(n.opPrefix, 'users');
 });
+
+test('validateSpec rejects a string unique instead of boolean', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'a', type: 'string', label: 'A', unique: 'true' }] }),
+    /unique.*boolean/,
+  );
+});
+
+test('validateSpec rejects an unknown format value', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'a', type: 'string', label: 'A', format: 'bogus' }] }),
+    /format.*email/,
+  );
+});
+
+test('validateSpec rejects a non-string placeholder', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'a', type: 'string', label: 'A', placeholder: 123 }] }),
+    /placeholder.*string/,
+  );
+});
+
+test('validateSpec rejects a non-string plural', () => {
+  assert.throws(
+    () => validateSpec({ ...base, name: 'Order', plural: 123 }),
+    /plural.*string/,
+  );
+});
+
+test('validateSpec accepts specs with no optional fields', () => {
+  const spec = validateSpec({ ...base, fields: [{ name: 'a', type: 'number', label: 'Count' }] });
+  assert.equal(spec.name, 'Order');
+});
