@@ -137,21 +137,20 @@ export function injectDbContext(source: string, spec: SliceSpec, product = 'Jig'
   return insertAfter(file, withDbSet, modelAnchor, entityConfigBlock(spec, n));
 }
 
+// thick:start
 // ---------------------------------------------------------------------------
 // The desktop shell's entry point
 // ---------------------------------------------------------------------------
-// The next block is specific to that shell and has no meaning once it is removed, so it
-// is marked for removal on the thin cut. The whole block below — including the exported
-// function itself and the note about who else needs the same treatment — is inside the
-// marker, so nothing outside it depends on a symbol the cut deletes.
-
-// thick:start
+// This section is specific to that shell and has no meaning once it is removed, so all of
+// it — this heading included — sits inside the marker. Nothing outside the marker depends
+// on a symbol the cut deletes, and nothing outside it describes one either.
 /**
  * Add a slice's module declaration, its managed store, and its three command-handler
- * entries to the desktop entry point. Anchors on `mod commands;`, the plugin registration
- * line, and the `generate_handler!` list's opening bracket — all three present in every
- * clone regardless of which sample slice was generated — never on the `users` sample's
- * own module, managed store, or handler entries.
+ * entries to the desktop entry point. Four anchors: `mod commands;`, the module declaration
+ * this function has just inserted (unique by construction, since the guard above proved it
+ * absent), the plugin registration line, and the `generate_handler!` list's opening bracket.
+ * All but the second are present in every clone regardless of which sample slice was
+ * generated, and none is the `users` sample's own module, managed store, or handler entry.
  *
  * @capability tools.slice.inject-lib-rs
  * @intent Wire a generated slice's store and commands into the desktop shell without
@@ -160,9 +159,9 @@ export function injectDbContext(source: string, spec: SliceSpec, product = 'Jig'
  * `product` is accepted but unused, for the same call-shape-uniformity reason as
  * injectApplicationModule — the entry point never names the product either.
  *
- * Task 8's generator entry point imports this function and needs the same
- * thick-marker treatment around that import, or a thin clone's copy of that file would
- * import a symbol this file no longer exports.
+ * Any caller importing this function needs the same thick-marker treatment around that
+ * import, or a thin clone's copy of the calling file would import a symbol this file no
+ * longer exports.
  */
 export function injectLibRs(source: string, spec: SliceSpec, product?: string): string {
   const n = deriveNames(spec);

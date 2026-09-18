@@ -2,9 +2,10 @@
 // either target language, so each injector below locates its insertion point with a single
 // anchor string rather than an AST — see inject-ts.test.ts for the sibling TypeScript
 // injectors, which do have a parser. Fixtures are inlined copies of the real target files'
-// contents (ApplicationModule.cs, InfrastructureModule.cs, JigDbContext.cs, lib.rs): when
-// someone reshapes one of those files, the fixture here stops matching and this test fails,
-// rather than the generator silently mis-splicing at the next slice.
+// contents (ApplicationModule.cs, InfrastructureModule.cs, JigDbContext.cs, plus the
+// desktop shell's two files in the thick-only half below): when someone reshapes one of
+// those files, the fixture here stops matching and this test fails, rather than the
+// generator silently mis-splicing at the next slice.
 //
 // Fixture spec is "Order" (icon lucideBox, one unique string field, one number field), so
 // every assertion reads directly off deriveNames' output: pascal Order, pascalPlural Orders,

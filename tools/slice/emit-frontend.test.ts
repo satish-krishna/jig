@@ -19,31 +19,31 @@ const spec = validateSpec({
 });
 
 const files = emitFrontend(spec);
-const at = (suffix: string): EmittedFile | undefined => files.find((f) => f.path.endsWith(`${suffix}.ts`));
+const at = (suffix: string): EmittedFile => files.find((f) => f.path.endsWith(`${suffix}.ts`))!;
 
 test('the facade speaks operation keys, never URLs', () => {
-  const ts = at('orders.operations') ?? at('order.operations');
-  assert.match(ts!.text, /this\.transport\.request\('orders\.list', \{\}\)/);
-  assert.match(ts!.text, /this\.transport\.request\('orders\.get', \{ id \}\)/);
-  assert.doesNotMatch(ts!.text, /http|\/api|fetch/i);
+  const ts = at('order.operations').text;
+  assert.match(ts, /this\.transport\.request\('orders\.list', \{\}\)/);
+  assert.match(ts, /this\.transport\.request\('orders\.get', \{ id \}\)/);
+  assert.doesNotMatch(ts, /http|\/api|fetch/i);
 });
 
 test('the list ViewModel is unprovided and signal-only', () => {
-  const ts = at('order-list.view-model')!.text;
+  const ts = at('order-list.view-model').text;
   assert.match(ts, /@Injectable\(\)\n/);
   assert.doesNotMatch(ts, /providedIn/);
   assert.match(ts, /readonly orders = signal<OrderDto\[\]>\(\[\]\)/);
 });
 
 test('the view provides its ViewModel and never subscribes', () => {
-  const ts = at('order-list.view')!.text;
+  const ts = at('order-list.view').text;
   assert.match(ts, /providers: \[OrderListViewModel\]/);
   assert.doesNotMatch(ts, /\.subscribe\(/);
   assert.doesNotMatch(ts, /standalone|changeDetection/);
 });
 
 test('the view template uses built-in control flow and token spacing', () => {
-  const ts = at('order-list.view')!.text;
+  const ts = at('order-list.view').text;
   assert.match(ts, /@for \(order of vm\.orders\(\); track order\.id\)/);
   assert.match(ts, /@empty/);
   assert.match(ts, /class="grid gap-m"/);
@@ -51,7 +51,7 @@ test('the view template uses built-in control flow and token spacing', () => {
 });
 
 test('the schema is the only place validation is stated', () => {
-  const ts = at('order-form.schema')!.text;
+  const ts = at('order-form.schema').text;
   assert.match(ts, /export const orderFormSchema = z\.object\(\{/);
   assert.match(ts, /reference: z\n?\s*\.string\(\)\n?\s*\.min\(1, 'Reference is required'\)/);
   assert.match(ts, /export type OrderFormModel = z\.infer<typeof orderFormSchema>;/);
@@ -67,12 +67,12 @@ test('an email field emits the email control and validator once', () => {
 });
 
 test('a number field emits a numeric zod type and a coercing control', () => {
-  const ts = at('order-form.schema')!.text;
+  const ts = at('order-form.schema').text;
   assert.match(ts, /total: z\n?\s*\.number\(\)/);
 });
 
 test('the form component renders through SchemaForm and wires nothing per field', () => {
-  const ts = at('order-form')!.text;
+  const ts = at('order-form').text;
   assert.match(ts, /<app-schema-form \[schema\]="orderFormSchema"/);
   assert.match(ts, /\(submitted\)="onSubmitted\(\$event\)"/);
   assert.doesNotMatch(ts, /<hlm-field>|\[formField\]|ngModel|formControlName|FormsModule/);
@@ -84,7 +84,7 @@ test('the form component renders through SchemaForm and wires nothing per field'
 // Record<string, unknown> is not assignable to a type with required typed properties.
 // The narrowing has to happen in a handler method instead.
 test('the form narrows the payload through a handler, not an inline emit in the template', () => {
-  const ts = at('order-form')!.text;
+  const ts = at('order-form').text;
   assert.match(ts, /protected onSubmitted\(value: Record<string, unknown>\): void \{/);
   assert.match(ts, /this\.saved\.emit\(value as OrderFormModel\)/);
   assert.doesNotMatch(ts, /saved\.emit\(\$event\)/);
@@ -95,7 +95,7 @@ test('no form ViewModel is emitted — SchemaForm owns the form state', () => {
 });
 
 test('the commands file registers a nav command and an action command', () => {
-  const ts = at('orders.commands')!.text;
+  const ts = at('orders.commands').text;
   assert.match(ts, /id: 'nav-orders'/);
   assert.match(ts, /icon: 'lucideBox'/);
   assert.match(ts, /route: '\/orders'/);

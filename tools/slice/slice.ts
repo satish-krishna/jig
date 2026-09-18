@@ -25,7 +25,6 @@ import { emitFrontend } from './emit-frontend.ts';
 import { emitFrontendTests } from './emit-frontend-tests.ts';
 import { injectAppConfig, injectOperations, injectRegistry, injectRoutes } from './inject-ts.ts';
 import { injectApplicationModule, injectDbContext, injectInfrastructureModule } from './inject-text.ts';
-import { isTreeClean } from '../ui-style/ui-style.ts';
 // The desktop shell's per-slice wiring is optional machinery a thin clone never has, so its
 // imports stay wrapped the same way inject-text.ts wraps its own entry-point injectors — see
 // inject-text.test.ts for the precedent this follows.
@@ -54,9 +53,9 @@ export interface ParsedArgs {
 
 /**
  * Parse the CLI's own arguments. `--spec` is the only required flag; `--phase` lets a run
- * resume after phase A already landed (e.g. once a failed build is fixed by hand), and
- * `--force` bypasses the dirty-tree refusal the way `tools/ui-style/ui-style.ts` does for
- * its own destructive run.
+ * resume after phase A already landed (e.g. once a failed build is fixed by hand),
+ * `--dry-run` prints the plan and touches nothing, and `--force` waives both refusals
+ * below - the uncommitted-registry one and the would-overwrite one.
  */
 export function parseArgs(argv: string[]): ParsedArgs {
   let specPath: string | undefined;
@@ -120,10 +119,10 @@ export function detectProduct(root: string): string {
 // ---------------------------------------------------------------------------
 // The desktop shell (thick only)
 // ---------------------------------------------------------------------------
-// A thin clone has no desktop shell, so nothing below this point exists there: the store
-// emitter lives in its own paired module and test file (mirroring emit-dotnet.ts's shape),
-// and the entry-point and command-adapter injectors live in inject-text.ts alongside
-// injectApplicationModule and friends. This file only composes them.
+// A thin clone has no desktop shell, so none of the machinery this section composes exists
+// there: the store emitter and both entry-point injectors are marker-wrapped in their own
+// modules and are stripped by the same cut that strips the composition below. This file
+// only composes them.
 
 // ---------------------------------------------------------------------------
 // plan(): pure. Composes every earlier task's emitters and injectors into one
@@ -187,6 +186,45 @@ function writeGenerated(file: EmittedFile): void {
   writeFileSync(full, file.text);
 }
 
+/**
+ * Which of `planned` git reports as changed. Pure, so slice.test.ts can drive it with
+ * porcelain text instead of a repository.
+ *
+ * The check this feeds is scoped to the registries THIS invocation will edit, rather than
+ * to the whole tree. A whole-tree refusal blocked three things the tool itself tells you to
+ * do: `--dry-run` (which writes nothing), `--phase b` (a resume, run at the exact moment
+ * phase A has just dirtied the tree), and add-a-feature's own step 1, which has you author
+ * a spec file. What the refusal is actually for is the registries — those are edits to
+ * tracked files, and an uncommitted change in one is the case where git cannot give it
+ * back. A file this run only WRITES is covered by the collision check below instead.
+ *
+ * Porcelain lines are `XY path`, or `XY old -> new` for a rename. A path containing a space
+ * or a quote arrives quoted and simply will not match a planned path, which errs toward
+ * letting the run proceed — no registry in this repository has such a name, and an injector
+ * handed a missing file throws by itself.
+ */
+export function dirtyAmong(porcelain: string, planned: readonly string[]): string[] {
+  const want = new Set(planned);
+  const hits = new Set<string>();
+  for (const line of porcelain.split('\n')) {
+    if (line.trim() === '') continue;
+    for (const side of line.slice(3).split(' -> ')) {
+      if (want.has(side)) hits.add(side);
+    }
+  }
+  return [...hits].sort();
+}
+
+/**
+ * Which planned writes would land on a path that already holds a file. The CLI's own
+ * closing instruction is "fill in the domain behavior the generator could not know", so a
+ * second run against the same spec would silently overwrite exactly that work. Pure in the
+ * same way dirtyAmong is: the caller supplies the existence test.
+ */
+export function collidingPaths(writes: readonly EmittedFile[], exists: (path: string) => boolean): string[] {
+  return writes.filter((w) => exists(w.path)).map((w) => w.path);
+}
+
 function applyEdit(edit: PlannedEdit): void {
   const full = join(ROOT, edit.path);
   const source = readFileSync(full, 'utf8');
@@ -231,21 +269,37 @@ export function main(): void {
   const phaseAEdits = edits.filter((e) => dotnetEditPaths.has(e.path));
   const phaseBEdits = edits.filter((e) => !dotnetEditPaths.has(e.path));
 
-  if (!args.force && !isTreeClean(ROOT)) {
-    throw new Error(
-      'Working tree is dirty. The generator writes many files and edits several registries, ' +
-        'and git is the only way back. Commit or stash first, or pass --force.',
-    );
-  }
+  const plannedWrites = args.phase === 'a' ? phaseAWrites : args.phase === 'b' ? phaseBWrites : writes;
+  const plannedEdits = args.phase === 'a' ? phaseAEdits : args.phase === 'b' ? phaseBEdits : edits;
+  const alreadyThere = collidingPaths(plannedWrites, (p) => existsSync(join(ROOT, p)));
 
   if (args.dryRun) {
-    const plannedWrites = args.phase === 'a' ? phaseAWrites : args.phase === 'b' ? phaseBWrites : writes;
-    const plannedEdits = args.phase === 'a' ? phaseAEdits : args.phase === 'b' ? phaseBEdits : edits;
     console.log(`Would write ${plannedWrites.length} file(s):`);
     for (const w of plannedWrites) console.log(`  ${w.path}`);
     console.log(`Would edit ${plannedEdits.length} file(s):`);
     for (const e of plannedEdits) console.log(`  ${e.path}`);
+    if (alreadyThere.length > 0) {
+      console.log(`\n${alreadyThere.length} of those already exist; a real run would refuse without --force.`);
+    }
     return;
+  }
+
+  if (!args.force) {
+    const porcelain = execSync('git status --porcelain', { cwd: ROOT, encoding: 'utf8' });
+    const dirty = dirtyAmong(porcelain, plannedEdits.map((e) => e.path));
+    if (dirty.length > 0) {
+      throw new Error(
+        `These registries have uncommitted changes and this run edits them, so git could not ` +
+          `give them back:\n  ${dirty.join('\n  ')}\nCommit or stash them first, or pass --force.`,
+      );
+    }
+    if (alreadyThere.length > 0) {
+      throw new Error(
+        `These files already exist and this run would overwrite them, including any domain ` +
+          `behavior added to them since:\n  ${alreadyThere.join('\n  ')}\n` +
+          `Delete them or pass --force to regenerate over the top.`,
+      );
+    }
   }
 
   if (args.phase === 'a' || args.phase === 'both') {

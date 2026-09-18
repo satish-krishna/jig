@@ -23,9 +23,10 @@ The smell test for each of these is in `CONTRIBUTING.md`.
 ## Generate the slice
 
 1. Copy `examples/slices/users.slice.json`, change the name, the icon and the fields.
-2. `npm run slice -- --spec <file> --dry-run` to see what it would write and edit.
-3. Commit or stash first — the generator refuses a dirty tree, because git is the only way back from twenty-four files and nine edits.
-4. `npm run slice -- --spec <file>`, then `npm run verify`.
+2. `npm run slice -- --spec <file> --dry-run` to see what it would write and edit. A dry run touches nothing, so it works from any state of the tree.
+3. `npm run slice -- --spec <file>`, then `npm run verify`.
+
+The generator refuses two things, and `--force` waives both. It refuses to run when a registry it is about to splice has uncommitted changes, because git is the only way back from an edit to a tracked file — commit or stash those first. And it refuses to overwrite a file it would write, so a second run cannot silently discard the domain behavior you added after the first. Your spec file and unrelated work in progress are neither of those, and neither blocks a run.
 
 **Why this is a tool and not a checklist:** the generator runs in two phases with `npm run codegen` between them. A response type resolves to a generated DTO, so the API has to exist and codegen has to have run before a single line of the contract is written. Emitting both halves first produces TypeScript referencing DTOs the API has not emitted — it fails, but only after every file has landed. That ordering is the trap the generator exists to make unmissable.
 

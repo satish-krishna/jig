@@ -1,9 +1,8 @@
-// Tests for the slice CLI: argument parsing, product detection, and the pure plan() that
-// composes every earlier task's emitters and injectors into one write-and-edit list. main()
-// itself is impure (disk, git, dotnet, npm) and is deliberately untested here — see the task
-// brief's "do not run main() against the real repository" rule. Task 9's acceptance.test.ts
-// is meant to exercise plan() against the live registries the same way; it does not exist
-// yet as of this file.
+// Tests for the slice CLI: argument parsing, product detection, the pure plan() that
+// composes every emitter and injector into one write-and-edit list, and the two pure guards
+// main() consults before it writes anything. main() itself is impure (disk, git, dotnet,
+// npm) and is deliberately untested here — it is never run against the real repository.
+// acceptance.test.ts exercises plan() against the live registries.
 //
 // Two tests below (`plan(..., true)` behavior — the "thick checkout" cases) are wrapped in
 // thick-cut markers: after a thin cut, plan() has no thick branch at all, so plan(spec, p,
@@ -12,11 +11,14 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { validateSpec } from './spec.ts';
-import { CATALOG_REFRESH_COMMAND, detectProduct, parseArgs, plan } from './slice.ts';
+import { CATALOG_REFRESH_COMMAND, collidingPaths, detectProduct, dirtyAmong, parseArgs, plan } from './slice.ts';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 // A minimal services/api/src/<name> tree, just enough for detectProduct to read.
 function fixtureRootWith(domainDirName: string): string {
@@ -78,11 +80,85 @@ test('the emitted slice is annotated, so the run refreshes the catalog before it
   const annotated = writes.filter((w) => /@capability|<capability>/.test(w.text));
 
   assert.ok(annotated.length > 0, 'no emitted file declares a capability');
-  assert.match(
-    CATALOG_REFRESH_COMMAND,
-    /catalog/,
-    'emitted files declare capabilities but the run never regenerates the catalog',
-  );
+  // Asserted against package.json's own script list. The regex it replaces looked for
+  // /catalog/ inside a constant named CATALOG_REFRESH_COMMAND, which could not fail.
+  const scripts = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scripts;
+  const script = CATALOG_REFRESH_COMMAND.replace(/^npm run /, '');
+  assert.ok(scripts[script], `${CATALOG_REFRESH_COMMAND} is not a script in package.json`);
+});
+
+// ---------------------------------------------------------------------------
+// The two guards main() consults before it writes anything.
+// ---------------------------------------------------------------------------
+
+// A whole-tree refusal blocked three things the tool itself instructs: --dry-run, which
+// writes nothing; --phase b, which IS the documented resume and runs at the exact moment
+// phase A has just dirtied the tree; and add-a-feature step 1, which has you author a spec
+// file. Scoping the refusal to the registries this invocation edits keeps the case it is
+// actually for: an uncommitted change to a tracked file the generator is about to splice.
+test('dirtyAmong reports only the planned paths git says have changed', () => {
+  const porcelain = [
+    ' M frontend/src/app/contracts/operations.ts',
+    '?? orders.slice.json',
+    ' M frontend/src/app/shell/shell.ts',
+    '',
+  ].join('\n');
+
+  assert.deepEqual(dirtyAmong(porcelain, ['frontend/src/app/contracts/operations.ts']), [
+    'frontend/src/app/contracts/operations.ts',
+  ]);
+  assert.deepEqual(dirtyAmong(porcelain, ['frontend/src/app/app.routes.ts']), []);
+});
+
+test('an untracked spec file does not block a run, which is add-a-feature step 1', () => {
+  assert.deepEqual(dirtyAmong('?? orders.slice.json', ['frontend/src/app/contracts/operations.ts']), []);
+});
+
+// Phase A writes twelve .NET files and edits the three .NET registries, and then the CLI's
+// own message says to re-run with --phase b. Phase B edits a disjoint set, so the resume
+// the tool prints is a resume the tool allows.
+test('phase A leaving its own registries dirty does not block the phase B it tells you to run', () => {
+  const afterPhaseA = [
+    'M  services/api/src/Jig.Application/ApplicationModule.cs',
+    'M  services/api/src/Jig.Infrastructure/InfrastructureModule.cs',
+    'A  services/api/src/Jig.Domain/Order.cs',
+    '',
+  ].join('\n');
+  const { edits } = plan(spec, 'Jig', false);
+  const phaseB = edits.filter((e) => !e.path.startsWith('services/api/')).map((e) => e.path);
+
+  assert.deepEqual(dirtyAmong(afterPhaseA, phaseB), []);
+});
+
+test('dirtyAmong reads both sides of a rename', () => {
+  const porcelain = 'R  frontend/src/app/app.routes.ts -> frontend/src/app/routes.ts';
+  assert.deepEqual(dirtyAmong(porcelain, ['frontend/src/app/app.routes.ts']), ['frontend/src/app/app.routes.ts']);
+  assert.deepEqual(dirtyAmong(porcelain, ['frontend/src/app/routes.ts']), ['frontend/src/app/routes.ts']);
+});
+
+// The CLI's closing line is "fill in the domain behavior the generator could not know", so
+// a second run against the same spec silently discarded exactly that work.
+test('collidingPaths names every planned write that already exists', () => {
+  const { writes } = plan(spec, 'Jig', false);
+  const taken = writes[0].path;
+
+  assert.deepEqual(collidingPaths(writes, (p) => p === taken), [taken]);
+  assert.deepEqual(collidingPaths(writes, () => false), []);
+});
+
+// The exemplar is proof the check has something real to find: every path a users slice
+// would emit is already occupied by the users slice.
+test('regenerating the users slice collides with the exemplar already occupying it', () => {
+  const users = validateSpec({
+    name: 'User',
+    icon: 'lucideUsers',
+    fields: [{ name: 'name', type: 'string', label: 'Name' }],
+  });
+  const { writes } = plan(users, 'Jig', false);
+  const collisions = collidingPaths(writes, (p) => existsSync(join(ROOT, p)));
+
+  assert.ok(collisions.length > 0, 'no users path is occupied, so this test proves nothing');
+  assert.ok(collisions.some((p) => p.endsWith('user-form.ts')));
 });
 
 // thick:start
