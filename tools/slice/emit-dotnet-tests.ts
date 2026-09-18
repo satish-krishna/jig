@@ -4,27 +4,10 @@
 // product namespace and the spec's own names substituted in. No disk access here — the CLI
 // (a later task) decides where these EmittedFile entries land, and the endpoint test consumes
 // the ApiFixture that already exists in every clone rather than emitting its own copy.
-//
-// CS_TYPE, pascalField, and uniqueField are duplicated from emit-dotnet.ts rather than
-// imported: each is a two- or three-line lookup, and importing them would couple this file's
-// public surface to emit-dotnet.ts's internals for no shared benefit today. Worth revisiting
-// if a third emitter needs the same helpers.
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
-
-/** C# type for each spec field type, matching CS_TYPE in emit-dotnet.ts. */
-const CS_TYPE: Record<FieldSpec['type'], string> = { string: 'string', number: 'decimal', boolean: 'bool' };
-
-/** camelCase field name -> PascalCase C# property name, e.g. "reference" -> "Reference". */
-function pascalField(name: string): string {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-/** The spec's one unique field, if it has one. validateSpec already guarantees at most one. */
-function uniqueField(spec: SliceSpec): FieldSpec | undefined {
-  return spec.fields.find((f) => f.unique === true);
-}
+import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
 
 /**
  * A source-ready C# literal for a field's sample value: a quoted string, a decimal literal,
@@ -40,10 +23,18 @@ function sample(f: FieldSpec, variant: 0 | 1): string {
 }
 
 /**
- * An interpolated C# string literal that embeds a fresh Guid, so a value the app enforces as
- * unique never collides across endpoint test methods, which all share one ApiFixture database.
+ * A C# literal for a unique field's sample value, distinct per call site: `slot` 0 is the
+ * factory's value, `slot` 1 is the duplicate test's shared value. ApiFixture shares one
+ * database across every [Fact] in the class, so the two facts that actually insert a row (the
+ * roundtrip fact via the factory, and the duplicate-value fact) must not pick the same value
+ * for a field the app enforces as unique, or one of them fails unpredictably. A string field
+ * gets a fresh Guid at runtime, which is unique regardless of slot; a number field gets a fixed
+ * literal offset by slot, since a compile-time constant is enough — no run-time randomness is
+ * needed to keep two source locations apart. validateSpec rejects a unique boolean field, so
+ * this function never has to make one distinct.
  */
-function uniqueSample(f: FieldSpec): string {
+function uniqueSample(f: FieldSpec, slot: 0 | 1): string {
+  if (f.type === 'number') return `${9001 + slot}m`;
   return f.format === 'email' ? '$"a-{Guid.NewGuid():N}@x.io"' : '$"a-{Guid.NewGuid():N}"';
 }
 
@@ -170,15 +161,17 @@ ${facts.join('\n\n')}
 
 function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   const unique = uniqueField(spec);
-  // A validator rule only exists for non-boolean fields (emit-dotnet.ts's emitValidator), so
-  // the 400-on-invalid-body test only applies when at least one such field exists.
+  // Mirrors emit-dotnet.ts's emitValidator rule-emission predicate (`f.type !== 'boolean'`):
+  // a validator rule only exists for a non-boolean field, so the 400-on-invalid-body test only
+  // applies when at least one such field exists. This is not a new structural branch — it
+  // tracks the one Task 2 already made in the production code being tested.
   const hasValidatedField = spec.fields.some((f) => f.type !== 'boolean');
   const roundtripField = spec.fields[0];
 
-  // The unique field, if any, gets a Guid-embedded value so repeated factory calls across
-  // endpoint tests sharing one ApiFixture database never collide on it by accident.
+  // The unique field, if any, gets its slot-0 value here so it cannot collide with the
+  // duplicate test's slot-1 value across facts sharing one ApiFixture database.
   const factoryProps = spec.fields
-    .map((f) => `${f.name} = ${f === unique && f.type === 'string' ? uniqueSample(f) : sample(f, 0)}`)
+    .map((f) => `${f.name} = ${f === unique ? uniqueSample(f, 0) : sample(f, 0)}`)
     .join(', ');
 
   const facts: string[] = [
@@ -226,9 +219,11 @@ function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): Emi
   // to violate.
   if (unique) {
     const otherFields = spec.fields.filter((f) => f !== unique);
+    // The unique field's own entry has no "= value": it is the projection-initializer shorthand
+    // `new { x }`, which C# treats as `new { x = x }` against the local variable declared below.
     const dupProps = (variant: 0 | 1) =>
       [...otherFields.map((f) => `${f.name} = ${sample(f, variant)}`), unique.name].join(', ');
-    const uniqueLiteral = unique.type === 'string' ? uniqueSample(unique) : sample(unique, 0);
+    const uniqueLiteral = uniqueSample(unique, 1);
     facts.push(`    [Fact]
     public async Task save_duplicate_${unique.name}_returns_409()
     {

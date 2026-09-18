@@ -5,19 +5,7 @@
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
-
-/** C# type for each spec field type, matching the `required` properties on User.cs. */
-const CS_TYPE: Record<FieldSpec['type'], string> = { string: 'string', number: 'decimal', boolean: 'bool' };
-
-/** camelCase field name -> PascalCase C# property name, e.g. "reference" -> "Reference". */
-function pascalField(name: string): string {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-/** The spec's one unique field, if it has one. validateSpec already guarantees at most one. */
-function uniqueField(spec: SliceSpec): FieldSpec | undefined {
-  return spec.fields.find((f) => f.unique === true);
-}
+import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
 
 /** "A" or "An", by the first sound of the noun that follows. Entity names are ordinary
  * English nouns (Order, Item, Address, ...), so a vowel-letter check is good enough. */

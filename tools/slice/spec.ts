@@ -118,6 +118,11 @@ export function validateSpec(raw: unknown): SliceSpec {
     if ('unique' in f && f.unique !== undefined && typeof f.unique !== 'boolean') {
       throw new Error('Field unique must be a boolean');
     }
+    // A unique boolean caps the table at two rows for all time; it is never what an author
+    // means, so it is rejected here rather than taught to every downstream emitter.
+    if (f.unique === true && f.type === 'boolean') {
+      throw new Error('A boolean field cannot be unique');
+    }
     if ('format' in f && f.format !== undefined && f.format !== 'email') {
       throw new Error('Field format must be email');
     }

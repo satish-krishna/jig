@@ -83,6 +83,13 @@ test('validateSpec rejects a non-string plural', () => {
   );
 });
 
+test('validateSpec rejects a unique boolean field', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'active', type: 'boolean', label: 'Active', unique: true }] }),
+    /boolean field.*cannot be unique/,
+  );
+});
+
 test('validateSpec accepts specs with no optional fields', () => {
   const spec = validateSpec({ ...base, fields: [{ name: 'a', type: 'number', label: 'Count' }] });
   assert.equal(spec.name, 'Order');

@@ -38,3 +38,18 @@ test('numeric fields use a decimal literal', () => {
   const t = emitDotnetTests(spec, 'Jig').find((f) => f.path.endsWith('OrderServiceTests.cs'))!.text;
   assert.match(t, /Total = 1m/);
 });
+
+test('a number-typed unique field gets distinct sample values across call sites', () => {
+  // ApiFixture shares one SQLite database across every [Fact] in the class: if the factory's
+  // sample and the duplicate test's shared value were the same literal, the two facts that
+  // actually insert a row would collide on it and one would fail unpredictably.
+  const t = emitDotnetTests(validateSpec({
+    name: 'Ticket', icon: 'lucideTicket',
+    fields: [{ name: 'seatNumber', type: 'number', label: 'Seat Number', unique: true }],
+  }), 'Jig').find((f) => f.path.endsWith('TicketsEndpointTests.cs'))!.text;
+  const factoryLiteral = t.match(/NewTicket\(\) => new \{ seatNumber = (\d+m) \};/)?.[1];
+  const dupLiteral = t.match(/var seatNumber = (\d+m);/)?.[1];
+  assert.ok(factoryLiteral, 'expected the factory to assign seatNumber a decimal literal');
+  assert.ok(dupLiteral, 'expected the duplicate test to declare a seatNumber decimal literal');
+  assert.notEqual(factoryLiteral, dupLiteral);
+});
