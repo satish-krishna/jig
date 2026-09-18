@@ -16,7 +16,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { validateSpec } from './spec.ts';
-import { detectProduct, parseArgs, plan } from './slice.ts';
+import { CATALOG_REFRESH_COMMAND, detectProduct, parseArgs, plan } from './slice.ts';
 
 // A minimal services/api/src/<name> tree, just enough for detectProduct to read.
 function fixtureRootWith(domainDirName: string): string {
@@ -64,6 +64,25 @@ test('plan emits no desktop-native file for a thin checkout', () => {
   const { writes, edits } = plan(spec, 'Jig', false);
   assert.ok(!writes.some((w) => w.path.endsWith('.rs')));
   assert.ok(!edits.some((e) => e.path.endsWith('lib.rs')));
+});
+
+// The generator writes annotated source in every layer, and `.bob/registry/` is generated
+// from exactly those annotations, so a run that stops at the last write leaves the catalog
+// stale — and `npm run verify` checks catalog freshness as its FIRST step, before it
+// compiles a line. A slice that generates cleanly and then fails the gate on a stale
+// catalog is not a slice that arrives green. Asserting both halves together keeps the two
+// facts from drifting: drop the annotations and this test stops being about anything; drop
+// the refresh and it fails.
+test('the emitted slice is annotated, so the run refreshes the catalog before it hands back', () => {
+  const { writes } = plan(spec, 'Jig', false);
+  const annotated = writes.filter((w) => /@capability|<capability>/.test(w.text));
+
+  assert.ok(annotated.length > 0, 'no emitted file declares a capability');
+  assert.match(
+    CATALOG_REFRESH_COMMAND,
+    /catalog/,
+    'emitted files declare capabilities but the run never regenerates the catalog',
+  );
 });
 
 // thick:start

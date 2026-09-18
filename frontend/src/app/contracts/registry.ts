@@ -23,6 +23,7 @@ export const ROUTES: { [K in OperationName]: HttpRoute<K> } = {
   'users.get': { method: 'GET', path: (req) => `/users/${req.id}`, hasBody: false },
   'users.save': { method: 'POST', path: () => '/users', hasBody: true },
 };
+// thick:start
 
 /** The Tauri command name each operation invokes on the IPC wire. */
 export const COMMANDS: { [K in OperationName]: string } = {
@@ -30,3 +31,4 @@ export const COMMANDS: { [K in OperationName]: string } = {
   'users.get': 'users_get',
   'users.save': 'users_save',
 };
+// thick:end

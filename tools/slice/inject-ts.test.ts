@@ -214,10 +214,46 @@ test('injectRegistry throws when the ROUTES object is gone', () => {
   );
 });
 
-test('injectRegistry throws when the COMMANDS object is gone', () => {
+// A registry with no COMMANDS map is not a broken registry — it is the shape a thin app
+// ships. `node tools/init/init.ts <App> --thin` deletes that map outright, because the
+// second transport it describes is gone with the native shell. So the map is optional
+// input, and the injector has to be total over both shapes: a throw here meant the
+// generator died halfway through phase B in every thin clone, after the .NET half had
+// already landed and codegen had already run.
+//
+// Skipping an absent map cannot hide a real defect, because COMMANDS is declared as
+// `{ [K in OperationName]: string }`: a map that exists but is missing this slice's
+// entries is a compile error in the app's own build, not something this injector is the
+// last line of defense for. ROUTES stays mandatory — an operation with no route has no
+// wire at all, on either shape.
+//
+// The fixture drops the map AND the sentence in the ROUTES doc comment that names it,
+// because the single-transport cut rewrites both. Dropping only the map would leave the
+// word COMMANDS in the file and let a lazier assertion below pass on a substring that has
+// nothing to do with the declaration under test.
+const THIN_REGISTRY = REGISTRY.slice(0, REGISTRY.indexOf('\n/** The native command name')).replace(
+  ' * @reuse Add the operation to Operations, then its ROUTES and COMMANDS entry; omissions fail the build.',
+  ' * @reuse Add the operation to Operations, then its ROUTES entry; omissions fail the build.',
+);
+
+test('injectRegistry adds only the ROUTES entries when the registry has no COMMANDS map', () => {
+  const out = injectRegistry(THIN_REGISTRY, spec);
+
+  assert.match(out, /'orders\.list': \{ method: 'GET', path: \(\) => '\/orders', hasBody: false \},/);
+  assert.match(out, /'orders\.save': \{ method: 'POST', path: \(\) => '\/orders', hasBody: true \},/);
+  assert.ok(!out.includes('COMMANDS'), 'invented a COMMANDS map the single-transport registry does not have');
+  assert.ok(!out.includes('orders_list'), 'emitted a native command name into a single-transport registry');
+});
+
+test('injectRegistry is idempotent on a registry with no COMMANDS map', () => {
+  const once = injectRegistry(THIN_REGISTRY, spec);
+  assert.equal(injectRegistry(once, spec), once);
+});
+
+test('injectRegistry throws when the ROUTES object is gone from a registry with no COMMANDS map', () => {
   assert.throws(
-    () => injectRegistry(REGISTRY.replace('export const COMMANDS', 'export const NOT_COMMANDS'), spec),
-    /registry\.ts: could not find the COMMANDS object literal/,
+    () => injectRegistry(THIN_REGISTRY.replace('export const ROUTES', 'export const NOT_ROUTES'), spec),
+    /registry\.ts: could not find the ROUTES object literal/,
   );
 });
 

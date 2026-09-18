@@ -132,8 +132,33 @@ function findConstObject(sf: ts.SourceFile, file: string, name: string): ts.Obje
   throw new Error(`${file}: could not find the ${name} object literal`);
 }
 
+/** findConstObject for a declaration that is legitimately absent in some shapes of a file. */
+function findOptionalConstObject(sf: ts.SourceFile, name: string): ts.ObjectLiteralExpression | undefined {
+  for (const stmt of sf.statements) {
+    if (!ts.isVariableStatement(stmt)) continue;
+    for (const decl of stmt.declarationList.declarations) {
+      if (decl.name.getText(sf) === name && decl.initializer && ts.isObjectLiteralExpression(decl.initializer)) {
+        return decl.initializer;
+      }
+    }
+  }
+  return undefined;
+}
+
 /**
- * Add a slice's three ROUTES and three COMMANDS entries to registry.ts.
+ * Add a slice's three ROUTES entries to registry.ts, and its three COMMANDS entries when
+ * that map is there to take them.
+ *
+ * ROUTES is required and COMMANDS is optional, because a registry with no COMMANDS map is
+ * not a damaged registry — it is the shape a single-transport app ships, where the second
+ * wire and the map naming its commands were both removed at init. Demanding both maps made
+ * this injector throw in every such app, and it threw in the middle of the generator's
+ * second phase, with the .NET half of the slice already written and codegen already run.
+ *
+ * Tolerating the absence cannot mask a real defect: COMMANDS is declared as
+ * `{ [K in OperationName]: string }`, so a map that exists and is missing an operation is
+ * a compile error in the app's own build. This injector is a convenience over that
+ * compiler check, never a substitute for it.
  *
  * @capability tools.slice.inject-registry
  * @intent Keep the transport registry — an HTTP route and a native command name per
@@ -146,7 +171,7 @@ export function injectRegistry(source: string, spec: SliceSpec): string {
 
   const sf = parse('registry.ts', source);
   const routesObj = findConstObject(sf, 'registry.ts', 'ROUTES');
-  const commandsObj = findConstObject(sf, 'registry.ts', 'COMMANDS');
+  const commandsObj = findOptionalConstObject(sf, 'COMMANDS');
 
   const routesText =
     `  '${n.opPrefix}.list': { method: 'GET', path: () => '${n.route}', hasBody: false },\n` +
@@ -157,8 +182,9 @@ export function injectRegistry(source: string, spec: SliceSpec): string {
     `  '${n.opPrefix}.get': '${n.snakePlural}_get',\n` +
     `  '${n.opPrefix}.save': '${n.snakePlural}_save',\n`;
 
-  // COMMANDS is declared after ROUTES, so its offset is the larger one — splice it first.
-  const withCommands = insertInto(source, commandsObj, commandsText);
+  // COMMANDS is declared after ROUTES, so its offset is the larger one — splice it first,
+  // or inserting into ROUTES shifts every offset past it and the second splice lands wrong.
+  const withCommands = commandsObj ? insertInto(source, commandsObj, commandsText) : source;
   return insertInto(withCommands, routesObj, routesText);
 }
 

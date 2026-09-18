@@ -195,6 +195,20 @@ function applyEdit(edit: PlannedEdit): void {
 
 const isDotnetWrite = (path: string) => path.startsWith('services/api/');
 
+/**
+ * Run once phase B has landed, before the CLI hands back.
+ *
+ * Every layer of a generated slice is annotated, and `.bob/registry/` is generated from
+ * those annotations — so the instant phase B writes those files the committed catalog is
+ * stale. Catalog freshness is the FIRST step of `npm run verify`, which is the very command
+ * this CLI prints as the next thing to do, so leaving it stale means a generated slice
+ * greets its author with a failing gate that has nothing to do with the slice. Regenerating
+ * here is what makes "a generated slice arrives green" true (ADR 0015).
+ *
+ * Exported so slice.test.ts can assert it without running main(), which writes to the tree.
+ */
+export const CATALOG_REFRESH_COMMAND = 'npm run catalog';
+
 export function main(): void {
   const args = parseArgs(process.argv.slice(2));
   const spec = loadSpec(args.specPath);
@@ -263,6 +277,9 @@ export function main(): void {
   console.log(`Phase B: writing ${phaseBWrites.length} file(s)...`);
   for (const w of phaseBWrites) writeGenerated(w);
   for (const e of phaseBEdits) applyEdit(e);
+
+  console.log(`Refreshing the capability catalog (${CATALOG_REFRESH_COMMAND})...`);
+  execSync(CATALOG_REFRESH_COMMAND, { cwd: ROOT, stdio: 'inherit' });
 
   console.log('\nNext steps:');
   console.log('  1. npm run verify');
