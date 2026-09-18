@@ -10,15 +10,16 @@ The rule bails out immediately outside the container tier: `create()` returns `{
 
 ## Why
 
-`docs/architecture/forms.md` mandates two form systems for this app: signal-forms for a form you author at compile time, and the dynamic `SchemaForm` renderer for a schema known only at runtime. Neither is template-driven forms. `FormsModule` is the template-driven forms API — `ngModel` and its friends — and this app has no legitimate use for it anywhere a feature or the shell author a form.
+`docs/architecture/forms.md` mandates two form systems for this app: the dynamic `SchemaForm` renderer as the default for every form, and Angular signal-forms for the exception, a form whose fields you must bind one by one. Neither is template-driven forms. `FormsModule` is the template-driven forms API — `ngModel` and its friends — and this app has no legitimate use for it anywhere a feature or the shell author a form.
 
 ### Why scoped to the container tier, and not every component
 
 The rule as first specified flagged `FormsModule`/`ReactiveFormsModule` in any component. That is broader than the architecture it is meant to enforce, and enforcing it as written would have the gate contradict `docs/architecture/forms.md` itself:
 
-- `ReactiveFormsModule` is imported in 17 files in this app today, and every one is legitimate. `frontend/src/app/forms/schema-form.ts` is the dynamic reactive renderer `docs/architecture/forms.md` calls for directly: it says outright, "do not try to render an unknown runtime schema through signal-forms (its typed field paths fight you) — use the dynamic renderer," and describes `SchemaForm` as building "a reactive `FormGroup` from the schema's fields." A rule flagging it would have the gate fight the document that governs it.
-- The other sixteen are showcase pages demoing spartan controls against reactive forms deliberately, with explanatory copy — `input.page.ts` carries `note="Driven by a real FormControl — the error clears once a valid email is typed."` That is the showcase doing its job, not drift.
-- `features/**` and `shell/**` — the container tier — contain **zero** reactive forms today. The mandate in `forms.md` is about how you author a *feature* form; the renderer and the demos sit outside it.
+- `ReactiveFormsModule` is imported in 25 files in this app today, and every one is legitimate. `frontend/src/app/forms/schema-form.ts` is the dynamic reactive renderer `docs/architecture/forms.md` makes the default for every form: it says outright, "Do not try to render an unknown runtime schema through signal-forms; its typed field paths fight you," and describes the renderer walking the schema into a field tree with a matching control tree. A rule flagging it would have the gate fight the document that governs it.
+- Eight more are the registered controls under `forms/controls/`, which is what `SchemaForm` renders each field through; they are the renderer's own parts, not separate forms.
+- The remaining sixteen are showcase pages demoing spartan controls against reactive forms deliberately, with explanatory copy — `input.page.ts` carries `note="Driven by a real FormControl — the error clears once a valid email is typed."` That is the showcase doing its job, not drift.
+- `features/**` and `shell/**` — the container tier — contain **zero** hand-built reactive forms today. `forms.md` is about how a *feature* form is authored; the renderer, its controls, and the demos sit outside it.
 
 So `no-forms-module` (and its sibling `no-reactive-form`) reuse the existing `tierOf` tier model rather than inventing a new exemption concept, and scope to the container tier: the tier the mandate actually governs. A feature or shell author reaching for `FormsModule` is still caught — that is the case `forms.md` forbids.
 
@@ -27,8 +28,8 @@ So `no-forms-module` (and its sibling `no-reactive-form`) reuse the existing `ti
     // frontend/src/app/features/users/user-form.ts
     @Component({
       selector: 'app-user-form',
-      imports: [FormField, HlmFieldImports, HlmInputImports, HlmButtonImports],
-      template: `<input hlmInput [formField]="form.name" />`,
+      imports: [SchemaForm],
+      template: `<app-schema-form [schema]="userFormSchema" submitLabel="Add user" (submitted)="onSubmitted($event)" />`,
     })
     export class UserForm { /* ... */ }
 
@@ -44,7 +45,7 @@ So `no-forms-module` (and its sibling `no-reactive-form`) reuse the existing `ti
 
 ## Measured count: zero, and that is the point
 
-`features/**` and `shell/**` contain zero `FormsModule` imports today. That is expected, not a sign of a broken or pointless rule: it is carried as prevention, the seventh such zero-violation rule on this branch (after `no-raw-icon`, `no-legacy-control-flow`, `no-ng-class-style`, `no-space-utility`, `no-raw-palette-color`, and `no-nested-flex-grid`). The team already builds container forms through signal-forms by convention; the rule's job is to keep it that way once forms are written faster than they are reviewed. A future reader who finds this rule with a zero-violation history should not read that as dead weight to delete — the `no-forms-module.test.ts` `RuleTester` cases are what prove the implementation still fires, independent of whether the live app currently has anything to catch.
+`features/**` and `shell/**` contain zero `FormsModule` imports today. That is expected, not a sign of a broken or pointless rule: it is carried as prevention, the seventh such zero-violation rule on this branch (after `no-raw-icon`, `no-legacy-control-flow`, `no-ng-class-style`, `no-space-utility`, `no-raw-palette-color`, and `no-nested-flex-grid`). Container forms go through `SchemaForm`, and `npm run slice` generates every new feature's form that way, so nothing in the tier reaches for reactive forms by hand; the rule's job is to keep it that way once forms are written faster than they are reviewed. A future reader who finds this rule with a zero-violation history should not read that as dead weight to delete — the `no-forms-module.test.ts` `RuleTester` cases are what prove the implementation still fires, independent of whether the live app currently has anything to catch.
 
 ## Known blind spots
 

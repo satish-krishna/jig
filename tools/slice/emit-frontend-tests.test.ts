@@ -118,8 +118,8 @@ test('a spec with no string field emits no validation tests and a still-valid su
   assert.equal(ts.match(/\n  it\(/g)!.length, 4);
 });
 
-// user-form.spec.ts is the golden spec now that user-form.ts is byte-for-byte what the
-// generator emits, so the emitted suite carries all six of its tests. Three of them were
+// user-form.spec.ts is the golden spec now that user-form.ts is the generator's own
+// output, so the emitted suite carries all six of its tests. Three of them were
 // missing: the submit-label check (the emitter emits submitLabel="Save {camel}", so it is
 // assertable), the before-first-submit check (which guards the trap its own comment
 // describes — the error slot stays mounted, so asserting absence can pass by accident),

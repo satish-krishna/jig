@@ -10,7 +10,7 @@ Read this before you build or change a form. A **zod schema is always the single
 | `features/users/user-form.ts` is the reference | `showcase/pages/signal-form.page.ts` is the reference |
 | `<app-schema-form [schema]="schema" (submitted)="...">` | `form(model, p => validateStandardSchema(p, schema))` |
 
-`SchemaForm` is the default, including for a schema you know at compile time. This used to be the other way around, on the reasoning that a known schema deserves typed field paths. The control registry (ADR 0013) removed the trade that argument rested on: a field's control is now resolved from its zod type, so rendering a known schema through `SchemaForm` costs one line and adding a field costs an edit to the schema alone. The hand-wired version cost an `hlm-field` block per field, a per-field error loop, and — because a component may not own form state — a ViewModel holding a form the component then reached back into.
+`SchemaForm` is the default, including for a schema you know at compile time. This used to be the other way around, on the reasoning that a known schema deserves typed field paths. The control registry (ADR 0013) removed the trade that argument rested on: a field's control is now resolved from its zod type, so rendering a known schema through `SchemaForm` costs one line and adding a field costs an edit to the schema alone. The hand-wired version cost an `hlm-field` block per field, a per-field error loop, and — because a container may not own form state — a ViewModel holding a form the component then reached back into.
 
 It matters beyond line count that the default is the renderer: `npm run slice` generates a feature's form, so the renderer is what every new slice in an app built from this template will use. An exemplar that demonstrated the other path would be showing agents a shape the generator never emits.
 
@@ -41,8 +41,8 @@ For a form whose fields you must bind one by one, `@angular/forms/signals` gives
 - **Build it from the same schema:** `form(model, (path) => validateStandardSchema(path, schema))` validates the whole form through zod.
 - **Controls are spartan helm.** Bind with `[formField]="form.name"` inside `hlm-field`; show errors from `form.name().errors()`.
 - **Submit runs only when valid:** `submit(this.form, async () => { ... })`.
-- **A component may not own the form.** `form()` is state, so it lives on a ViewModel the component provides (`no-state-outside-view-model`). That cost is one of the reasons the renderer is the default.
-- The worked example is `frontend/src/app/showcase/pages/signal-form.page.ts`.
+- **A container may not own the form.** `form()` is state, and `no-state-outside-view-model` covers the container tier — `features/**` and `shell/**` — so a feature that authors a form needs a ViewModel to hold it and a component that reaches back into it. That cost is one of the reasons the renderer is the default.
+- The worked example is `frontend/src/app/showcase/pages/signal-form.page.ts`, and it holds its demo forms on the page class, which the rule above allows: a showcase page is presentational tier, demonstrating a pattern rather than being a screen, and it owns nothing but its own demo state. That is the same carve-out `no-reactive-form` documents for the sixteen showcase pages that drive spartan controls through reactive forms on purpose. Since the renderer became the default it is also the only signal-forms code left in the app.
 
 ## Where spartan lives
 

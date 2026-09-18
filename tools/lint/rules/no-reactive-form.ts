@@ -12,16 +12,15 @@ export default {
   meta: {
     type: 'problem' as const,
     docs: {
-      description: 'A container component does not build a reactive form by hand. Signal-forms owns known forms.',
+      description: 'A container component does not build a reactive form by hand. SchemaForm renders it from the schema.',
       url: 'docs/architecture/rules/no-reactive-form.md',
     },
     schema: [],
     messages: {
       reactiveForm:
-        'ReactiveFormsModule and a hand-built FormGroup are the dynamic-renderer API, reserved ' +
-        'for forms/schema-form.ts rendering an unknown runtime schema. A feature form is known at ' +
-        'compile time, so it uses signal-forms instead. ' +
-        'Good: form(this.model, (path) => validateStandardSchema(path, userFormSchema))  ' +
+        'ReactiveFormsModule and a hand-built FormGroup restate by hand what forms/schema-form.ts ' +
+        'already builds from the zod schema, and the renderer is the default for every form here. ' +
+        'Good: <app-schema-form [schema]="userFormSchema" (submitted)="onSubmitted($event)" />  ' +
         'Bad: imports: [ReactiveFormsModule] with new FormGroup({ ... }). ' +
         'Copy frontend/src/app/features/users/user-form.ts.',
     },

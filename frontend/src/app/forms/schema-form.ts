@@ -9,10 +9,9 @@ import { applyZodIssues, clearZodIssues } from './schema-form.util';
 
 /**
  * Dynamic renderer for a zod schema, known at compile time or only at runtime. It
- * builds a control
- * tree from the schema, renders each field through the control registered for
- * its zod type, and validates through the schema on submit, folding issues back
- * onto the matching controls by path.
+ * builds a control tree from the schema, renders each field through the control
+ * registered for its zod type, and validates through the schema on submit, folding
+ * issues back onto the matching controls by path.
  *
  * This component knows NOTHING about control kinds. Adding one is a new file
  * plus one entry in controls/index.ts — see ADR on the control registry.

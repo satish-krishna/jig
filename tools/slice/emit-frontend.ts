@@ -4,11 +4,12 @@
 // access here — the CLI (a later task) decides where these EmittedFile entries land.
 //
 // The form is rendered through SchemaForm, not hand-wired: no {kebab}-form.view-model.ts
-// is emitted. frontend/src/app/features/users/user-form.ts is now byte-for-byte what
-// emitForm below produces, so the exemplar and the generator cannot disagree by reading;
-// docs/architecture/forms.md makes the renderer the default for every form. The schema
-// file below carries every field's shape, validation, and control kind, and the form
-// component wires nothing per field.
+// is emitted. frontend/src/app/features/users/user-form.ts is emitForm's own output for
+// examples/slices/users.slice.json, differing only in its exemplar prose and its "Add user"
+// submit label (domain copy the spec cannot carry — ADR 0015 names it), so the exemplar and
+// the generator no longer teach different shapes; docs/architecture/forms.md makes the
+// renderer the default for every form. The schema file below carries every field's shape,
+// validation, and control kind, and the form component wires nothing per field.
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';

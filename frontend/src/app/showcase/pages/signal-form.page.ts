@@ -35,8 +35,14 @@ const EMPTY: Profile = { displayName: '', email: '' };
  *
  * Each usage gets its own model and form because they demonstrate different
  * states of the same pattern, and a shared instance would make one usage's
- * interaction change another's. `features/users/user-form.ts` stays the
- * canonical reference; this page documents the shape, it does not fork it.
+ * interaction change another's. This page is the reference for that pattern:
+ * `docs/architecture/forms.md` makes `SchemaForm` the default for every form and
+ * keeps signal-forms for a form whose fields you must bind one by one, and this
+ * is the only signal-forms code left in the app.
+ *
+ * The forms live on the page class rather than on a ViewModel, which
+ * `no-state-outside-view-model` permits: a showcase page is presentational tier,
+ * not a container, and owns nothing but its own demo state.
  */
 @Component({
   selector: 'app-signal-form-page',
@@ -45,7 +51,7 @@ const EMPTY: Profile = { displayName: '', email: '' };
     <app-component-page slug="signal-form">
       <app-usage
         title="An authored form"
-        note="The model type is z.infer — never a hand-written interface. Reference: features/users/user-form.ts."
+        note="The model type is z.infer — never a hand-written interface. The schema and the form are authored together."
         [code]="codeAuthored"
       >
         <form hlmFieldGroup class="grid w-full max-w-sm" (submit)="onAuthoredSubmit($event)">

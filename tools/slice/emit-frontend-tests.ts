@@ -244,10 +244,10 @@ describe('${n.pascal}ListView', () => {
 
 // ---------------------------------------------------------------------------
 // frontend/src/app/features/{kebabPlural}/{kebab}-form.spec.ts
-// shape source: user-form.spec.ts. Since Task 10 made user-form.ts byte-for-byte what
-// emit-frontend.ts emits, its spec is the golden suite for the emitted component and all
-// six of its tests are reproduced here — minus the two that need a string field (see
-// below), which the exemplar has and some specs do not.
+// shape source: user-form.spec.ts. user-form.ts is emit-frontend.ts's own output now, so
+// its spec is the golden suite for the emitted component and all six of its tests are
+// reproduced here — minus the two that need a string field (see below), which the exemplar
+// has and some specs do not.
 // ---------------------------------------------------------------------------
 
 function emitFormSpec(spec: SliceSpec, n: SliceNames): EmittedFile {

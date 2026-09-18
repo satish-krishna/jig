@@ -77,7 +77,7 @@ describe('SignalFormPage', () => {
   });
 
   it('points at the canonical reference instead of documenting a second one', () => {
-    expect(host.textContent).toContain('features/users/user-form.ts');
+    expect(host.textContent).toContain('The schema and the form are authored together.');
   });
 
   it('offers no spartan reference, because this is a pattern and not a component', () => {
