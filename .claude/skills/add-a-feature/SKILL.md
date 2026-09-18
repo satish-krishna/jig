@@ -1,19 +1,17 @@
 ---
 name: add-a-feature
-description: Use when adding a whole vertical slice to this app — anything that needs backend data and a screen to show it. Covers the order the layers must be built in and the handoffs that bite, then hands each layer to its own skill. Reach for this on "add a feature", "add users/orders/projects to the app", "new slice", "build X end to end", "I need a page that lists Y", or any request that will end up touching both the API and the UI. Read it BEFORE writing the first file, because the contract cannot be written until the API exists and codegen has run — doing it in the natural reading order produces hand-typed DTOs that compile and silently drift.
+description: Use when adding a whole vertical slice to this app — anything that needs backend data and a screen to show it. A slice is generated, not hand-written; this skill covers what to do before running the generator, what the generator cannot know, and which spoke owns each of those. Reach for this on "add a feature", "add users/orders/projects to the app", "new slice", "build X end to end", "I need a page that lists Y", or any request that will end up touching both the API and the UI. Read it BEFORE writing the first file, because writing a slice by hand in the order the file names invite produces hand-typed DTOs that compile and silently drift.
 ---
 
 # Add a feature
 
-This skill owns the build order for a whole vertical slice, backend data through to the screen that shows it, and hands each layer to its own spoke skill so this file never repeats their content. The order below is not the one you would reach for by reading top to bottom, because a response type only exists once the API is built and codegen has run against it.
+A whole vertical slice is generated. `npm run slice` emits twenty-four files — the .NET layers and their tests, the contract, the screen, the form, the native store — edits nine registries, and leaves a tree that passes `npm run verify`. Do not hand-write a slice that the generator can emit.
 
-## Where you are
-
-This skill covers the whole slice, front to back; if you only need one layer, skip straight to that spoke instead of working through every step below — `.claude/skills/add-an-api-slice/SKILL.md`, `.claude/skills/add-a-screen/SKILL.md`, `.claude/skills/add-a-form/SKILL.md`, or `.claude/skills/add-a-view-model/SKILL.md`.
+This skill covers the three things around it: what to do before you run it, what it cannot know, and who owns each of those.
 
 ## Discover first
 
-The CLAUDE.md prime directive, restated for a feature slice:
+The CLAUDE.md prime directive, restated for a feature slice. The generator will not tell you that the capability already exists — it will happily emit a second one.
 
 1. Read `.bob/registry/CATALOG.md` for the area you are about to touch.
 2. LSP-search the concept via workspace-symbol before reaching for grep.
@@ -22,49 +20,37 @@ The CLAUDE.md prime directive, restated for a feature slice:
 
 The smell test for each of these is in `CONTRIBUTING.md`.
 
-## The order
+## Generate the slice
 
-Discover (above) is the prerequisite, not a build step, so numbering here starts at 1. Each item states its own step number as text rather than relying on list auto-numbering, so every step keeps the same number whatever the list around it looks like. A gap in the sequence is deliberate; nothing is missing from it.
+1. Copy `examples/slices/users.slice.json`, change the name, the icon and the fields.
+2. `npm run slice -- --spec <file> --dry-run` to see what it would write and edit.
+3. Commit or stash first — the generator refuses a dirty tree, because git is the only way back from twenty-four files and nine edits.
+4. `npm run slice -- --spec <file>`, then `npm run verify`.
 
+**Why this is a tool and not a checklist:** the generator runs in two phases with `npm run codegen` between them. A response type resolves to a generated DTO, so the API has to exist and codegen has to have run before a single line of the contract is written. Emitting both halves first produces TypeScript referencing DTOs the API has not emitted — it fails, but only after every file has landed. That ordering is the trap the generator exists to make unmissable.
+
+## What the generator does not know
+
+It emits CRUD: list, get, save, a list screen, a form over the spec's fields. Everything past that is yours, and everything past that is TDD in the literal sense — the failing test comes first.
+
+| What you are adding | Spoke |
+|---|---|
+| Domain behavior beyond create/read/list, a new endpoint, a validator rule | `.claude/skills/add-an-api-slice/SKILL.md` |
+| An operation the generator did not emit | `.claude/skills/conduit/SKILL.md` |
+| A second screen, a detail view, different menu placement | `.claude/skills/add-a-screen/SKILL.md` |
+| A field whose control kind does not exist yet | `.claude/skills/add-a-form/SKILL.md` |
+| A ViewModel or capability service of your own | `.claude/skills/add-a-view-model/SKILL.md` |
 <!-- thick:start -->
-The gap is step 4, which the thin cut removes outright. An ordered list renumbers sequentially from whichever item renders first, so it would silently relabel "step 5" as "step 4" for a thin-client reader.
-
+| A native command beyond the generated store | `.claude/skills/add-a-tauri-command/SKILL.md` |
 <!-- thick:end -->
-- **Step 1:** .NET slice: domain → application + `Result<T>` → infrastructure → endpoint, TDD at each step — owner: `.claude/skills/add-an-api-slice/SKILL.md`
-- **Step 2:** `npm run codegen` — DTOs regenerate. **The trap.** Nothing downstream exists without it — owner: hub
-- **Step 3:** Contract: `operations.ts` + `registry.ts` `ROUTES` — owner: `.claude/skills/conduit/SKILL.md`
 
-<!-- thick:start -->
-- **Step 4:** Rust command matching the registry, TDD (thick only) — owner: `.claude/skills/add-a-tauri-command/SKILL.md`
+**Extend the generated tests; do not replace them.** They cover CRUD and they were written red-green-refactor against the emitters, one level up. `.bob/adr/0015-generated-slices-satisfy-tdd-at-the-generator.md` records why that satisfies the TDD gate and where the exemption stops.
 
-<!-- thick:end -->
-- **Step 5:** Data access: `UserOperations` facade, then a ViewModel exposing signals — owner: `.claude/skills/conduit/SKILL.md`, `.claude/skills/add-a-view-model/SKILL.md`
-- **Step 6:** Screen: view + route + menu command contribution — owner: `.claude/skills/add-a-screen/SKILL.md`
-- **Step 7:** Form, when the feature has one: zod schema → `z.infer` → `SchemaForm` — owner: `.claude/skills/add-a-form/SKILL.md`
-- **Step 8:** Annotate every reusable unit, then `npm run catalog` — owner: hub
-- **Step 9:** `npm run verify`, conventional commit, feature branch — owner: hub
+**A generated file that is wrong is a generator bug.** Fix the emitter in `tools/slice/`, add its unit test, and regenerate. Editing the generated file means the next slice reintroduces the defect.
 
-<!-- thick:start -->
-Step 3 also fills in `registry.ts`'s `COMMANDS` map, one entry per operation, so the IPC wire has a command to call.
+## Changing a slice that already exists
 
-<!-- thick:end -->
-```mermaid
-flowchart TD
-    A[.NET slice] --> C[npm run codegen]
-    C --> R[Contract: operations + registry]
-    R --> O[UserOperations + ViewModel]
-    O --> S[Screen: view, route, menu]
-    S --> F[Form, if any]
-    F --> N[Annotate + catalog]
-    S --> N
-    N --> G[verify, commit at green]
-```
-
-<!-- thick:start -->
-Thick clients insert step 4 between the contract and data access: a Rust command matching the registry, owned by `.claude/skills/add-a-tauri-command/SKILL.md`, TDD at each step.
-
-<!-- thick:end -->
-The trap is step 2. Response types resolve to generated DTOs, so the API shapes exist first, `npm run codegen` runs second, and the contract is written third. Writing the contract first, the order the file names invite, produces a hand-typed interface that compiles and quietly drifts from the API it claims to describe.
+Skip everything above and go straight to the spoke that owns the layer you are touching.
 
 ## What the hooks will say
 
@@ -74,4 +60,4 @@ The trap is step 2. Response types resolve to generated DTOs, so the API shapes 
 
 ## Before you commit
 
-Annotate every new reusable unit with `@capability`, `@intent`, `@reuse` (the shape is in `CONTRIBUTING.md`), run `npm run catalog`, run `npm run verify`, then commit with a conventional message on a feature branch.
+The generator refreshes the catalog itself. Anything you added by hand does not: annotate every new reusable unit with `@capability`, `@intent`, `@reuse` (the shape is in `CONTRIBUTING.md`) and run `npm run catalog`. Then `npm run verify`, and commit with a conventional message on a feature branch.
