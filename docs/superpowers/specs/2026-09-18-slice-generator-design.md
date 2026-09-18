@@ -5,7 +5,7 @@ Date: 2026-09-18
 
 ## Why
 
-A jig feature is a vertical: endpoint → OpenAPI → generated DTO → operation key → HTTP route and IPC command → repository → ViewModel → view. Today an agent builds one by reading the `users` exemplar and emitting roughly twenty-seven files. That works — Tour of Heroes proved it — but it costs about 25k output tokens per slice, and in a cloned application several slices land in a day.
+A jig feature is a vertical: endpoint → OpenAPI → generated DTO → operation key → HTTP route and IPC command → repository → ViewModel → view. Today an agent builds one by reading the `users` exemplar and emitting roughly two dozen files. That works — Tour of Heroes proved it — but it costs about 25k output tokens per slice, and in a cloned application several slices land in a day.
 
 The generator is a token-economics play. It is not a correctness play: the lint ruleset, the Roslyn layer rules, and `npm run verify` already prevent drift, and they did so for a slice an agent wrote by hand. The claim under test is narrower — that emitting the invariant part mechanically is cheaper than emitting it through a model, with no loss of quality.
 
@@ -51,7 +51,7 @@ interface FieldSpec {
 ]}
 ```
 
-Twelve lines producing twenty-seven files. That ratio is the whole argument.
+Twelve lines producing twenty-four files. That ratio is the whole argument.
 
 ### Classification
 
@@ -73,10 +73,9 @@ Every file is shape. The column records what the spec varies inside it.
 | `features/{es}/{e}-list.view-model.ts` | names only |
 | `features/{es}/{e}-list.view.ts` | names, list row renders each field |
 | `features/{es}/{e}-form.schema.ts` | fields |
-| `features/{es}/{e}-form.view-model.ts` | fields (`markAsTouched` per field, empty model) |
-| `features/{es}/{e}-form.ts` | fields (one `hlm-field` block each) |
+| `features/{es}/{e}-form.ts` | names only — it renders the schema through `SchemaForm` and binds no field itself |
 | `features/{es}/{es}.commands.ts` | names, icon |
-| the eight test files | fields (sample values) |
+| the seven test files | fields (sample values) |
 
 The `users` files carry prose that is exemplar documentation rather than slice shape — "This is the reference ViewModel: copy its shape", the note in `user-form.ts` explaining why `hlm-field-error` is not guarded on `touched()`. Generated slices do not inherit that; it belongs to the exemplar's teaching job, not to the shape.
 
