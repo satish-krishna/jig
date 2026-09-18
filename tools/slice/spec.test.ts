@@ -131,6 +131,41 @@ test('validateSpec reserves the id field name', () => {
   );
 });
 
+// A field named after a keyword in one of the three emitted languages breaks a build far
+// from this validation: `string string` in a C# signature, a native struct field that
+// will not parse, a TypeScript identifier-shaped key that will not parse either. All
+// three are silent until the far-away build fails, so they are rejected here instead.
+// ("native" here, and in the assertion below, is this codebase's own word for the
+// desktop runtime a thin clone does not have — see the RUST_RESERVED comment in spec.ts.)
+test('validateSpec rejects a field name that is a C# keyword', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'decimal', type: 'string', label: 'X' }] }),
+    /reserved.*C#/,
+  );
+});
+
+test('validateSpec rejects a field name that is a native-runtime keyword', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'impl', type: 'string', label: 'X' }] }),
+    /reserved.*native/,
+  );
+});
+
+test('validateSpec rejects a field name that is a TypeScript keyword', () => {
+  assert.throws(
+    () => validateSpec({ ...base, fields: [{ name: 'instanceof', type: 'string', label: 'X' }] }),
+    /reserved.*TypeScript/,
+  );
+});
+
+// The check must not over-reach: a name that merely looks risky, but is reserved
+// nowhere, stays legal.
+test('validateSpec accepts field names that look risky but reserve nothing', () => {
+  for (const good of ['value', 'data']) {
+    assert.ok(validateSpec({ ...base, fields: [{ name: good, type: 'string', label: 'X' }] }));
+  }
+});
+
 test('validateSpec rejects two fields with the same name', () => {
   assert.throws(
     () => validateSpec({ ...base, fields: [

@@ -60,6 +60,72 @@ const ICON_IDENTIFIER = /^[A-Za-z][A-Za-z0-9]*$/;
 const RESERVED_FIELD_NAMES = new Set(['id']);
 
 /**
+ * Reserved words across the three languages the generator emits into, kept as three
+ * named sets rather than one union so a reader can see where each word came from.
+ * None of this aims at exhaustive coverage of every contextual keyword — only the
+ * words that actually break a build when spliced in as a field name. `value` and
+ * `data` are deliberately absent from all three: they read as risky but are not
+ * reserved anywhere, and staying out is the point (see spec.test.ts).
+ */
+
+/**
+ * C# reserved keywords (not the contextual ones like `var`, `async`, or `nameof`,
+ * which remain legal identifiers). A field becomes a property (emit-dotnet.ts:
+ * `public required {Type} {Field} { get; set; }`) and a SaveAsync parameter, so any
+ * of these breaks the emitted entity, DTO, mapper, or validator outright.
+ */
+const CSHARP_RESERVED = new Set([
+  'abstract', 'as', 'base', 'bool', 'break', 'byte', 'case', 'catch', 'char', 'checked',
+  'class', 'const', 'continue', 'decimal', 'default', 'delegate', 'do', 'double', 'else',
+  'enum', 'event', 'explicit', 'extern', 'false', 'finally', 'fixed', 'float', 'for',
+  'foreach', 'goto', 'if', 'implicit', 'in', 'int', 'interface', 'internal', 'is', 'lock',
+  'long', 'namespace', 'new', 'null', 'object', 'operator', 'out', 'override', 'params',
+  'private', 'protected', 'public', 'readonly', 'ref', 'return', 'sbyte', 'sealed',
+  'short', 'sizeof', 'stackalloc', 'static', 'string', 'struct', 'switch', 'this',
+  'throw', 'true', 'try', 'typeof', 'uint', 'ulong', 'unchecked', 'unsafe', 'ushort',
+  'using', 'virtual', 'void', 'volatile', 'while',
+]);
+
+/**
+ * The native runtime's keywords (the strict, always-reserved set — not `union` or other
+ * weak keywords that stay legal identifiers). A field name becomes a struct field
+ * identifier in the generated store (`pub {name}: {type}`) and a command parameter
+ * name; the native runtime has no fallback for a keyword there short of a raw
+ * identifier this generator never emits. `Self` is left out below: a camelCase field
+ * can never spell it.
+ */
+const RUST_RESERVED = new Set([
+  'as', 'async', 'await', 'break', 'const', 'continue', 'crate', 'dyn', 'else', 'enum',
+  'extern', 'false', 'fn', 'for', 'if', 'impl', 'in', 'let', 'loop', 'match', 'mod',
+  'move', 'mut', 'pub', 'ref', 'return', 'self', 'static', 'struct', 'super', 'trait',
+  'true', 'type', 'unsafe', 'use', 'where', 'while',
+]);
+
+/**
+ * TypeScript/JavaScript reserved words (not the contextual ones like `type`, `of`, or
+ * `readonly`, which stay legal identifiers — and `type` is already covered above via
+ * the native set). A field name is spliced as an identifier-shaped key into the
+ * generated zod schema object and the form model.
+ */
+const TYPESCRIPT_RESERVED = new Set([
+  'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default',
+  'delete', 'do', 'else', 'enum', 'export', 'extends', 'false', 'finally', 'for',
+  'function', 'if', 'implements', 'import', 'in', 'instanceof', 'interface', 'let',
+  'new', 'null', 'package', 'private', 'protected', 'public', 'return', 'static',
+  'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void', 'while',
+  'with', 'yield', 'await',
+]);
+
+/** Which of the three languages above reserve `name`, by display name, in a fixed order. */
+function reservingLanguages(name: string): string[] {
+  const langs: string[] = [];
+  if (CSHARP_RESERVED.has(name)) langs.push('C#');
+  if (RUST_RESERVED.has(name)) langs.push('native');
+  if (TYPESCRIPT_RESERVED.has(name)) langs.push('TypeScript');
+  return langs;
+}
+
+/**
  * Human-facing copy (label, placeholder) is escaped at each emit site rather than rejected
  * here — an apostrophe in an English label is ordinary. A control character is not: a
  * newline cannot be escaped into a single-quoted TypeScript literal at all, so it is the
@@ -79,7 +145,8 @@ function assertCopy(value: string, what: string): void {
  * with a message that names the constraint violated. Constraints: name and plural must be
  * PascalCase identifiers, icon must be an identifier, fields must be non-empty with at most
  * one unique field, and each field must have a unique camelCase-identifier name that is not
- * `id`, a type from the allowed set, and a label free of control characters.
+ * `id` or a C#/native/TypeScript reserved word, a type from the allowed set, and a label
+ * free of control characters.
  */
 export function validateSpec(raw: unknown): SliceSpec {
   // Type guard: must be an object
@@ -148,6 +215,12 @@ export function validateSpec(raw: unknown): SliceSpec {
     }
     if (RESERVED_FIELD_NAMES.has(f.name)) {
       throw new Error(`Field name ${JSON.stringify(f.name)} is reserved: every entity already has one`);
+    }
+    const reservedIn = reservingLanguages(f.name);
+    if (reservedIn.length > 0) {
+      throw new Error(
+        `Field name ${JSON.stringify(f.name)} is reserved: it is a keyword in ${reservedIn.join(', ')}`,
+      );
     }
     if (seen.has(f.name)) {
       throw new Error(`Duplicate field name ${JSON.stringify(f.name)}`);

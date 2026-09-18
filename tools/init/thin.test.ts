@@ -140,7 +140,7 @@ const FORBIDDEN: readonly (readonly [string, RegExp])[] = [
   ['isTauri() call', /isTauri/],
   ['IpcTransport symbol', /IpcTransport/],
   ['ipc.transport module', /ipc\.transport/],
-  ['Tauri prose', /\bTauri\b/],
+  ['Tauri prose', /\bTauri\b/i],
   ['IPC prose', /\bIPC\b/],
   ['Rust prose', /\brust(c|-analyzer)?\b/i],
   ['cargo command', /\bcargo\b/i],
