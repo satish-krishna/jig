@@ -15,6 +15,9 @@
 import type { SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { pascalField, uniqueField } from './csharp.ts';
+// thick:start
+import { RUST_TYPE } from './emit-rust.ts';
+// thick:end
 
 /** Insert `text` immediately after the sole occurrence of `anchor`. Loud on miss or ambiguity. */
 export function insertAfter(file: string, source: string, anchor: string, text: string): string {
@@ -144,14 +147,15 @@ export function injectDbContext(source: string, spec: SliceSpec, product = 'Jig'
 
 // thick:start
 /**
- * Add a slice's module declaration and its three command-handler entries to the desktop
- * entry point. Anchors on `mod commands;` (present in every clone regardless of which
- * sample slice was generated) and the `generate_handler!` list's opening bracket, never
- * on the `users` sample's own module or handler entries.
+ * Add a slice's module declaration, its managed store, and its three command-handler
+ * entries to the desktop entry point. Anchors on `mod commands;`, the plugin registration
+ * line, and the `generate_handler!` list's opening bracket — all three present in every
+ * clone regardless of which sample slice was generated — never on the `users` sample's
+ * own module, managed store, or handler entries.
  *
  * @capability tools.slice.inject-lib-rs
- * @intent Wire a generated slice's commands into the desktop shell without depending on
- * the sample slice being present.
+ * @intent Wire a generated slice's store and commands into the desktop shell without
+ * depending on the sample slice being present.
  * @reuse Call once per slice from the generator CLI; idempotent on the module declaration.
  * `product` is accepted but unused, for the same call-shape-uniformity reason as
  * injectApplicationModule — the entry point never names the product either.
@@ -167,10 +171,80 @@ export function injectLibRs(source: string, spec: SliceSpec, product?: string): 
 
   const withModule = insertAfter('lib.rs', source, 'mod commands;\n', `${moduleDecl}\n`);
 
+  // The store type has to be in scope for .manage() below to name it — mirrors the
+  // exemplar's own `use users::UserStore;`. Anchored on the module declaration this
+  // function just inserted, which is unique in the file by construction (the guard
+  // above already proved it was absent before this call).
+  const withUse = insertAfter('lib.rs', withModule, `${moduleDecl}\n`, `use ${n.snakePlural}::${n.pascal}Store;\n`);
+
+  const withManage = insertAfter(
+    'lib.rs',
+    withUse,
+    '.plugin(tauri_plugin_updater::Builder::new().build())\n',
+    `        .manage(${n.pascal}Store::default())\n`,
+  );
+
   const handlers =
     `            commands::${n.snakePlural}_list,\n` +
     `            commands::${n.snakePlural}_get,\n` +
     `            commands::${n.snakePlural}_save,\n`;
-  return insertAfter('lib.rs', withModule, 'tauri::generate_handler![\n', handlers);
+  return insertAfter('lib.rs', withManage, 'tauri::generate_handler![\n', handlers);
+}
+
+/**
+ * Add a slice's `use` import and its three `#[tauri::command]` adapter functions to the
+ * desktop shell's shared command-adapter file. Anchors on `use tauri::State;` (present in
+ * every clone regardless of which sample slice was generated) for the import, and the
+ * adapters are appended at the end of the file — commands.rs is nothing but a growing list
+ * of adapters, so "the end of the file" is itself the structural anchor rather than any
+ * one adapter's own content. Mirrors the exemplar's own users_list/users_get/users_save
+ * shape exactly: deref the managed store, stringify errors into a rejected invoke.
+ *
+ * @capability tools.slice.inject-commands-rs
+ * @intent Wire a generated slice's store into the desktop shell's command layer, matching
+ * `injectLibRs`'s `commands::{slice}_*` handler entries with real adapter functions.
+ * @reuse Call once per slice from the generator CLI, alongside injectLibRs; idempotent on
+ * the list adapter's own signature.
+ */
+export function injectCommandsRs(source: string, spec: SliceSpec): string {
+  const n = deriveNames(spec);
+  const marker = `pub fn ${n.snakePlural}_list(`;
+  if (source.includes(marker)) return source;
+
+  const withUse = insertAfter(
+    'commands.rs',
+    source,
+    'use tauri::State;\n',
+    `use crate::${n.snakePlural}::{${n.pascal}, ${n.pascal}Store};\n`,
+  );
+
+  const params = spec.fields.map((f) => `    ${f.name}: ${RUST_TYPE[f.type]},`).join('\n');
+  const saveArgs = spec.fields.map((f) => f.name).join(', ');
+
+  const adapters = `
+/// ${n.opPrefix}.list — returns every ${n.camel}.
+#[tauri::command]
+pub fn ${n.snakePlural}_list(store: State<'_, ${n.pascal}Store>) -> Vec<${n.pascal}> {
+    store.list()
+}
+
+/// ${n.opPrefix}.get — one ${n.camel}, or a rejected invoke carrying the not-found message.
+#[tauri::command]
+pub fn ${n.snakePlural}_get(id: String, store: State<'_, ${n.pascal}Store>) -> Result<${n.pascal}, String> {
+    store.get(&id).map_err(|e| e.to_string())
+}
+
+/// ${n.opPrefix}.save — create (null id) or update; conflict and not-found become a rejected invoke.
+#[tauri::command]
+pub fn ${n.snakePlural}_save(
+    id: Option<String>,
+${params}
+    store: State<'_, ${n.pascal}Store>,
+) -> Result<${n.pascal}, String> {
+    store.save(id, ${saveArgs}).map_err(|e| e.to_string())
+}
+`;
+
+  return withUse + adapters;
 }
 // thick:end

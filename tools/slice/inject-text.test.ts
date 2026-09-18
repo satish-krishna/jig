@@ -19,7 +19,7 @@ import {
   injectInfrastructureModule,
 } from './inject-text.ts';
 // thick:start
-import { injectLibRs } from './inject-text.ts';
+import { injectCommandsRs, injectLibRs } from './inject-text.ts';
 // thick:end
 
 const spec = validateSpec({
@@ -139,6 +139,36 @@ pub fn run() {
         .expect("error while running application");
 }
 `;
+
+// A copy of the desktop entry point's command-adapter file. These are deliberately thin:
+// they deref the managed store and stringify errors into a rejected invoke. All behavior
+// is in the per-entity store and tested there.
+const COMMANDS_RS = `use crate::users::{User, UserStore};
+use tauri::State;
+
+/// users.list — returns every user.
+#[tauri::command]
+pub fn users_list(store: State<'_, UserStore>) -> Vec<User> {
+    store.list()
+}
+
+/// users.get — one user, or a rejected invoke carrying the not-found message.
+#[tauri::command]
+pub fn users_get(id: String, store: State<'_, UserStore>) -> Result<User, String> {
+    store.get(&id).map_err(|e| e.to_string())
+}
+
+/// users.save — create (null id) or update; conflict and not-found become a rejected invoke.
+#[tauri::command]
+pub fn users_save(
+    id: Option<String>,
+    name: String,
+    email: String,
+    store: State<'_, UserStore>,
+) -> Result<User, String> {
+    store.save(id, name, email).map_err(|e| e.to_string())
+}
+`;
 // thick:end
 test('injectApplicationModule registers the service before the return', () => {
   const out = injectApplicationModule(APP_MODULE, spec);
@@ -175,12 +205,30 @@ test('a slice with no unique field gets no unique index', () => {
 });
 
 // thick:start
-test('injectLibRs adds the module and the three handlers', () => {
+test('injectLibRs adds the module, its store import, the managed store, and the three handlers', () => {
   const out = injectLibRs(LIB_RS, spec);
   assert.match(out, /^mod orders;$/m);
+  assert.match(out, /^use orders::OrderStore;$/m);
+  assert.match(out, /\.manage\(OrderStore::default\(\)\)/);
   assert.match(out, /commands::orders_list,/);
   assert.match(out, /commands::orders_get,/);
   assert.match(out, /commands::orders_save,/);
+  // The exemplar's own managed store survives alongside the new one — DI in this generator
+  // is additive, never a replacement, the same rule injectApplicationModule's test enforces.
+  assert.match(out, /\.manage\(UserStore::default\(\)\)/);
+});
+
+test('injectCommandsRs adds the use import and the three command adapters', () => {
+  const out = injectCommandsRs(COMMANDS_RS, spec);
+  assert.match(out, /use crate::orders::\{Order, OrderStore\};/);
+  assert.match(out, /pub fn orders_list\(store: State<'_, OrderStore>\) -> Vec<Order> \{/);
+  assert.match(out, /pub fn orders_get\(id: String, store: State<'_, OrderStore>\) -> Result<Order, String> \{/);
+  assert.match(out, /pub fn orders_save\(/);
+  assert.match(out, /reference: String,/);
+  assert.match(out, /total: f64,/);
+  assert.match(out, /store\.save\(id, reference, total\)\.map_err\(\|e\| e\.to_string\(\)\)/);
+  // The exemplar's own adapters survive alongside the new ones.
+  assert.match(out, /pub fn users_list\(/);
 });
 // thick:end
 test('every injector is idempotent', () => {
@@ -195,6 +243,8 @@ test('every injector is idempotent', () => {
   // thick:start
   const onceRs = injectLibRs(LIB_RS, spec);
   assert.equal(injectLibRs(onceRs, spec), onceRs);
+  const onceCommands = injectCommandsRs(COMMANDS_RS, spec);
+  assert.equal(injectCommandsRs(onceCommands, spec), onceCommands);
   // thick:end
 });
 
@@ -207,3 +257,13 @@ test('an ambiguous anchor throws', () => {
   assert.throws(() => injectApplicationModule(APP_MODULE + APP_MODULE, spec),
     /ApplicationModule\.cs: anchor is ambiguous/);
 });
+
+// thick:start
+test('injectLibRs throws with the file and the anchor when the entry point is unrecognizable', () => {
+  assert.throws(() => injectLibRs('fn run() {}', spec), /lib\.rs: anchor not found/);
+});
+
+test('injectCommandsRs throws with the file and the anchor when the adapter file is unrecognizable', () => {
+  assert.throws(() => injectCommandsRs('// nothing here', spec), /commands\.rs: anchor not found/);
+});
+// thick:end

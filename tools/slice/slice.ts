@@ -17,9 +17,8 @@ import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { EmittedFile, FieldSpec, SliceSpec } from './spec.ts';
-import { deriveNames, loadSpec } from './spec.ts';
-import { uniqueField } from './csharp.ts';
+import type { EmittedFile, SliceSpec } from './spec.ts';
+import { loadSpec } from './spec.ts';
 import { emitDotnet } from './emit-dotnet.ts';
 import { emitDotnetTests } from './emit-dotnet-tests.ts';
 import { emitFrontend } from './emit-frontend.ts';
@@ -28,16 +27,18 @@ import { injectAppConfig, injectOperations, injectRegistry, injectRoutes } from 
 import { injectApplicationModule, injectDbContext, injectInfrastructureModule } from './inject-text.ts';
 import { isTreeClean } from '../ui-style/ui-style.ts';
 // The desktop shell's per-slice wiring is optional machinery a thin clone never has, so its
-// import stays wrapped the same way inject-text.ts wraps its own entry-point injector — see
+// imports stay wrapped the same way inject-text.ts wraps its own entry-point injectors — see
 // inject-text.test.ts for the precedent this follows.
 // thick:start
-import { injectLibRs } from './inject-text.ts';
+import { emitRustStore } from './emit-rust.ts';
+import { injectCommandsRs, injectLibRs } from './inject-text.ts';
 // thick:end
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // thick:start
 const SRC_TAURI = join(ROOT, 'apps', 'desktop', 'src-tauri');
 const RUST_LIB_PATH = 'apps/desktop/src-tauri/src/lib.rs';
+const RUST_COMMANDS_PATH = 'apps/desktop/src-tauri/src/commands.rs';
 // thick:end
 
 // ---------------------------------------------------------------------------
@@ -117,202 +118,12 @@ export function detectProduct(root: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// The desktop shell's per-slice store (thick only)
+// The desktop shell (thick only)
 // ---------------------------------------------------------------------------
-// No earlier task emits this file: Tasks 2-5 cover .NET and Angular, and Task 7's
-// inject-text.ts only ever EDITS the desktop entry point, it does not create the store a
-// generated slice needs. This is that missing write, built the same way every other
-// emitter here is — shape substituted from the spec, no residual logic — and it mirrors
-// the shape of the one hand-written store the exemplar already ships.
-//
-// KNOWN GAP, disclosed rather than silently shipped: the entry-point edit below wires
-// `commands::{slice}_list` etc. into the handler list, matching how the exemplar's own
-// adapters live in its shared command-adapter file rather than in its store file. No task
-// provides an injector for that shared file, and this task's given interface does not
-// include authoring one, so a generated slice's desktop build will not link until that
-// file also gains the three matching command adapters by hand or by a follow-up injector.
-// See task-8-report.md for the full trace.
-// thick:start
-const RUST_TYPE: Record<FieldSpec['type'], string> = { string: 'String', number: 'f64', boolean: 'bool' };
-
-/** A Rust literal for a field's sample value, `variant` distinguishing two records. */
-function rustSample(f: FieldSpec, variant: 0 | 1): string {
-  if (f.type === 'number') return variant === 0 ? '1.0' : '2.0';
-  if (f.type === 'boolean') return variant === 0 ? 'true' : 'false';
-  if (f.format === 'email') return variant === 0 ? '"a@x.io".to_string()' : '"b@x.io".to_string()';
-  return variant === 0 ? '"a".to_string()' : '"b".to_string()';
-}
-
-function emitRustStore(spec: SliceSpec): EmittedFile {
-  const n = deriveNames(spec);
-  const unique = uniqueField(spec);
-  const first = spec.fields[0];
-
-  const structFields = spec.fields.map((f) => `    pub ${f.name}: ${RUST_TYPE[f.type]},`).join('\n');
-  const params = spec.fields.map((f) => `${f.name}: ${RUST_TYPE[f.type]}`).join(', ');
-  const assign = spec.fields.map((f) => `                ${n.camel}.${f.name} = ${f.name};`).join('\n');
-  const construct = spec.fields.map((f) => f.name).join(', ');
-  const sampleArgs = (variant: 0 | 1) => spec.fields.map((f) => rustSample(f, variant)).join(', ');
-  // Keeps the unique field's value at variant 0 while every other field varies, so a
-  // conflict test proves the store rejects on the unique field specifically rather than
-  // on an accidental exact duplicate.
-  const sampleArgsKeepingUnique = (otherVariant: 0 | 1) =>
-    spec.fields.map((f) => rustSample(f, f === unique ? 0 : otherVariant)).join(', ');
-
-  const conflictCheck = unique
-    ? `        if let Some(existing) = ${n.snakePlural}.values().find(|x| x.${unique.name} == ${unique.name}) {
-            if Some(&existing.id) != id.as_ref() {
-                return Err(StoreError::Conflict(format!("${unique.label} {${unique.name}} is already in use.")));
-            }
-        }
-
-`
-    : '';
-
-  const conflictTests = unique
-    ? `
-    #[test]
-    fn save_duplicate_${unique.name}_on_a_different_${n.camel}_is_conflict() {
-        let store = ${n.pascal}Store::default();
-        store.save(None, ${sampleArgs(0)}).unwrap();
-        let result = store.save(None, ${sampleArgsKeepingUnique(1)});
-        assert!(matches!(result, Err(StoreError::Conflict(_))));
-    }
-
-    #[test]
-    fn save_update_keeps_the_same_${unique.name}_without_conflict() {
-        let store = ${n.pascal}Store::default();
-        let created = store.save(None, ${sampleArgs(0)}).unwrap();
-        let updated = store
-            .save(Some(created.id.clone()), ${sampleArgsKeepingUnique(1)})
-            .unwrap();
-        assert_eq!(updated.id, created.id);
-    }
-`
-    : '';
-
-  const text = `//! ${n.pascal} store for the desktop client. Holds the same ${n.camel} use-cases the
-//! .NET API does, so the frontend behaves identically whether it talks to the native
-//! store or to the API over HTTP. Command adapters are thin wrappers over this; the
-//! logic is here and unit-tested in isolation.
-
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::sync::Mutex;
-use uuid::Uuid;
-
-/// The ${n.camel} shape crossing the wire. Serializes to the same JSON as the .NET
-/// ${n.pascal}Response, so the operation registry's res type fits both.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ${n.pascal} {
-    pub id: String,
-${structFields}
-}
-
-/// An expected failure. Maps to a rejected invoke on the wire.
-#[derive(Debug, PartialEq)]
-pub enum StoreError {
-    NotFound(String),
-    Conflict(String),
-}
-
-impl std::fmt::Display for StoreError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            StoreError::NotFound(m) | StoreError::Conflict(m) => write!(f, "{m}"),
-        }
-    }
-}
-
-/// In-memory ${n.camel} store. A template default: swap the Mutex<HashMap> for SQLite or
-/// a file store without changing the commands or the frontend.
-#[derive(Default)]
-pub struct ${n.pascal}Store {
-    ${n.snakePlural}: Mutex<HashMap<String, ${n.pascal}>>,
-}
-
-impl ${n.pascal}Store {
-    pub fn list(&self) -> Vec<${n.pascal}> {
-        let mut all: Vec<${n.pascal}> = self.${n.snakePlural}.lock().unwrap().values().cloned().collect();
-        all.sort_by(|a, b| a.${first.name}.partial_cmp(&b.${first.name}).unwrap());
-        all
-    }
-
-    pub fn get(&self, id: &str) -> Result<${n.pascal}, StoreError> {
-        self.${n.snakePlural}
-            .lock()
-            .unwrap()
-            .get(id)
-            .cloned()
-            .ok_or_else(|| StoreError::NotFound(format!("${n.pascal} {id} was not found.")))
-    }
-
-    pub fn save(&self, id: Option<String>, ${params}) -> Result<${n.pascal}, StoreError> {
-        let mut ${n.snakePlural} = self.${n.snakePlural}.lock().unwrap();
-
-${conflictCheck}        match id {
-            Some(id) => {
-                let ${n.camel} = ${n.snakePlural}
-                    .get_mut(&id)
-                    .ok_or_else(|| StoreError::NotFound(format!("${n.pascal} {id} was not found.")))?;
-${assign}
-                Ok(${n.camel}.clone())
-            }
-            None => {
-                let ${n.camel} = ${n.pascal} { id: Uuid::new_v4().to_string(), ${construct} };
-                ${n.snakePlural}.insert(${n.camel}.id.clone(), ${n.camel}.clone());
-                Ok(${n.camel})
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn list_is_empty_on_a_fresh_store() {
-        let store = ${n.pascal}Store::default();
-        assert_eq!(store.list(), vec![]);
-    }
-
-    #[test]
-    fn save_creates_a_${n.camel}_with_an_id() {
-        let store = ${n.pascal}Store::default();
-        let ${n.camel} = store.save(None, ${sampleArgs(0)}).unwrap();
-        assert!(!${n.camel}.id.is_empty());
-        assert_eq!(store.list().len(), 1);
-    }
-
-    #[test]
-    fn get_unknown_id_is_not_found() {
-        let store = ${n.pascal}Store::default();
-        assert_eq!(
-            store.get("missing"),
-            Err(StoreError::NotFound("${n.pascal} missing was not found.".into()))
-        );
-    }
-
-    #[test]
-    fn save_then_get_roundtrips() {
-        let store = ${n.pascal}Store::default();
-        let created = store.save(None, ${sampleArgs(0)}).unwrap();
-        assert_eq!(store.get(&created.id).unwrap(), created);
-    }
-${conflictTests}
-    #[test]
-    fn save_update_of_unknown_id_is_not_found() {
-        let store = ${n.pascal}Store::default();
-        let result = store.save(Some("ghost".to_string()), ${sampleArgs(1)});
-        assert!(matches!(result, Err(StoreError::NotFound(_))));
-    }
-}
-`;
-
-  return { path: `apps/desktop/src-tauri/src/${n.snakePlural}.rs`, text };
-}
-// thick:end
+// A thin clone has no desktop shell, so nothing below this point exists there: the store
+// emitter lives in its own paired module and test file (mirroring emit-dotnet.ts's shape),
+// and the entry-point and command-adapter injectors live in inject-text.ts alongside
+// injectApplicationModule and friends. This file only composes them.
 
 // ---------------------------------------------------------------------------
 // plan(): pure. Composes every earlier task's emitters and injectors into one
@@ -359,6 +170,7 @@ export function plan(spec: SliceSpec, product: string, thick: boolean): SlicePla
   if (thick) {
     writes.push(emitRustStore(spec));
     edits.push({ path: RUST_LIB_PATH, apply: (source) => injectLibRs(source, spec) });
+    edits.push({ path: RUST_COMMANDS_PATH, apply: (source) => injectCommandsRs(source, spec) });
   }
   // thick:end
 
