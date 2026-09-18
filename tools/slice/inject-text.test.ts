@@ -17,8 +17,10 @@ import {
   injectApplicationModule,
   injectDbContext,
   injectInfrastructureModule,
-  injectLibRs,
 } from './inject-text.ts';
+// thick:start
+import { injectLibRs } from './inject-text.ts';
+// thick:end
 
 const spec = validateSpec({
   name: 'Order',
@@ -102,6 +104,7 @@ public sealed class JigDbContext : DbContext
 }
 `;
 
+// thick:start
 // A copy of the desktop shell's entry point. No mention of the toolchain that compiles it
 // belongs in this file's prose (tools/init/thin.test.ts scans every tracked file for that
 // vocabulary), so this comment, like inject-text.ts's, just calls it the desktop entry point.
@@ -136,7 +139,7 @@ pub fn run() {
         .expect("error while running application");
 }
 `;
-
+// thick:end
 test('injectApplicationModule registers the service before the return', () => {
   const out = injectApplicationModule(APP_MODULE, spec);
   assert.match(out, /services\.AddScoped<OrderService>\(\);/);
@@ -171,6 +174,7 @@ test('a slice with no unique field gets no unique index', () => {
   assert.doesNotMatch(noteBlock, /HasIndex/);
 });
 
+// thick:start
 test('injectLibRs adds the module and the three handlers', () => {
   const out = injectLibRs(LIB_RS, spec);
   assert.match(out, /^mod orders;$/m);
@@ -178,17 +182,20 @@ test('injectLibRs adds the module and the three handlers', () => {
   assert.match(out, /commands::orders_get,/);
   assert.match(out, /commands::orders_save,/);
 });
-
+// thick:end
 test('every injector is idempotent', () => {
   for (const [fn, src] of [
     [injectApplicationModule, APP_MODULE],
     [injectInfrastructureModule, INFRA_MODULE],
     [injectDbContext, DB_CONTEXT],
-    [injectLibRs, LIB_RS],
   ] as const) {
     const once = fn(src, spec);
     assert.equal(fn(once, spec), once);
   }
+  // thick:start
+  const onceRs = injectLibRs(LIB_RS, spec);
+  assert.equal(injectLibRs(onceRs, spec), onceRs);
+  // thick:end
 });
 
 test('a missing anchor throws with the file and the anchor', () => {

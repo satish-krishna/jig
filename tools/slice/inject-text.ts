@@ -41,8 +41,10 @@ export function insertAfter(file: string, source: string, anchor: string, text: 
  * @intent Wire a generated slice's service into the application composition root without
  * depending on the sample slice being present.
  * @reuse Call once per slice from the generator CLI; idempotent on the service registration.
+ * `product` is accepted but unused, to keep the call shape uniform across all four injectors
+ * (only injectDbContext's anchor needs it — the DI module files never name the product).
  */
-export function injectApplicationModule(source: string, spec: SliceSpec): string {
+export function injectApplicationModule(source: string, spec: SliceSpec, product?: string): string {
   const n = deriveNames(spec);
   const registration = `services.AddScoped<${n.pascal}Service>();`;
   if (source.includes(registration)) return source;
@@ -63,8 +65,10 @@ export function injectApplicationModule(source: string, spec: SliceSpec): string
  * @intent Wire a generated slice's repository into the infrastructure composition root
  * without depending on the sample slice being present.
  * @reuse Call once per slice from the generator CLI; idempotent on the repository registration.
+ * `product` is accepted but unused, for the same call-shape-uniformity reason as
+ * injectApplicationModule.
  */
-export function injectInfrastructureModule(source: string, spec: SliceSpec): string {
+export function injectInfrastructureModule(source: string, spec: SliceSpec, product?: string): string {
   const n = deriveNames(spec);
   const registration = `services.AddScoped<I${n.pascal}Repository, ${n.pascal}Repository>();`;
   if (source.includes(registration)) return source;
@@ -131,14 +135,12 @@ export function injectDbContext(source: string, spec: SliceSpec, product = 'Jig'
 }
 
 // ---------------------------------------------------------------------------
-// The desktop shell's entry point (lib.rs)
+// The desktop shell's entry point
 // ---------------------------------------------------------------------------
-// This whole section is specific to that shell and has no meaning once it is removed, so
-// the block below is marked for removal on the thin cut: stripped along with it, so the
-// repo-wide vocabulary scan that guards that cut never sees this file's anchor strings
-// survive into a clone with nothing left to receive them. Task 8's generator entry point
-// will import injectLibRs and needs the same treatment there, or a thin clone's copy of
-// that file would import a symbol this file no longer exports.
+// The next block is specific to that shell and has no meaning once it is removed, so it
+// is marked for removal on the thin cut. The whole block below — including the exported
+// function itself and the note about who else needs the same treatment — is inside the
+// marker, so nothing outside it depends on a symbol the cut deletes.
 
 // thick:start
 /**
@@ -151,8 +153,14 @@ export function injectDbContext(source: string, spec: SliceSpec, product = 'Jig'
  * @intent Wire a generated slice's commands into the desktop shell without depending on
  * the sample slice being present.
  * @reuse Call once per slice from the generator CLI; idempotent on the module declaration.
+ * `product` is accepted but unused, for the same call-shape-uniformity reason as
+ * injectApplicationModule — the entry point never names the product either.
+ *
+ * Task 8's generator entry point imports this function and needs the same
+ * thick-marker treatment around that import, or a thin clone's copy of that file would
+ * import a symbol this file no longer exports.
  */
-export function injectLibRs(source: string, spec: SliceSpec): string {
+export function injectLibRs(source: string, spec: SliceSpec, product?: string): string {
   const n = deriveNames(spec);
   const moduleDecl = `mod ${n.snakePlural};`;
   if (source.includes(moduleDecl)) return source;
