@@ -346,6 +346,8 @@ function emitRepository(spec: SliceSpec, n: SliceNames, product: string): Emitte
   // provider cannot translate ORDER BY on a decimal and throws at query time, so the sort
   // runs in memory after the load; GetAllAsync loads every row regardless. A string sorts
   // ordinally: the default comparer is culture-aware, and the native store compares bytes.
+  // (UTF-16 ordinal and UTF-8 byte order agree everywhere but supplementary-plane characters
+  // against U+E000-U+FFFF, which is not worth a custom comparer in a template.)
   const first = spec.fields[0];
   const sortKey = `x => x.${pascalField(first.name)}${first.type === 'string' ? ', StringComparer.Ordinal' : ''}`;
 
