@@ -19,6 +19,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { EmittedFile, SliceSpec } from './spec.ts';
 import { loadSpec } from './spec.ts';
+import { words } from './naming.ts';
 import { emitDotnet } from './emit-dotnet.ts';
 import { emitDotnetTests } from './emit-dotnet-tests.ts';
 import { emitFrontend } from './emit-frontend.ts';
@@ -255,14 +256,17 @@ export function runsCodegen(phase: ParsedArgs['phase']): boolean {
  * The API creates its schema with EnsureCreated, which does nothing when the file already
  * exists, so a database left by an earlier `npm run dev` never gains the new slice's table.
  * It is git-ignored dev data, so the generator deletes it and the next run recreates it.
+ * Only the file the connection string names (`Data Source=jig.db`, which template init
+ * renames to the product's kebab form) is matched; any other database there is left alone.
  */
-export function staleDatabaseFiles(entries: readonly string[]): string[] {
-  return entries.filter((name) => /\.db(-shm|-wal)?$/.test(name));
+export function staleDatabaseFiles(entries: readonly string[], product: string): string[] {
+  const database = `${words(product).map((w) => w.toLowerCase()).join('-')}.db`;
+  return entries.filter((name) => [database, `${database}-shm`, `${database}-wal`].includes(name));
 }
 
 function removeStaleDatabase(product: string): void {
   const apiDir = join(ROOT, 'services', 'api', 'src', `${product}.Api`);
-  for (const name of staleDatabaseFiles(readdirSync(apiDir))) {
+  for (const name of staleDatabaseFiles(readdirSync(apiDir), product)) {
     try {
       rmSync(join(apiDir, name));
       console.log(`Deleted the dev database ${name}; the next run recreates it with the new table.`);
@@ -350,6 +354,10 @@ export function main(): void {
     }
   }
 
+  // Every phase, not only a successful phase A: `--phase b` is the resume the CLI advises
+  // after a failed build, and a dev database created in between would miss the new table.
+  removeStaleDatabase(product);
+
   if (args.phase === 'a' || args.phase === 'both') {
     console.log(`Phase A: writing ${phaseAWrites.length} .NET file(s)...`);
     for (const w of phaseAWrites) writeGenerated(w);
@@ -365,7 +373,6 @@ export function main(): void {
       );
       process.exit(1);
     }
-    removeStaleDatabase(product);
 
     if (args.phase === 'a') {
       console.log('\nPhase A done. Re-run with --phase b (it runs codegen first).');

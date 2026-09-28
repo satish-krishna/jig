@@ -4,7 +4,7 @@
 // the stack (Pascal/camel/kebab/snake casings, operation prefixes, route paths).
 
 import { readFileSync } from 'node:fs';
-import { words } from '../init/rename.ts';
+import { words } from './naming.ts';
 
 export interface FieldSpec {
   name: string;                          // camelCase
@@ -66,15 +66,16 @@ const RESERVED_FIELD_NAMES = new Set(['id']);
  */
 const GENERATOR_LOCALS = new Set(['store', 'ct', 'current', 'existingId']);
 /**
- * Entity names the emitted .NET code cannot tell apart from a type already in scope: the
- * Domain's own Result, Error and ErrorKind, and the implicit-using types an application
- * noun is likely to repeat. `using {P}.Domain;` beside `System.Threading.Tasks` makes every
- * `Task<...>` in the Application layer ambiguous (CS0104). Not exhaustive — the Phase A
- * build is the backstop — but it catches the names people actually pick before anything
- * is written.
+ * Entity names the emitted code cannot tell apart from a type already in scope: the
+ * Domain's own Result, Error and ErrorKind, the implicit-using types an application noun is
+ * likely to repeat, and State, which the desktop command adapters already import.
+ * `using {P}.Domain;` beside `System.Threading.Tasks` makes the bare `Task` in the
+ * Application layer ambiguous (CS0104), including every non-generic `async Task` return.
+ * Not exhaustive — the Phase A build is the backstop — but it catches the names people
+ * actually pick before anything is written.
  */
 const RESERVED_ENTITY_NAMES = new Set([
-  'Result', 'Error', 'ErrorKind',
+  'Result', 'Error', 'ErrorKind', 'State',
   'Task', 'File', 'Path', 'Directory', 'Stream', 'Action', 'Type', 'Thread', 'Timer',
   'Monitor', 'Exception', 'Attribute', 'Index', 'Range', 'Version', 'Environment', 'Random',
 ]);

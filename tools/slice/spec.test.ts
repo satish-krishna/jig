@@ -235,3 +235,14 @@ test('validateSpec rejects an entity name the generated .NET code cannot tell ap
     assert.throws(() => validateSpec({ ...base, name }), /clashes with a type/, name);
   }
 });
+
+test('validateSpec rejects State, which the desktop command adapters already import', () => {
+  assert.throws(() => validateSpec({ ...base, name: 'State' }), /clashes with a type/);
+});
+
+test('validateSpec accepts a camelCase plural field on a multi-word entity', () => {
+  // The native store's map local is snake_case (stock_items); a camelCase field cannot spell it.
+  assert.doesNotThrow(() => validateSpec({
+    ...base, name: 'StockItem', fields: [{ name: 'stockItems', type: 'number', label: 'Stock items' }],
+  }));
+});

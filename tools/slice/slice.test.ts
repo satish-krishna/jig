@@ -194,8 +194,17 @@ test('phase b runs codegen itself, so the resume the CLI advises is not stale', 
 // an earlier run never gains the new table and every request to the new endpoints fails.
 test('staleDatabaseFiles picks the SQLite database and its sidecars, nothing else', () => {
   assert.deepEqual(
-    staleDatabaseFiles(['jig.db', 'jig.db-shm', 'jig.db-wal', 'Program.cs', 'appsettings.json', 'bin']),
+    staleDatabaseFiles(['jig.db', 'jig.db-shm', 'jig.db-wal', 'Program.cs', 'appsettings.json', 'bin'], 'Jig'),
     ['jig.db', 'jig.db-shm', 'jig.db-wal'],
+  );
+});
+
+// Git-ignored is not the same as disposable: only the file the connection string names is
+// the EnsureCreated database. Template init renames it to the kebab form of the product.
+test('staleDatabaseFiles leaves any other database in the API directory alone', () => {
+  assert.deepEqual(
+    staleDatabaseFiles(['acme-portal.db', 'acme-portal.db-wal', 'jig.db', 'reference.db'], 'AcmePortal'),
+    ['acme-portal.db', 'acme-portal.db-wal'],
   );
 });
 
