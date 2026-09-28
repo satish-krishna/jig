@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { validateSpec } from './spec.ts';
 import {
   CATALOG_REFRESH_COMMAND, collidingPaths, detectProduct, dirtyAmong, parseArgs, plan, renderEdits, runsCodegen, staleDatabaseFiles,
+  databaseFileName,
 } from './slice.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -194,18 +195,26 @@ test('phase b runs codegen itself, so the resume the CLI advises is not stale', 
 // an earlier run never gains the new table and every request to the new endpoints fails.
 test('staleDatabaseFiles picks the SQLite database and its sidecars, nothing else', () => {
   assert.deepEqual(
-    staleDatabaseFiles(['jig.db', 'jig.db-shm', 'jig.db-wal', 'Program.cs', 'appsettings.json', 'bin'], 'Jig'),
+    staleDatabaseFiles(['jig.db', 'jig.db-shm', 'jig.db-wal', 'Program.cs', 'appsettings.json', 'bin'], 'jig.db'),
     ['jig.db', 'jig.db-shm', 'jig.db-wal'],
   );
 });
 
 // Git-ignored is not the same as disposable: only the file the connection string names is
-// the EnsureCreated database. Template init renames it to the kebab form of the product.
+// the EnsureCreated database.
 test('staleDatabaseFiles leaves any other database in the API directory alone', () => {
   assert.deepEqual(
-    staleDatabaseFiles(['acme-portal.db', 'acme-portal.db-wal', 'legacy.db', 'reference.db'], 'AcmePortal'),
+    staleDatabaseFiles(['acme-portal.db', 'acme-portal.db-wal', 'legacy.db', 'reference.db'], 'acme-portal.db'),
     ['acme-portal.db', 'acme-portal.db-wal'],
   );
+});
+
+// The name comes from the connection string itself, not from the product name: init derives
+// it from the raw name typed at init, which the Pascal product name cannot always reproduce
+// ("my app 2" becomes my-app-2.db, but MyApp2 splits back to my-app2).
+test('databaseFileName reads the SQLite file the API connection string names', () => {
+  assert.equal(databaseFileName('.AddInfrastructure(cfg.GetConnectionString("Default") ?? "Data Source=my-app-2.db")'), 'my-app-2.db');
+  assert.equal(databaseFileName('var app = builder.Build();'), undefined);
 });
 
 // thick:start

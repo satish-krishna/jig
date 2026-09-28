@@ -19,7 +19,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { EmittedFile, SliceSpec } from './spec.ts';
 import { loadSpec } from './spec.ts';
-import { words } from './naming.ts';
 import { emitDotnet } from './emit-dotnet.ts';
 import { emitDotnetTests } from './emit-dotnet-tests.ts';
 import { emitFrontend } from './emit-frontend.ts';
@@ -256,17 +255,33 @@ export function runsCodegen(phase: ParsedArgs['phase']): boolean {
  * The API creates its schema with EnsureCreated, which does nothing when the file already
  * exists, so a database left by an earlier `npm run dev` never gains the new slice's table.
  * It is git-ignored dev data, so the generator deletes it and the next run recreates it.
- * Only the file the connection string names (`Data Source=jig.db`, which template init
- * renames to the product's kebab form) is matched; any other database there is left alone.
+ * Only `database`, the file the connection string names, is matched; any other database
+ * there is left alone.
  */
-export function staleDatabaseFiles(entries: readonly string[], product: string): string[] {
-  const database = `${words(product).map((w) => w.toLowerCase()).join('-')}.db`;
+export function staleDatabaseFiles(entries: readonly string[], database: string): string[] {
   return entries.filter((name) => [database, `${database}-shm`, `${database}-wal`].includes(name));
+}
+
+/**
+ * The SQLite file the API's fallback connection string names, read from Program.cs source.
+ * Read rather than derived from the product name: init names the file from the raw name
+ * typed at init, which the Pascal product name cannot always reproduce.
+ */
+export function databaseFileName(programCs: string): string | undefined {
+  return /Data Source=([^";]+)/.exec(programCs)?.[1];
 }
 
 function removeStaleDatabase(product: string): void {
   const apiDir = join(ROOT, 'services', 'api', 'src', `${product}.Api`);
-  for (const name of staleDatabaseFiles(readdirSync(apiDir), product)) {
+  const database = databaseFileName(readFileSync(join(apiDir, 'Program.cs'), 'utf8'));
+  if (!database) {
+    console.warn(
+      `Found no "Data Source=" in ${join(apiDir, 'Program.cs')}, so no dev database was deleted. If one ` +
+        `exists, delete it by hand, or the new endpoints will fail with "no such table".`,
+    );
+    return;
+  }
+  for (const name of staleDatabaseFiles(readdirSync(apiDir), database)) {
     try {
       rmSync(join(apiDir, name));
       console.log(`Deleted the dev database ${name}; the next run recreates it with the new table.`);
