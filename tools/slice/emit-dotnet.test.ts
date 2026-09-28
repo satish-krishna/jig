@@ -129,7 +129,9 @@ test('an all-boolean spec still emits a well-formed validator', () => {
 test('the repository lists in first-field order, not Guid order', () => {
   // Infrastructure/, not the bare name: IOrderRepository.cs ends with it too.
   const cs = at('Infrastructure/OrderRepository.cs').text;
-  assert.match(cs, /GetAllAsync\(CancellationToken ct\)\n\s+=> \(await _db\.Orders\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Reference\)\.ToList\(\);/);
+  // Ordinal, because the default string comparer is culture-aware and the native store
+  // compares bytes: without it "apple" and "Banana" list in opposite orders on the two wires.
+  assert.match(cs, /GetAllAsync\(CancellationToken ct\)\n\s+=> \(await _db\.Orders\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Reference, StringComparer\.Ordinal\)\.ToList\(\);/);
   assert.doesNotMatch(cs, /OrderBy\(x => x\.Id\)/);
 });
 
