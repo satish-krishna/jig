@@ -14,7 +14,7 @@
 // and writes to the working tree.
 
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { EmittedFile, SliceSpec } from './spec.ts';
@@ -225,10 +225,54 @@ export function collidingPaths(writes: readonly EmittedFile[], exists: (path: st
   return writes.filter((w) => exists(w.path)).map((w) => w.path);
 }
 
-function applyEdit(edit: PlannedEdit): void {
-  const full = join(ROOT, edit.path);
-  const source = readFileSync(full, 'utf8');
-  writeFileSync(full, edit.apply(source));
+/**
+ * Run every planned edit against its current source, in memory. main() calls this before it
+ * writes anything, so an injector that cannot find its anchor throws while the tree is still
+ * untouched — applied one at a time instead, a throw in the fourth registry leaves the first
+ * three edited and a plain re-run refuses on the files already written.
+ */
+export function renderEdits(edits: readonly PlannedEdit[], read: (path: string) => string): EmittedFile[] {
+  return edits.map((edit) => {
+    try {
+      return { path: edit.path, text: edit.apply(read(edit.path)) };
+    } catch (error) {
+      throw new Error(`${edit.path}: ${(error as Error).message}`);
+    }
+  });
+}
+
+/**
+ * Whether a phase regenerates the frontend's DTOs before it writes the frontend half. Phase B
+ * does even when run alone: it is the resume the CLI advises after a failed build, and without
+ * codegen it would compile against the DTOs the API emitted before this slice existed.
+ */
+export function runsCodegen(phase: ParsedArgs['phase']): boolean {
+  return phase !== 'a';
+}
+
+/**
+ * Which entries of the API project directory are the dev SQLite database and its sidecars.
+ * The API creates its schema with EnsureCreated, which does nothing when the file already
+ * exists, so a database left by an earlier `npm run dev` never gains the new slice's table.
+ * It is git-ignored dev data, so the generator deletes it and the next run recreates it.
+ */
+export function staleDatabaseFiles(entries: readonly string[]): string[] {
+  return entries.filter((name) => /\.db(-shm|-wal)?$/.test(name));
+}
+
+function removeStaleDatabase(product: string): void {
+  const apiDir = join(ROOT, 'services', 'api', 'src', `${product}.Api`);
+  for (const name of staleDatabaseFiles(readdirSync(apiDir))) {
+    try {
+      rmSync(join(apiDir, name));
+      console.log(`Deleted the dev database ${name}; the next run recreates it with the new table.`);
+    } catch {
+      console.warn(
+        `Could not delete ${join(apiDir, name)} (is \`npm run dev\` running?). Stop it and delete ` +
+          `the file by hand, or the new endpoints will fail with "no such table".`,
+      );
+    }
+  }
 }
 
 const isDotnetWrite = (path: string) => path.startsWith('services/api/');
@@ -272,6 +316,10 @@ export function main(): void {
   const plannedWrites = args.phase === 'a' ? phaseAWrites : args.phase === 'b' ? phaseBWrites : writes;
   const plannedEdits = args.phase === 'a' ? phaseAEdits : args.phase === 'b' ? phaseBEdits : edits;
   const alreadyThere = collidingPaths(plannedWrites, (p) => existsSync(join(ROOT, p)));
+  // Read-only, so it runs before --dry-run too: a missing anchor surfaces before anything lands.
+  const rendered = renderEdits(plannedEdits, (p) => readFileSync(join(ROOT, p), 'utf8'));
+  const phaseARendered = rendered.filter((e) => dotnetEditPaths.has(e.path));
+  const phaseBRendered = rendered.filter((e) => !dotnetEditPaths.has(e.path));
 
   if (args.dryRun) {
     console.log(`Would write ${plannedWrites.length} file(s):`);
@@ -305,32 +353,39 @@ export function main(): void {
   if (args.phase === 'a' || args.phase === 'both') {
     console.log(`Phase A: writing ${phaseAWrites.length} .NET file(s)...`);
     for (const w of phaseAWrites) writeGenerated(w);
-    for (const e of phaseAEdits) applyEdit(e);
+    for (const e of phaseARendered) writeGenerated(e);
 
     console.log('Phase A: building the solution...');
     try {
       execSync(`dotnet build "services/api/${product}.sln" --nologo -v q`, { cwd: ROOT, stdio: 'inherit' });
     } catch {
       console.error(
-        `\nPhase A build failed. Fix services/api/${product}.sln, then re-run with --phase b once it builds.`,
+        `\nPhase A build failed. Fix services/api/${product}.sln, then re-run with --phase b once it builds ` +
+          `(phase b runs codegen first).`,
       );
       process.exit(1);
     }
+    removeStaleDatabase(product);
 
     if (args.phase === 'a') {
-      console.log('\nPhase A done. Run `npm run codegen`, then re-run with --phase b.');
+      console.log('\nPhase A done. Re-run with --phase b (it runs codegen first).');
       return;
     }
   }
 
-  if (args.phase === 'both') {
+  if (runsCodegen(args.phase)) {
     console.log('Running codegen...');
-    execSync('npm run codegen', { cwd: ROOT, stdio: 'inherit' });
+    try {
+      execSync('npm run codegen', { cwd: ROOT, stdio: 'inherit' });
+    } catch {
+      console.error('\nCodegen failed. The .NET half has landed; fix the error above, then re-run with --phase b.');
+      process.exit(1);
+    }
   }
 
   console.log(`Phase B: writing ${phaseBWrites.length} file(s)...`);
   for (const w of phaseBWrites) writeGenerated(w);
-  for (const e of phaseBEdits) applyEdit(e);
+  for (const e of phaseBRendered) writeGenerated(e);
 
   console.log(`Refreshing the capability catalog (${CATALOG_REFRESH_COMMAND})...`);
   execSync(CATALOG_REFRESH_COMMAND, { cwd: ROOT, stdio: 'inherit' });

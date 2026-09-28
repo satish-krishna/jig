@@ -16,7 +16,9 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateSpec } from './spec.ts';
-import { CATALOG_REFRESH_COMMAND, collidingPaths, detectProduct, dirtyAmong, parseArgs, plan } from './slice.ts';
+import {
+  CATALOG_REFRESH_COMMAND, collidingPaths, detectProduct, dirtyAmong, parseArgs, plan, renderEdits, runsCodegen, staleDatabaseFiles,
+} from './slice.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -159,6 +161,42 @@ test('regenerating the users slice collides with the exemplar already occupying 
 
   assert.ok(collisions.length > 0, 'no users path is occupied, so this test proves nothing');
   assert.ok(collisions.some((p) => p.endsWith('user-form.ts')));
+});
+
+// Every edit is a pure function of its source, so a missing anchor can be found before the
+// first byte lands. Applied one at a time instead, a throw in the fourth registry leaves the
+// first three edited and phase B's files written, and a plain re-run then refuses on them.
+test('renderEdits computes every edit up front and names the file whose anchor is missing', () => {
+  const sources: Record<string, string> = { 'a.ts': 'A', 'b.ts': 'B' };
+  const read = (path: string) => sources[path];
+  assert.deepEqual(
+    renderEdits([{ path: 'a.ts', apply: (s) => s + '1' }, { path: 'b.ts', apply: (s) => s + '2' }], read),
+    [{ path: 'a.ts', text: 'A1' }, { path: 'b.ts', text: 'B2' }],
+  );
+  assert.throws(
+    () => renderEdits([
+      { path: 'a.ts', apply: (s) => s + '1' },
+      { path: 'b.ts', apply: () => { throw new Error('anchor not found'); } },
+    ], read),
+    /b\.ts: anchor not found/,
+  );
+});
+
+// Phase A's build-failure advice is "fix it, then re-run with --phase b". A phase B that skips
+// codegen then compiles against the DTOs the API emitted before this slice existed.
+test('phase b runs codegen itself, so the resume the CLI advises is not stale', () => {
+  assert.equal(runsCodegen('both'), true);
+  assert.equal(runsCodegen('b'), true);
+  assert.equal(runsCodegen('a'), false);
+});
+
+// EnsureCreated does nothing when the database file already exists, so a dev database from
+// an earlier run never gains the new table and every request to the new endpoints fails.
+test('staleDatabaseFiles picks the SQLite database and its sidecars, nothing else', () => {
+  assert.deepEqual(
+    staleDatabaseFiles(['jig.db', 'jig.db-shm', 'jig.db-wal', 'Program.cs', 'appsettings.json', 'bin']),
+    ['jig.db', 'jig.db-shm', 'jig.db-wal'],
+  );
 });
 
 // thick:start
