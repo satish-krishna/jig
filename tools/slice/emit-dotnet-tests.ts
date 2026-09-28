@@ -161,11 +161,11 @@ ${facts.join('\n\n')}
 
 function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   const unique = uniqueField(spec);
-  // Mirrors emit-dotnet.ts's emitValidator rule-emission predicate (`f.type !== 'boolean'`):
-  // a validator rule only exists for a non-boolean field, so the 400-on-invalid-body test only
+  // Mirrors emit-dotnet.ts's emitValidator rule-emission predicate (`f.type === 'string'`):
+  // a validator rule only exists for a string field, so the 400-on-invalid-body test only
   // applies when at least one such field exists. This is not a new structural branch — it
   // tracks the one Task 2 already made in the production code being tested.
-  const hasValidatedField = spec.fields.some((f) => f.type !== 'boolean');
+  const hasValidatedField = spec.fields.some((f) => f.type === 'string');
   const roundtripField = spec.fields[0];
 
   // The unique field, if any, gets its slot-0 value here so it cannot collide with the

@@ -76,14 +76,14 @@ test('a boolean field and an email-format field get their own sample shapes', ()
 // on a null element. The test therefore has to target a string field wherever it sits.
 test('the required-message test targets the first STRING field, not the first field', () => {
   const booleanFirst = validateSpec({
-    name: 'Task',
+    name: 'Chore',
     icon: 'lucideCheck',
     fields: [
       { name: 'done', type: 'boolean', label: 'Done' },
       { name: 'title', type: 'string', label: 'Title' },
     ],
   });
-  const ts = emitFrontendTests(booleanFirst).find((f) => f.path.endsWith('task-form.spec.ts'))!.text;
+  const ts = emitFrontendTests(booleanFirst).find((f) => f.path.endsWith('chore-form.spec.ts'))!.text;
   assert.match(ts, /querySelector\('\[data-error-for="title"\]'\);\n    expect\(error\.textContent\)\.toContain\('Title is required'\)/);
   assert.doesNotMatch(ts, /Done is required/);
   // The negative path needs a value the schema rejects, which only the string field has

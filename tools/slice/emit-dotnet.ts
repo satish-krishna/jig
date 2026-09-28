@@ -276,11 +276,12 @@ public sealed class Save${n.pascal}Endpoint : ResultEndpoint<Save${n.pascal}Requ
 // ---------------------------------------------------------------------------
 
 function emitValidator(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
-  // NotEmpty() compares a value type against its default, and default(bool) is false — so a
-  // boolean field would emit a rule that rejects an unchecked checkbox on every save. Booleans
-  // have no meaningful presence rule, so they get no RuleFor line at all.
+  // NotEmpty() compares a value type against its default: default(bool) is false and
+  // default(decimal) is 0, so on either it rejects ordinary data (an unchecked checkbox, a
+  // zero quantity) that the emitted zod schema accepts. Presence is already enforced by the
+  // non-nullable request property, so only a string field gets a rule.
   const rules = spec.fields
-    .filter((f) => f.type !== 'boolean')
+    .filter((f) => f.type === 'string')
     .map((f) => `        RuleFor(x => x.${pascalField(f.name)}).NotEmpty()${f.format === 'email' ? '.EmailAddress()' : ''};`)
     .join('\n');
   const body = rules ? `${rules}\n` : '';
@@ -341,6 +342,11 @@ function emitRepository(spec: SliceSpec, n: SliceNames, product: string): Emitte
 `
     : '';
   const assignExisting = spec.fields.map((f) => `            existing.${pascalField(f.name)} = ${n.camel}.${pascalField(f.name)};`).join('\n');
+  // The exemplar sorts by its first field. The EF Core SQLite provider cannot translate
+  // ORDER BY on a decimal and throws at query time, so a number field is skipped, and a
+  // spec with nothing but numbers sorts by Id.
+  const sortField = spec.fields.find((f) => f.type !== 'number');
+  const sortProperty = sortField ? pascalField(sortField.name) : 'Id';
 
   return {
     path: `services/api/src/${product}.Infrastructure/${n.pascal}Repository.cs`,
@@ -361,7 +367,7 @@ public sealed class ${n.pascal}Repository : I${n.pascal}Repository
     public ${n.pascal}Repository(${product}DbContext db) => _db = db;
 
     public async Task<IReadOnlyList<${n.pascal}>> GetAllAsync(CancellationToken ct)
-        => await _db.${n.pascalPlural}.AsNoTracking().OrderBy(x => x.${pascalField(spec.fields[0].name)}).ToListAsync(ct);
+        => await _db.${n.pascalPlural}.AsNoTracking().OrderBy(x => x.${sortProperty}).ToListAsync(ct);
 
     public Task<${n.pascal}?> GetByIdAsync(Guid id, CancellationToken ct)
         => _db.${n.pascalPlural}.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);

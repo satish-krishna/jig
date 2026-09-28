@@ -53,3 +53,14 @@ test('a number-typed unique field gets distinct sample values across call sites'
   assert.ok(dupLiteral, 'expected the duplicate test to declare a seatNumber decimal literal');
   assert.notEqual(factoryLiteral, dupLiteral);
 });
+
+test('a spec with no string field emits no invalid-body test, because nothing is validated', () => {
+  const t = emitDotnetTests(validateSpec({
+    name: 'Reading', icon: 'lucideGauge',
+    fields: [
+      { name: 'celsius', type: 'number', label: 'Celsius' },
+      { name: 'indoor', type: 'boolean', label: 'Indoor' },
+    ],
+  }), 'Jig').find((f) => f.path.endsWith('ReadingsEndpointTests.cs'))!.text;
+  assert.doesNotMatch(t, /save_with_invalid_body_returns_400/);
+});

@@ -83,26 +83,29 @@ test('endpoints route on the plural and carry the capability annotations', () =>
 
 test('a boolean field emits no NotEmpty rule', () => {
   const withBool = emitDotnet(validateSpec({
-    name: 'Task', icon: 'lucideCheck',
+    name: 'Chore', icon: 'lucideCheck',
     fields: [{ name: 'active', type: 'boolean', label: 'Active' }],
   }), 'Jig');
-  const cs = withBool.find((f) => f.path.endsWith('SaveTaskValidator.cs'))!.text;
+  const cs = withBool.find((f) => f.path.endsWith('SaveChoreValidator.cs'))!.text;
   assert.doesNotMatch(cs, /NotEmpty/);
   assert.doesNotMatch(cs, /RuleFor/);
 });
 
-test('a mixed spec validates only the string and number fields, not the boolean one', () => {
+// NotEmpty() on a decimal rejects 0, which is ordinary data for a quantity or a price and
+// which the emitted zod schema accepts. Presence is already enforced by the non-nullable
+// request property, so a number gets no rule, the same as a boolean.
+test('a mixed spec validates only the string field, not the number or the boolean', () => {
   const mixed = emitDotnet(validateSpec({
-    name: 'Task', icon: 'lucideCheck',
+    name: 'Chore', icon: 'lucideCheck',
     fields: [
       { name: 'title', type: 'string', label: 'Title' },
       { name: 'priority', type: 'number', label: 'Priority' },
       { name: 'done', type: 'boolean', label: 'Done' },
     ],
   }), 'Jig');
-  const cs = mixed.find((f) => f.path.endsWith('SaveTaskValidator.cs'))!.text;
+  const cs = mixed.find((f) => f.path.endsWith('SaveChoreValidator.cs'))!.text;
   assert.match(cs, /RuleFor\(x => x\.Title\)\.NotEmpty\(\);/);
-  assert.match(cs, /RuleFor\(x => x\.Priority\)\.NotEmpty\(\);/);
+  assert.doesNotMatch(cs, /x\.Priority/);
   assert.doesNotMatch(cs, /x\.Done/);
 });
 
@@ -139,6 +142,30 @@ test('a boolean first field still produces a compiling sort', () => {
     ],
   }), 'Jig');
   assert.match(boolFirst.find((f) => f.path.endsWith('Infrastructure/FlagRepository.cs'))!.text, /OrderBy\(x => x\.Enabled\)/);
+});
+
+// The EF Core SQLite provider cannot translate ORDER BY on a decimal column and throws at
+// query time, so a number first field would compile, then fail every list request.
+test('a number first field sorts by the first non-number field instead', () => {
+  const numberFirst = emitDotnet(validateSpec({
+    name: 'StockItem', icon: 'lucideBox',
+    fields: [
+      { name: 'quantity', type: 'number', label: 'Quantity' },
+      { name: 'sku', type: 'string', label: 'SKU' },
+    ],
+  }), 'Jig');
+  const cs = numberFirst.find((f) => f.path.endsWith('Infrastructure/StockItemRepository.cs'))!.text;
+  assert.match(cs, /OrderBy\(x => x\.Sku\)/);
+  assert.doesNotMatch(cs, /OrderBy\(x => x\.Quantity\)/);
+});
+
+test('an all-number spec falls back to sorting by Id', () => {
+  const allNumber = emitDotnet(validateSpec({
+    name: 'Reading', icon: 'lucideGauge',
+    fields: [{ name: 'celsius', type: 'number', label: 'Celsius' }],
+  }), 'Jig');
+  const cs = allNumber.find((f) => f.path.endsWith('Infrastructure/ReadingRepository.cs'))!.text;
+  assert.match(cs, /OrderBy\(x => x\.Id\)/);
 });
 
 // The label lands inside a C# interpolated string, where a brace opens a hole and a
