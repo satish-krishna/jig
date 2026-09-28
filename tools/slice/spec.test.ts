@@ -197,3 +197,41 @@ test('validateSpec rejects a name or icon that is not an identifier', () => {
   assert.throws(() => validateSpec({ ...base, plural: 'Order Items' }), /PascalCase/);
   assert.throws(() => validateSpec({ ...base, icon: "lucide's" }), /icon must be/);
 });
+
+test('validateSpec rejects a field named after its own entity', () => {
+  // C# forbids a member named after its enclosing type (CS0542), and the native store's
+  // `let note = ...` local would shadow the `note` parameter it then assigns from.
+  assert.throws(
+    () => validateSpec({ ...base, name: 'Note', fields: [{ name: 'note', type: 'string', label: 'Note' }] }),
+    /named after the entity/,
+  );
+  assert.throws(
+    () => validateSpec({ ...base, name: 'PurchaseOrder', fields: [{ name: 'purchaseOrder', type: 'string', label: 'PO' }] }),
+    /named after the entity/,
+  );
+});
+
+test('validateSpec rejects a field named after the entity plural', () => {
+  // The native store's save() binds the locked map to `let mut notes`, shadowing a `notes` parameter.
+  assert.throws(
+    () => validateSpec({ ...base, name: 'Note', fields: [{ name: 'notes', type: 'string', label: 'Notes' }] }),
+    /named after the entity/,
+  );
+});
+
+test('validateSpec rejects the identifiers the emitted code already declares', () => {
+  for (const name of ['store', 'ct', 'current', 'existingId']) {
+    assert.throws(
+      () => validateSpec({ ...base, fields: [{ name, type: 'string', label: 'X' }] }),
+      /generated code already declares/,
+      name,
+    );
+  }
+});
+
+test('validateSpec rejects an entity name the generated .NET code cannot tell apart', () => {
+  // Task collides with the implicit System.Threading.Tasks using; Result and Error with the Domain's own types.
+  for (const name of ['Task', 'File', 'Result', 'Error', 'ErrorKind']) {
+    assert.throws(() => validateSpec({ ...base, name }), /clashes with a type/, name);
+  }
+});

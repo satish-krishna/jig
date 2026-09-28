@@ -58,6 +58,26 @@ const CAMEL_IDENTIFIER = /^[a-z][A-Za-z0-9]*$/;
 const ICON_IDENTIFIER = /^[A-Za-z][A-Za-z0-9]*$/;
 /** Every emitter gives the entity its own id, so a field called id collides with it. */
 const RESERVED_FIELD_NAMES = new Set(['id']);
+/**
+ * Identifiers the emitted code declares beside the fields: the native command's `store`
+ * parameter, the C# `CancellationToken ct` parameter, and the `current` and `existingId`
+ * locals in the emitted service's SaveAsync. A field of the same name becomes a second
+ * parameter or local with that name.
+ */
+const GENERATOR_LOCALS = new Set(['store', 'ct', 'current', 'existingId']);
+/**
+ * Entity names the emitted .NET code cannot tell apart from a type already in scope: the
+ * Domain's own Result, Error and ErrorKind, and the implicit-using types an application
+ * noun is likely to repeat. `using {P}.Domain;` beside `System.Threading.Tasks` makes every
+ * `Task<...>` in the Application layer ambiguous (CS0104). Not exhaustive — the Phase A
+ * build is the backstop — but it catches the names people actually pick before anything
+ * is written.
+ */
+const RESERVED_ENTITY_NAMES = new Set([
+  'Result', 'Error', 'ErrorKind',
+  'Task', 'File', 'Path', 'Directory', 'Stream', 'Action', 'Type', 'Thread', 'Timer',
+  'Monitor', 'Exception', 'Attribute', 'Index', 'Range', 'Version', 'Environment', 'Random',
+]);
 
 /**
  * Reserved words across the three languages the generator emits into, kept as three
@@ -144,8 +164,10 @@ function assertCopy(value: string, what: string): void {
  * Validate a raw spec object and return a typed SliceSpec. Throws on validation failure
  * with a message that names the constraint violated. Constraints: name and plural must be
  * PascalCase identifiers, icon must be an identifier, fields must be non-empty with at most
- * one unique field, and each field must have a unique camelCase-identifier name that is not
- * `id` or a C#/native/TypeScript reserved word, a type from the allowed set, and a label
+ * one unique field, the name must not clash with a type the emitted .NET code has in scope,
+ * and each field must have a unique camelCase-identifier name that is not `id`, an
+ * identifier the emitted code declares, the entity's own singular or plural name, or a
+ * C#/native/TypeScript reserved word, a type from the allowed set, and a label
  * free of control characters.
  */
 export function validateSpec(raw: unknown): SliceSpec {
@@ -163,6 +185,9 @@ export function validateSpec(raw: unknown): SliceSpec {
   }
   if (!PASCAL_IDENTIFIER.test(name)) {
     throw new Error('name must be PascalCase');
+  }
+  if (RESERVED_ENTITY_NAMES.has(name)) {
+    throw new Error(`name ${JSON.stringify(name)} clashes with a type the generated .NET code already has in scope`);
   }
 
   // Validate plural override: must be a string if present
@@ -200,6 +225,10 @@ export function validateSpec(raw: unknown): SliceSpec {
     throw new Error('fields can have at most one unique field');
   }
 
+  // The emitted class, its native store's locals, and its plural map all take the entity's
+  // own name, so a field spelled the same way collides with one of them.
+  const entity = deriveNames({ name, plural: typeof obj.plural === 'string' ? obj.plural : undefined, icon, fields: [] });
+
   // Validate each field structure
   const seen = new Set<string>();
   for (const field of fields) {
@@ -215,6 +244,12 @@ export function validateSpec(raw: unknown): SliceSpec {
     }
     if (RESERVED_FIELD_NAMES.has(f.name)) {
       throw new Error(`Field name ${JSON.stringify(f.name)} is reserved: every entity already has one`);
+    }
+    if (GENERATOR_LOCALS.has(f.name)) {
+      throw new Error(`Field name ${JSON.stringify(f.name)} is reserved: the generated code already declares it`);
+    }
+    if (f.name === entity.camel || f.name === entity.snakePlural) {
+      throw new Error(`Field name ${JSON.stringify(f.name)} is named after the entity, which the generated code already uses`);
     }
     const reservedIn = reservingLanguages(f.name);
     if (reservedIn.length > 0) {

@@ -129,10 +129,10 @@ test('an apostrophe in a label or placeholder emits an escaped literal, not brok
 
 test('a backslash in a label is escaped rather than starting an escape sequence', () => {
   const quoted = validateSpec({
-    name: 'Path',
+    name: 'Folder',
     icon: 'lucideFolder',
     fields: [{ name: 'root', type: 'string', label: String.raw`C:\ root`, placeholder: 'x' }],
   });
-  const schema = emitFrontend(quoted).find((f) => f.path.endsWith('path-form.schema.ts'))!.text;
+  const schema = emitFrontend(quoted).find((f) => f.path.endsWith('folder-form.schema.ts'))!.text;
   assert.ok(schema.includes(String.raw`label: 'C:\\ root'`), schema);
 });
