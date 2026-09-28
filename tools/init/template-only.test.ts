@@ -23,12 +23,28 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
+/** Every relative specifier: static, re-export, side-effect, and dynamic, in either quote style. */
+function relativeImports(source: string): string[] {
+  return [...source.matchAll(/(?:from|import)\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g)].map((m) => m[1]);
+}
+
+test('relativeImports finds every import form, not only the single-quoted from', () => {
+  const source = [
+    `import { a } from '../x/a.ts';`,
+    `export { b } from "../x/b.ts";`,
+    `import '../x/c.ts';`,
+    `const d = await import('../x/d.ts');`,
+    `import e from 'node:fs';`,
+  ].join('\n');
+  assert.deepEqual(relativeImports(source), ['../x/a.ts', '../x/b.ts', '../x/c.ts', '../x/d.ts']);
+});
+
 test('no surviving tool imports from a path init deletes', () => {
   const offenders: string[] = [];
   for (const file of sourceFiles(join(ROOT, 'tools'))) {
     const rel = relative(ROOT, file).replace(/\\/g, '/');
     if (isTemplateOnly(rel)) continue;
-    for (const [, spec] of readFileSync(file, 'utf8').matchAll(/from\s+'(\.{1,2}\/[^']+)'/g)) {
+    for (const spec of relativeImports(readFileSync(file, 'utf8'))) {
       const target = relative(ROOT, resolve(dirname(file), spec)).replace(/\\/g, '/');
       if (isTemplateOnly(target)) offenders.push(`${rel} -> ${target}`);
     }

@@ -18,7 +18,6 @@ export interface Names {
   bundleId: string;
 }
 
-
 export function deriveNames(rawName: string, bundleId?: string): Names {
   if (rawName.includes('.')) {
     throw new Error(
