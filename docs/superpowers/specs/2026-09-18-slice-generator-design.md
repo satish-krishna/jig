@@ -68,7 +68,7 @@ Every file is shape. The column records what the spec varies inside it.
 | `Jig.Api/Save{E}Endpoint.cs` | names, route, fields passed to `SaveAsync` |
 | `Jig.Api/Save{E}Validator.cs` | string fields (`NotEmpty`, `EmailAddress`); a number or boolean gets no rule, since `NotEmpty` rejects 0 and false |
 | `Jig.Api/{E}Mapping.cs` | fields |
-| `Jig.Infrastructure/{E}Repository.cs` | unique field, sort field (first non-number field, else `Id`: SQLite cannot `ORDER BY` a decimal) |
+| `Jig.Infrastructure/{E}Repository.cs` | unique field, sort field (first field, sorted in memory: SQLite cannot `ORDER BY` a decimal) |
 | `operations/{e}.operations.ts` | names |
 | `features/{es}/{e}-list.view-model.ts` | names only |
 | `features/{es}/{e}-list.view.ts` | names, list row renders each field |

@@ -342,11 +342,10 @@ function emitRepository(spec: SliceSpec, n: SliceNames, product: string): Emitte
 `
     : '';
   const assignExisting = spec.fields.map((f) => `            existing.${pascalField(f.name)} = ${n.camel}.${pascalField(f.name)};`).join('\n');
-  // The exemplar sorts by its first field. The EF Core SQLite provider cannot translate
-  // ORDER BY on a decimal and throws at query time, so a number field is skipped, and a
-  // spec with nothing but numbers sorts by Id.
-  const sortField = spec.fields.find((f) => f.type !== 'number');
-  const sortProperty = sortField ? pascalField(sortField.name) : 'Id';
+  // The exemplar sorts by its first field, and so does the native store. The EF Core SQLite
+  // provider cannot translate ORDER BY on a decimal and throws at query time, so the sort
+  // runs in memory after the load; GetAllAsync loads every row regardless.
+  const sortProperty = pascalField(spec.fields[0].name);
 
   return {
     path: `services/api/src/${product}.Infrastructure/${n.pascal}Repository.cs`,
@@ -367,7 +366,7 @@ public sealed class ${n.pascal}Repository : I${n.pascal}Repository
     public ${n.pascal}Repository(${product}DbContext db) => _db = db;
 
     public async Task<IReadOnlyList<${n.pascal}>> GetAllAsync(CancellationToken ct)
-        => await _db.${n.pascalPlural}.AsNoTracking().OrderBy(x => x.${sortProperty}).ToListAsync(ct);
+        => (await _db.${n.pascalPlural}.AsNoTracking().ToListAsync(ct)).OrderBy(x => x.${sortProperty}).ToList();
 
     public Task<${n.pascal}?> GetByIdAsync(Guid id, CancellationToken ct)
         => _db.${n.pascalPlural}.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);

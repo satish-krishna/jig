@@ -129,7 +129,7 @@ test('an all-boolean spec still emits a well-formed validator', () => {
 test('the repository lists in first-field order, not Guid order', () => {
   // Infrastructure/, not the bare name: IOrderRepository.cs ends with it too.
   const cs = at('Infrastructure/OrderRepository.cs').text;
-  assert.match(cs, /GetAllAsync\(CancellationToken ct\)\n\s+=> await _db\.Orders\.AsNoTracking\(\)\.OrderBy\(x => x\.Reference\)\.ToListAsync\(ct\);/);
+  assert.match(cs, /GetAllAsync\(CancellationToken ct\)\n\s+=> \(await _db\.Orders\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Reference\)\.ToList\(\);/);
   assert.doesNotMatch(cs, /OrderBy\(x => x\.Id\)/);
 });
 
@@ -145,8 +145,9 @@ test('a boolean first field still produces a compiling sort', () => {
 });
 
 // The EF Core SQLite provider cannot translate ORDER BY on a decimal column and throws at
-// query time, so a number first field would compile, then fail every list request.
-test('a number first field sorts by the first non-number field instead', () => {
+// query time, so the sort runs in memory after the load. That keeps the first-field rule
+// for a number too, which is the order the native store lists in.
+test('a number first field sorts by that field in memory, not in SQL', () => {
   const numberFirst = emitDotnet(validateSpec({
     name: 'StockItem', icon: 'lucideBox',
     fields: [
@@ -155,17 +156,7 @@ test('a number first field sorts by the first non-number field instead', () => {
     ],
   }), 'Jig');
   const cs = numberFirst.find((f) => f.path.endsWith('Infrastructure/StockItemRepository.cs'))!.text;
-  assert.match(cs, /OrderBy\(x => x\.Sku\)/);
-  assert.doesNotMatch(cs, /OrderBy\(x => x\.Quantity\)/);
-});
-
-test('an all-number spec falls back to sorting by Id', () => {
-  const allNumber = emitDotnet(validateSpec({
-    name: 'Reading', icon: 'lucideGauge',
-    fields: [{ name: 'celsius', type: 'number', label: 'Celsius' }],
-  }), 'Jig');
-  const cs = allNumber.find((f) => f.path.endsWith('Infrastructure/ReadingRepository.cs'))!.text;
-  assert.match(cs, /OrderBy\(x => x\.Id\)/);
+  assert.match(cs, /\(await _db\.StockItems\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Quantity\)\.ToList\(\);/);
 });
 
 // The label lands inside a C# interpolated string, where a brace opens a hole and a
