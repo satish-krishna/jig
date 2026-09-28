@@ -203,7 +203,7 @@ test('staleDatabaseFiles picks the SQLite database and its sidecars, nothing els
 // the EnsureCreated database. Template init renames it to the kebab form of the product.
 test('staleDatabaseFiles leaves any other database in the API directory alone', () => {
   assert.deepEqual(
-    staleDatabaseFiles(['acme-portal.db', 'acme-portal.db-wal', 'jig.db', 'reference.db'], 'AcmePortal'),
+    staleDatabaseFiles(['acme-portal.db', 'acme-portal.db-wal', 'legacy.db', 'reference.db'], 'AcmePortal'),
     ['acme-portal.db', 'acme-portal.db-wal'],
   );
 });
