@@ -236,32 +236,6 @@ export const THIN_PATCHES: readonly Patch[] = [
     ],
   },
   {
-    path: 'frontend/src/app/operations/user.operations.ts',
-    edits: [
-      [
-        ` * The user operations facade: speaks operations, never URLs or command names. Identical
- * across both wires because it only ever talks to the Transport port.
- *
- * @capability operations.user
- * @intent Domain-facing user data access that is oblivious to HTTP vs IPC.`,
-        ` * The user operations facade: speaks operations, never URLs. It only ever talks to the
- * Transport port, so route knowledge stays in the registry.
- *
- * @capability operations.user
- * @intent Domain-facing user data access that is oblivious to the wire.`,
-      ],
-    ],
-  },
-  {
-    path: 'frontend/src/app/features/users/user-list.view-model.ts',
-    edits: [
-      [
-        ` * operations, so this class is identical whether the wire is IPC or HTTP.`,
-        ` * operations, so this class never learns how a request reaches the API.`,
-      ],
-    ],
-  },
-  {
     path: 'frontend/src/app/showcase/pages/schema-form.page.ts',
     edits: [
       [
@@ -296,15 +270,6 @@ export const THIN_PATCHES: readonly Patch[] = [
   },
 
   // ---- backend ------------------------------------------------------------
-  {
-    path: 'services/api/src/Jig.Api/Users/UserContracts.cs',
-    edits: [
-      [
-        '/// the frontend generates its TypeScript type from, so HTTP and IPC cannot disagree about it.</summary>',
-        '/// the frontend generates its TypeScript type from, so client and API cannot disagree about it.</summary>',
-      ],
-    ],
-  },
   {
     path: 'package.json',
     edits: [

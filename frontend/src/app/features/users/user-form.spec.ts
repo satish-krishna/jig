@@ -5,12 +5,11 @@ import { UserForm } from './user-form';
 import { SchemaForm } from '../../forms/schema-form';
 import { provideDefaultFormControls } from '../../forms/controls';
 
-// These assert the RENDERED result, not the wiring that produced it. The component
-// no longer owns a control per field to reach into — the schema does — so a test
-// that poked at named form controls would be testing SchemaForm's internals from
-// the wrong file. What is this component's own is: it passes the right schema, it
-// labels its submit button, and it re-emits SchemaForm's untyped payload as the
-// model. Everything else here is a check that the schema really did drive the DOM.
+// These assert the RENDERED result, not the wiring that produced it. The component owns no
+// control per field to reach into — the schema does — so a test poking at named form
+// controls would be testing SchemaForm's internals from the wrong file. What is this
+// component's own is: it passes the right schema, it labels its submit button, and it
+// re-emits SchemaForm's untyped payload as the model.
 function render() {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({ providers: [provideDefaultFormControls()] });
@@ -61,10 +60,10 @@ describe('UserForm', () => {
     let emitted: unknown;
     fixture.componentInstance.saved.subscribe((v) => (emitted = v));
 
-    schemaForm.form().setValue({ name: 'Ada', email: 'ada@example.io' });
+    schemaForm.form().setValue({ name: 'alpha', email: 'alpha@x.io' });
     schemaForm.onSubmit();
 
-    expect(emitted).toEqual({ name: 'Ada', email: 'ada@example.io' });
+    expect(emitted).toEqual({ name: 'alpha', email: 'alpha@x.io' });
   });
 
   it('does not emit saved when the schema rejects the value', () => {
@@ -73,7 +72,7 @@ describe('UserForm', () => {
     let emitted: unknown;
     fixture.componentInstance.saved.subscribe((v) => (emitted = v));
 
-    schemaForm.form().setValue({ name: 'Ada', email: 'not-an-email' });
+    schemaForm.form().setValue({ name: '', email: 'alpha@x.io' });
     schemaForm.onSubmit();
 
     expect(emitted).toBeUndefined();

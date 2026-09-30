@@ -16,5 +16,5 @@ public sealed class SaveUserEndpoint : ResultEndpoint<SaveUserRequest, UserRespo
     }
 
     public override async Task HandleAsync(SaveUserRequest req, CancellationToken ct)
-        => await SendResultAsync(await _users.SaveAsync(req.Id, req.Name, req.Email, ct), u => u.ToResponse(), ct);
+        => await SendResultAsync(await _users.SaveAsync(req.Id, req.Name, req.Email, ct), x => x.ToResponse(), ct);
 }

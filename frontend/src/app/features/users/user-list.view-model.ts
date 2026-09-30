@@ -4,12 +4,9 @@ import type { AppError } from '../../transport';
 import { UserOperations } from '../../operations/user.operations';
 
 /**
- * ViewModel for the users slice. Exposes signals only; the View binds to them and
- * never touches a facade or transport. Depends on UserOperations, which speaks
- * operations, so this class is identical whether the wire is IPC or HTTP.
- *
- * This is the reference ViewModel: copy its shape for new features. It is not a
- * catalog capability because ViewModels are feature-specific, not reused.
+ * ViewModel for the users slice. Exposes signals only; the View binds to them
+ * and never touches a facade or transport. Depends on UserOperations, which speaks
+ * operations, so this class is identical regardless of which transport is underneath.
  */
 @Injectable()
 export class UserListViewModel {

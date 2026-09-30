@@ -26,7 +26,7 @@ function setup(impl: () => Observable<unknown>): UserListViewModel {
 
 describe('UserListViewModel', () => {
   it('load() populates the users signal and clears loading', () => {
-    const users = [{ id: '1', name: 'Ada', email: 'ada@x.io' }];
+    const users = [{ id: '1', name: 'alpha', email: 'alpha@x.io' }];
     const vm = setup(() => of(users));
 
     vm.load();
@@ -47,10 +47,10 @@ describe('UserListViewModel', () => {
   });
 
   it('save() reloads the list on success', () => {
-    const users = [{ id: '1', name: 'Ada', email: 'ada@x.io' }];
+    const users = [{ id: '1', name: 'alpha', email: 'alpha@x.io' }];
     const vm = setup(() => of(users));
 
-    vm.save({ name: 'Ada', email: 'ada@x.io' });
+    vm.save({ name: 'alpha', email: 'alpha@x.io' });
 
     expect(vm.users()).toEqual(users);
   });

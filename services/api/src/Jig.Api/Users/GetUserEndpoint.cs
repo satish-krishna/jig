@@ -16,5 +16,5 @@ public sealed class GetUserEndpoint : ResultEndpoint<GetUserRequest, UserRespons
     }
 
     public override async Task HandleAsync(GetUserRequest req, CancellationToken ct)
-        => await SendResultAsync(await _users.GetAsync(req.Id, ct), u => u.ToResponse(), ct);
+        => await SendResultAsync(await _users.GetAsync(req.Id, ct), x => x.ToResponse(), ct);
 }

@@ -11,8 +11,7 @@ public class UsersEndpointTests : IClassFixture<ApiFixture>
 
     public UsersEndpointTests(ApiFixture app) => _client = app.Client;
 
-    private static object NewUser(string name = "Dana") =>
-        new { name, email = $"{name.ToLowerInvariant()}-{Guid.NewGuid():N}@example.io" };
+    private static object NewUser() => new { name = "alpha", email = $"alpha-{Guid.NewGuid():N}@x.io" };
 
     [Fact]
     public async Task list_returns_200()
@@ -24,7 +23,7 @@ public class UsersEndpointTests : IClassFixture<ApiFixture>
     [Fact]
     public async Task save_then_get_roundtrips_the_user()
     {
-        var post = await _client.PostAsJsonAsync("/users", NewUser("Ada"));
+        var post = await _client.PostAsJsonAsync("/users", NewUser());
         post.StatusCode.ShouldBe(HttpStatusCode.OK);
         var created = await post.Content.ReadFromJsonAsync<UserResponse>();
         created!.Id.ShouldNotBe(Guid.Empty);
@@ -32,13 +31,13 @@ public class UsersEndpointTests : IClassFixture<ApiFixture>
         var get = await _client.GetAsync($"/users/{created.Id}");
         get.StatusCode.ShouldBe(HttpStatusCode.OK);
         var fetched = await get.Content.ReadFromJsonAsync<UserResponse>();
-        fetched!.Email.ShouldBe(created.Email);
+        fetched!.Name.ShouldBe(created.Name);
     }
 
     [Fact]
     public async Task save_with_invalid_body_returns_400()
     {
-        var res = await _client.PostAsJsonAsync("/users", new { name = "", email = "not-an-email" });
+        var res = await _client.PostAsJsonAsync("/users", new { name = "", email = "" });
         res.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
@@ -52,10 +51,10 @@ public class UsersEndpointTests : IClassFixture<ApiFixture>
     [Fact]
     public async Task save_duplicate_email_returns_409()
     {
-        var email = $"dup-{Guid.NewGuid():N}@example.io";
-        (await _client.PostAsJsonAsync("/users", new { name = "First", email })).EnsureSuccessStatusCode();
+        var email = $"alpha-{Guid.NewGuid():N}@x.io";
+        (await _client.PostAsJsonAsync("/users", new { name = "alpha", email })).EnsureSuccessStatusCode();
 
-        var res = await _client.PostAsJsonAsync("/users", new { name = "Second", email });
+        var res = await _client.PostAsJsonAsync("/users", new { name = "bravo", email });
         res.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 }

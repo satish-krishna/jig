@@ -19,6 +19,6 @@ public sealed class ListUsersEndpoint : EndpointWithoutRequest<IEnumerable<UserR
     public override async Task HandleAsync(CancellationToken ct)
     {
         var result = await _users.ListAsync(ct);
-        await Send.OkAsync(result.Value!.Select(u => u.ToResponse()), ct);
+        await Send.OkAsync(result.Value!.Select(x => x.ToResponse()), ct);
     }
 }
