@@ -4,6 +4,10 @@
 // updated to satisfy it, the emitters are not, and every slice generated afterwards fails the
 // rule while the gate stays green.
 //
+// It compares the files the generator writes. The registry lines that wire users in are not
+// compared — the injectors skip a slice already present — and acceptance.test.ts covers the
+// injectors against the live registries instead.
+//
 // Template-only (listed in TEMPLATE_ONLY, so init deletes it): in an app cloned from the
 // template, `users` belongs to the developer, who is expected to change it or delete it.
 
