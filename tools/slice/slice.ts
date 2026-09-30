@@ -15,7 +15,7 @@
 
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { EmittedFile, SliceSpec } from './spec.ts';
 import { loadSpec } from './spec.ts';
@@ -276,7 +276,7 @@ export function databaseFileName(programCs: string): string | undefined {
  * starts from, and the file name to match there.
  */
 export function databaseLocation(apiDir: string, dataSource: string): { dir: string; file: string } {
-  return { dir: join(apiDir, dirname(dataSource)), file: basename(dataSource) };
+  return { dir: resolve(apiDir, dirname(dataSource)), file: basename(dataSource) };
 }
 
 function removeStaleDatabase(product: string): void {

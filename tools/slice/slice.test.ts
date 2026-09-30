@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateSpec } from './spec.ts';
 import {
@@ -221,8 +221,12 @@ test('databaseFileName reads the SQLite file the API connection string names', (
 // (SQLite resolves it against the working directory, which dev runs from there). Matching the
 // whole path against the API directory's own entries would find nothing and delete nothing.
 test('databaseLocation splits a Data Source into the folder to look in and the file name', () => {
-  assert.deepEqual(databaseLocation('/api', 'app.db'), { dir: join('/api'), file: 'app.db' });
-  assert.deepEqual(databaseLocation('/api', 'data/app.db'), { dir: join('/api', 'data'), file: 'app.db' });
+  const api = resolve('/api');
+  assert.deepEqual(databaseLocation(api, 'app.db'), { dir: api, file: 'app.db' });
+  assert.deepEqual(databaseLocation(api, 'data/app.db'), { dir: resolve(api, 'data'), file: 'app.db' });
+  // An absolute Data Source stands on its own; joining it under the API folder would mangle it.
+  const elsewhere = resolve('/srv/data');
+  assert.deepEqual(databaseLocation(api, join(elsewhere, 'app.db')), { dir: elsewhere, file: 'app.db' });
 });
 
 // thick:start
