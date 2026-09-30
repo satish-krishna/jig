@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { validateSpec } from './spec.ts';
 import {
   CATALOG_REFRESH_COMMAND, collidingPaths, detectProduct, dirtyAmong, parseArgs, plan, renderEdits, runsCodegen, staleDatabaseFiles,
-  databaseFileName,
+  databaseFileName, databaseLocation,
 } from './slice.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -215,6 +215,14 @@ test('staleDatabaseFiles leaves any other database in the API directory alone', 
 test('databaseFileName reads the SQLite file the API connection string names', () => {
   assert.equal(databaseFileName('.AddInfrastructure(cfg.GetConnectionString("Default") ?? "Data Source=my-app-2.db")'), 'my-app-2.db');
   assert.equal(databaseFileName('var app = builder.Build();'), undefined);
+});
+
+// A Data Source with a folder in it names a file in that folder, relative to the API project
+// (SQLite resolves it against the working directory, which dev runs from there). Matching the
+// whole path against the API directory's own entries would find nothing and delete nothing.
+test('databaseLocation splits a Data Source into the folder to look in and the file name', () => {
+  assert.deepEqual(databaseLocation('/api', 'app.db'), { dir: join('/api'), file: 'app.db' });
+  assert.deepEqual(databaseLocation('/api', 'data/app.db'), { dir: join('/api', 'data'), file: 'app.db' });
 });
 
 // thick:start

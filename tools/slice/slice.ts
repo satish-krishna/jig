@@ -15,7 +15,7 @@
 
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { EmittedFile, SliceSpec } from './spec.ts';
 import { loadSpec } from './spec.ts';
@@ -271,23 +271,33 @@ export function databaseFileName(programCs: string): string | undefined {
   return /Data Source=([^";]+)/.exec(programCs)?.[1];
 }
 
+/**
+ * Where a Data Source points: the folder to look in, relative to the API project the dev run
+ * starts from, and the file name to match there.
+ */
+export function databaseLocation(apiDir: string, dataSource: string): { dir: string; file: string } {
+  return { dir: join(apiDir, dirname(dataSource)), file: basename(dataSource) };
+}
+
 function removeStaleDatabase(product: string): void {
   const apiDir = join(ROOT, 'services', 'api', 'src', `${product}.Api`);
-  const database = databaseFileName(readFileSync(join(apiDir, 'Program.cs'), 'utf8'));
-  if (!database) {
+  const dataSource = databaseFileName(readFileSync(join(apiDir, 'Program.cs'), 'utf8'));
+  if (!dataSource) {
     console.warn(
       `Found no "Data Source=" in ${join(apiDir, 'Program.cs')}, so no dev database was deleted. If one ` +
         `exists, delete it by hand, or the new endpoints will fail with "no such table".`,
     );
     return;
   }
-  for (const name of staleDatabaseFiles(readdirSync(apiDir), database)) {
+  const { dir, file } = databaseLocation(apiDir, dataSource);
+  if (!existsSync(dir)) return;
+  for (const name of staleDatabaseFiles(readdirSync(dir), file)) {
     try {
-      rmSync(join(apiDir, name));
+      rmSync(join(dir, name));
       console.log(`Deleted the dev database ${name}; the next run recreates it with the new table.`);
     } catch {
       console.warn(
-        `Could not delete ${join(apiDir, name)} (is \`npm run dev\` running?). Stop it and delete ` +
+        `Could not delete ${join(dir, name)} (is \`npm run dev\` running?). Stop it and delete ` +
           `the file by hand, or the new endpoints will fail with "no such table".`,
       );
     }
