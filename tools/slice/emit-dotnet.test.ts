@@ -131,7 +131,7 @@ test('the repository lists in first-field order, not Guid order', () => {
   const cs = at('Infrastructure/OrderRepository.cs').text;
   // Ordinal, because the default string comparer is culture-aware and the native store
   // compares bytes: without it "apple" and "Banana" list in opposite orders on the two wires.
-  assert.match(cs, /GetAllAsync\(CancellationToken ct\)\n\s+=> \(await _db\.Orders\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Reference, StringComparer\.Ordinal\)\.ToList\(\);/);
+  assert.match(cs, /GetAllAsync\(CancellationToken ct\)\n\s+=> \(await _db\.Orders\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Reference, StringComparer\.Ordinal\)\.ThenBy\(x => x\.Id\)\.ToList\(\);/);
   assert.doesNotMatch(cs, /OrderBy\(x => x\.Id\)/);
 });
 
@@ -158,7 +158,7 @@ test('a number first field sorts by that field in memory, not in SQL', () => {
     ],
   }), 'Jig');
   const cs = numberFirst.find((f) => f.path.endsWith('Infrastructure/StockItemRepository.cs'))!.text;
-  assert.match(cs, /\(await _db\.StockItems\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Quantity\)\.ToList\(\);/);
+  assert.match(cs, /\(await _db\.StockItems\.AsNoTracking\(\)\.ToListAsync\(ct\)\)\.OrderBy\(x => x\.Quantity\)\.ThenBy\(x => x\.Id\)\.ToList\(\);/);
 });
 
 // The label lands inside a C# interpolated string, where a brace opens a hole and a
@@ -170,4 +170,24 @@ test('a label with a quote or a brace is escaped for the C# interpolated conflic
   }), 'Jig');
   const cs = awkward.find((f) => f.path.endsWith('OwnerService.cs'))!.text;
   assert.ok(cs.includes(String.raw`$"The \"{{x}}\" tag {tag} is already in use."`), cs);
+});
+
+// The article follows the sound, not the letter: "a user", "an order". The entity reads as
+// words, so a multi-word name is "a purchase order", not "a purchaseOrder".
+test('the entity summary uses the right article and the entity as words', () => {
+  const summary = (name: string) =>
+    emitDotnet(validateSpec({ name, icon: 'lucideBox', fields: [{ name: 'label', type: 'string', label: 'Label' }] }), 'Jig')
+      .find((f) => f.path.endsWith(`Jig.Domain/${name}.cs`))!.text;
+  assert.match(summary('User'), /\/\/\/ <summary>A user\.<\/summary>/);
+  assert.match(summary('Unit'), /\/\/\/ <summary>A unit\.<\/summary>/);
+  assert.match(summary('Order'), /\/\/\/ <summary>An order\.<\/summary>/);
+  assert.match(summary('Umbrella'), /\/\/\/ <summary>An umbrella\.<\/summary>/);
+  assert.match(summary('PurchaseOrder'), /\/\/\/ <summary>A purchase order\.<\/summary>/);
+  assert.match(at('SaveOrderEndpoint.cs').text, /updates an order\.<\/summary>/);
+});
+
+// Ties on the first field fall back to the id, as the native store's list does, so equal
+// rows keep one order instead of whatever order the database happened to return them in.
+test('the repository breaks a first-field tie by id', () => {
+  assert.match(at('Infrastructure/OrderRepository.cs').text, /\.OrderBy\(x => x\.Reference, StringComparer\.Ordinal\)\.ThenBy\(x => x\.Id\)\.ToList\(\);/);
 });

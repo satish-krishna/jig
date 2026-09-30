@@ -136,3 +136,23 @@ test('a backslash in a label is escaped rather than starting an escape sequence'
   const schema = emitFrontend(quoted).find((f) => f.path.endsWith('folder-form.schema.ts'))!.text;
   assert.ok(schema.includes(String.raw`label: 'C:\\ root'`), schema);
 });
+
+// The generated form only ever creates (the list screen has no edit path), so "Add" is the
+// action it performs, and a multi-word entity reads as words rather than as an identifier.
+test('the form labels its submit with Add and the entity as words', () => {
+  assert.match(at('order-form').text, /submitLabel="Add order"/);
+  const multi = emitFrontend(validateSpec({
+    name: 'PurchaseOrder', icon: 'lucideReceipt', fields: [{ name: 'reference', type: 'string', label: 'Reference' }],
+  }));
+  assert.match(multi.find((f) => f.path.endsWith('purchase-order-form.ts'))!.text, /submitLabel="Add purchase order"/);
+});
+
+// The heading and the empty state are copy a person reads, so a multi-word entity reads as
+// words there too, not as the PascalCase or camelCase identifier.
+test('the list view heading and empty state read as words', () => {
+  const view = emitFrontend(validateSpec({
+    name: 'PurchaseOrder', icon: 'lucideReceipt', fields: [{ name: 'reference', type: 'string', label: 'Reference' }],
+  })).find((f) => f.path.endsWith('purchase-order-list.view.ts'))!.text;
+  assert.match(view, /<h1 hlmH3>Purchase orders<\/h1>/);
+  assert.match(view, /No purchase orders yet\./);
+});

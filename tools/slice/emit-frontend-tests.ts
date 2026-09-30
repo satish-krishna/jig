@@ -17,14 +17,14 @@ import { tsString } from './literal.ts';
 
 /**
  * A TS-literal sample value for a field, distinct per variant (0 or 1). Mirrors
- * emit-dotnet-tests.ts's sample() but produces JS literals ('a', 1, true) for a spec
+ * emit-dotnet-tests.ts's sample() but produces JS literals ('alpha', 1, true) for a spec
  * file's object literals instead of C# ones.
  */
 function sampleValue(f: FieldSpec, variant: 0 | 1): string {
   if (f.type === 'number') return String(variant + 1);
   if (f.type === 'boolean') return variant === 0 ? 'true' : 'false';
-  if (f.format === 'email') return variant === 0 ? `'a@x.io'` : `'b@x.io'`;
-  return variant === 0 ? `'a'` : `'b'`;
+  if (f.format === 'email') return variant === 0 ? `'alpha@x.io'` : `'bravo@x.io'`;
+  return variant === 0 ? `'alpha'` : `'bravo'`;
 }
 
 /** `name: value, name: value` fragment for every field at one sample variant. */
@@ -32,7 +32,7 @@ function fieldsLiteral(spec: SliceSpec, variant: 0 | 1): string {
   return spec.fields.map((f) => `${f.name}: ${sampleValue(f, variant)}`).join(', ');
 }
 
-/** A sample row object literal carrying an id plus every field, e.g. `{ id: '1', reference: 'a', total: 1 }`. */
+/** A sample row object literal carrying an id plus every field, e.g. `{ id: '1', reference: 'alpha', total: 1 }`. */
 function rowLiteral(spec: SliceSpec, id: string, variant: 0 | 1): string {
   return `{ id: '${id}', ${fieldsLiteral(spec, variant)} }`;
 }
@@ -209,7 +209,7 @@ describe('${n.pascal}ListView', () => {
   it('renders the empty state when the list comes back empty', () => {
     const fixture = render(() => of([]));
 
-    expect(fixture.nativeElement.textContent).toContain('No ${n.camelPlural} yet');
+    expect(fixture.nativeElement.textContent).toContain('No ${label(n.kebabPlural)} yet');
   });
 
   it('surfaces a load failure to the user', () => {
@@ -282,7 +282,7 @@ ${idChecks}
     `  it('labels the submit button with the action, not the default', () => {
     // The e2e drives this form by that button's accessible name, so the label is
     // load-bearing beyond looking right.
-    expect(render().nativeElement.querySelector('button[type="submit"]').textContent.trim()).toBe('Save ${n.camel}');
+    expect(render().nativeElement.querySelector('button[type="submit"]').textContent.trim()).toBe('Add ${label(n.kebab)}');
   });`,
   ];
 

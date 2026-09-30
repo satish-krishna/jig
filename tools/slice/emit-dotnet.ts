@@ -7,10 +7,15 @@ import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
 import { interpolatedString } from './literal.ts';
+import { label } from './naming.ts';
 
 /** "A" or "An", by the first sound of the noun that follows. Entity names are ordinary
  * English nouns (Order, Item, Address, ...), so a vowel-letter check is good enough. */
 function articleFor(word: string): 'A' | 'An' {
+  // By sound, not letter: a vowel that sounds like "you" or "wo" takes "a" (a user, a unit,
+  // a one-off), and a silent h takes "an" (an hour).
+  if (/^(uni|use|usa|usu|uti|ure|eu|one|once)/i.test(word)) return 'A';
+  if (/^(hour|honest|honor|heir)/i.test(word)) return 'An';
   return /^[aeiou]/i.test(word) ? 'An' : 'A';
 }
 
@@ -26,7 +31,7 @@ function emitEntity(spec: SliceSpec, n: SliceNames, product: string): EmittedFil
     path: `services/api/src/${product}.Domain/${n.pascal}.cs`,
     text: `namespace ${product}.Domain;
 
-/// <summary>${articleFor(n.camel)} ${n.camel}.</summary>
+/// <summary>${articleFor(label(n.kebab))} ${label(n.kebab)}.</summary>
 public sealed class ${n.pascal}
 {
     public Guid Id { get; set; }
@@ -251,7 +256,7 @@ function emitSaveEndpoint(spec: SliceSpec, n: SliceNames, product: string): Emit
 
 namespace ${product}.Api.${n.pascalPlural};
 
-/// <summary>${n.opPrefix}.save — POST ${n.route}. Creates (null Id) or updates ${articleFor(n.camel).toLowerCase()} ${n.camel}.</summary>
+/// <summary>${n.opPrefix}.save — POST ${n.route}. Creates (null Id) or updates ${articleFor(label(n.kebab)).toLowerCase()} ${label(n.kebab)}.</summary>
 public sealed class Save${n.pascal}Endpoint : ResultEndpoint<Save${n.pascal}Request, ${n.pascal}Response>
 {
     private readonly ${n.pascal}Service _${n.camelPlural};
@@ -370,7 +375,7 @@ public sealed class ${n.pascal}Repository : I${n.pascal}Repository
     public ${n.pascal}Repository(${product}DbContext db) => _db = db;
 
     public async Task<IReadOnlyList<${n.pascal}>> GetAllAsync(CancellationToken ct)
-        => (await _db.${n.pascalPlural}.AsNoTracking().ToListAsync(ct)).OrderBy(${sortKey}).ToList();
+        => (await _db.${n.pascalPlural}.AsNoTracking().ToListAsync(ct)).OrderBy(${sortKey}).ThenBy(x => x.Id).ToList();
 
     public Task<${n.pascal}?> GetByIdAsync(Guid id, CancellationToken ct)
         => _db.${n.pascalPlural}.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);

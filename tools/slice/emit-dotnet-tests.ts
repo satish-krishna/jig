@@ -18,8 +18,8 @@ import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
 function sample(f: FieldSpec, variant: 0 | 1): string {
   if (f.type === 'number') return `${variant + 1}m`;
   if (f.type === 'boolean') return variant === 0 ? 'true' : 'false';
-  if (f.format === 'email') return variant === 0 ? '"a@x.io"' : '"b@x.io"';
-  return variant === 0 ? '"a"' : '"b"';
+  if (f.format === 'email') return variant === 0 ? '"alpha@x.io"' : '"bravo@x.io"';
+  return variant === 0 ? '"alpha"' : '"bravo"';
 }
 
 /**
@@ -35,7 +35,7 @@ function sample(f: FieldSpec, variant: 0 | 1): string {
  */
 function uniqueSample(f: FieldSpec, slot: 0 | 1): string {
   if (f.type === 'number') return `${9001 + slot}m`;
-  return f.format === 'email' ? '$"a-{Guid.NewGuid():N}@x.io"' : '$"a-{Guid.NewGuid():N}"';
+  return f.format === 'email' ? '$"alpha-{Guid.NewGuid():N}@x.io"' : '$"alpha-{Guid.NewGuid():N}"';
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ function emitServiceTests(spec: SliceSpec, n: SliceNames, product: string): Emit
   const unique = uniqueField(spec);
   const assertField = spec.fields[0];
 
-  // Object-initializer fragment for every field at one sample variant, e.g. "Reference = "a", Total = 1m".
+  // Object-initializer fragment for every field at one sample variant, e.g. "Reference = "alpha", Total = 1m".
   const fieldInit = (variant: 0 | 1) =>
     spec.fields.map((f) => `${pascalField(f.name)} = ${sample(f, variant)}`).join(', ');
   // Positional argument list matching SaveAsync's generated signature, in field order.

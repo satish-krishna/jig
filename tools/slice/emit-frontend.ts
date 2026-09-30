@@ -4,16 +4,15 @@
 // access here — the CLI (a later task) decides where these EmittedFile entries land.
 //
 // The form is rendered through SchemaForm, not hand-wired: no {kebab}-form.view-model.ts
-// is emitted. frontend/src/app/features/users/user-form.ts is emitForm's own output for
-// examples/slices/users.slice.json, differing only in its exemplar prose and its "Add user"
-// submit label (domain copy the spec cannot carry — ADR 0015 names it), so the exemplar and
-// the generator no longer teach different shapes; docs/architecture/forms.md makes the
+// is emitted. Every users exemplar file is these emitters' exact output for
+// examples/slices/users.slice.json (the template gates it with a golden test), so the exemplar and
+// the generator cannot teach different shapes; docs/architecture/forms.md makes the
 // renderer the default for every form. The schema file below carries every field's shape,
 // validation, and control kind, and the form component wires nothing per field.
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
-import { label } from './naming.ts';
+import { label, sentenceCase } from './naming.ts';
 import { tsString } from './literal.ts';
 
 // ---------------------------------------------------------------------------
@@ -169,7 +168,7 @@ import { new${n.pascal}Command } from './${n.kebabPlural}.commands';
   providers: [${n.pascal}ListViewModel],
   template: \`
     <section class="grid gap-m">
-      <h1 hlmH3>${n.pascalPlural}</h1>
+      <h1 hlmH3>${sentenceCase(label(n.kebabPlural))}</h1>
 
       @if (vm.formOpen()) {
         <app-${n.kebab}-form (saved)="onSaved($event)" />
@@ -188,7 +187,7 @@ import { new${n.pascal}Command } from './${n.kebabPlural}.commands';
         @for (${n.camel} of vm.${n.camelPlural}(); track ${n.camel}.id) {
           <li>${row}</li>
         } @empty {
-          <li hlmMuted>No ${n.camelPlural} yet.</li>
+          <li hlmMuted>No ${label(n.kebabPlural)} yet.</li>
         }
       </ul>
     </section>
@@ -259,7 +258,7 @@ import { ${n.camel}FormSchema, type ${n.pascal}FormModel } from './${n.kebab}-fo
 @Component({
   selector: 'app-${n.kebab}-form',
   imports: [SchemaForm],
-  template: \`<app-schema-form [schema]="${n.camel}FormSchema" submitLabel="Save ${n.camel}" (submitted)="onSubmitted($event)" />\`,
+  template: \`<app-schema-form [schema]="${n.camel}FormSchema" submitLabel="Add ${label(n.kebab)}" (submitted)="onSubmitted($event)" />\`,
 })
 export class ${n.pascal}Form {
   protected readonly ${n.camel}FormSchema = ${n.camel}FormSchema;

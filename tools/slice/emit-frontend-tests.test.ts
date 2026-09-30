@@ -35,7 +35,7 @@ test('the ViewModel spec covers load success, load failure, and save', () => {
 
 test('sample rows carry every field', () => {
   const ts = at('order-list.view-model.spec').text;
-  assert.match(ts, /\{ id: '1', reference: 'a', total: 1 \}/);
+  assert.match(ts, /\{ id: '1', reference: 'alpha', total: 1 \}/);
 });
 
 test('the form spec asserts a validation message from the schema', () => {
@@ -67,7 +67,7 @@ test('a boolean field and an email-format field get their own sample shapes', ()
   });
   const ts = emitFrontendTests(mixed).find((f) => f.path.endsWith('flag-list.view-model.spec.ts'))!.text;
   assert.match(ts, /active: true/);
-  assert.match(ts, /email: 'a@x\.io'/);
+  assert.match(ts, /email: 'alpha@x\.io'/);
 });
 
 // The required-message assertion reads a message only emit-frontend.ts's STRING branch
@@ -120,7 +120,7 @@ test('a spec with no string field emits no validation tests and a still-valid su
 
 // user-form.spec.ts is the golden spec now that user-form.ts is the generator's own
 // output, so the emitted suite carries all six of its tests. Three of them were
-// missing: the submit-label check (the emitter emits submitLabel="Save {camel}", so it is
+// missing: the submit-label check (the emitter emits submitLabel="Add {noun}", so it is
 // assertable), the before-first-submit check (which guards the trap its own comment
 // describes — the error slot stays mounted, so asserting absence can pass by accident),
 // and the negative path, the only test of the component's one piece of real logic.
@@ -128,7 +128,7 @@ test('the form spec carries all six of the exemplar suite tests', () => {
   const ts = at('order-form.spec').text;
   assert.match(ts, /renders the schema form with a control per field/);
   assert.match(ts, /labels the submit button with the action, not the default/);
-  assert.match(ts, /toBe\('Save order'\)/);
+  assert.match(ts, /toBe\('Add order'\)/);
   assert.match(ts, /surfaces the schema validation message on an invalid submit/);
   assert.match(ts, /shows no validation message before the first submit/);
   assert.match(ts, /narrows the payload SchemaForm emits/);
