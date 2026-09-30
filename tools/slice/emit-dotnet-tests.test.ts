@@ -83,3 +83,15 @@ test('a spec with no email field gets no malformed-address endpoint test', () =>
   const t = emitDotnetTests(spec, 'Jig').find((f) => f.path.endsWith('OrdersEndpointTests.cs'))!.text;
   assert.doesNotMatch(t, /malformed/);
 });
+
+test('every email field gets its own malformed-address endpoint test', () => {
+  const t = emitDotnetTests(validateSpec({
+    name: 'Contact', icon: 'lucideUser',
+    fields: [
+      { name: 'workEmail', type: 'string', label: 'Work email', format: 'email' },
+      { name: 'homeEmail', type: 'string', label: 'Home email', format: 'email' },
+    ],
+  }), 'Jig').find((f) => f.path.endsWith('ContactsEndpointTests.cs'))!.text;
+  assert.match(t, /save_with_malformed_workEmail_returns_400/);
+  assert.match(t, /save_with_malformed_homeEmail_returns_400/);
+});

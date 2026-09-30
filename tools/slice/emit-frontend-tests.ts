@@ -12,7 +12,7 @@
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
-import { label } from './naming.ts';
+import { label, words } from './naming.ts';
 import { tsString } from './literal.ts';
 
 /**
@@ -337,12 +337,12 @@ ${idChecks}
 
   // The test above empties a field, so it proves the required rule; only a malformed address
   // beside otherwise valid values proves the .email(...) rule.
-  const emailField = spec.fields.find((f) => f.format === 'email');
-  if (emailField) {
+  for (const emailField of spec.fields.filter((f) => f.format === 'email')) {
     const malformedLiteral = spec.fields
       .map((f) => `${f.name}: ${f === emailField ? `'not-an-email'` : sampleValue(f, 0)}`)
       .join(', ');
-    tests.push(`  it('does not emit saved when the ${emailField.name} is malformed', () => {
+    const inWords = words(emailField.name).map((w) => w.toLowerCase()).join(' ');
+    tests.push(`  it('does not emit saved when the ${inWords} is malformed', () => {
     const fixture = render();
     const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
     let emitted: unknown;

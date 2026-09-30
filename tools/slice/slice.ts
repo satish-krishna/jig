@@ -272,8 +272,8 @@ export function databaseFileName(programCs: string): string | undefined {
 }
 
 /**
- * Where a Data Source points: the folder to look in, relative to the API project the dev run
- * starts from, and the file name to match there.
+ * Where a Data Source points: the folder to look in (a relative path is resolved against the API
+ * project the dev run starts from; an absolute one stands on its own) and the file name to match.
  */
 export function databaseLocation(apiDir: string, dataSource: string): { dir: string; file: string } {
   return { dir: resolve(apiDir, dirname(dataSource)), file: basename(dataSource) };

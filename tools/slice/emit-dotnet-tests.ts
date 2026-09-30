@@ -210,8 +210,7 @@ function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): Emi
 
   // The fact above empties every string, so NotEmpty() alone already fails it; only a
   // malformed address beside otherwise valid values proves EmailAddress().
-  const emailField = spec.fields.find((f) => f.format === 'email');
-  if (emailField) {
+  for (const emailField of spec.fields.filter((f) => f.format === 'email')) {
     const malformedProps = spec.fields
       .map((f) => `${f.name} = ${f === emailField ? '"not-an-email"' : sample(f, 0)}`)
       .join(', ');

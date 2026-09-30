@@ -167,3 +167,18 @@ test('an email field gets a test that a malformed address alone is rejected', ()
 test('a spec with no email field gets no malformed-address test', () => {
   assert.doesNotMatch(at('order-form.spec').text, /is malformed/);
 });
+
+// Each email field carries its own .email(...) rule, so each gets its own isolated test, and
+// the test title names the field in words.
+test('every email field gets its own malformed-address test, titled in words', () => {
+  const ts = emitFrontendTests(validateSpec({
+    name: 'Contact', icon: 'lucideUser',
+    fields: [
+      { name: 'workEmail', type: 'string', label: 'Work email', format: 'email' },
+      { name: 'homeEmail', type: 'string', label: 'Home email', format: 'email' },
+    ],
+  })).find((f) => f.path.endsWith('contact-form.spec.ts'))!.text;
+  assert.match(ts, /it\('does not emit saved when the work email is malformed'/);
+  assert.match(ts, /it\('does not emit saved when the home email is malformed'/);
+  assert.match(ts, /setValue\(\{ workEmail: 'alpha@x\.io', homeEmail: 'not-an-email' \}\)/);
+});
