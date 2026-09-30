@@ -107,7 +107,7 @@ public sealed class JigDbContext : DbContext
 
 // thick:start
 // A copy of the desktop shell's entry point. No mention of the toolchain that compiles it
-// belongs in this file's prose (tools/init/thin.test.ts scans every tracked file for that
+// belongs in this file's prose (the template's thin-cut test scans every tracked file for that
 // vocabulary), so this comment, like inject-text.ts's, just calls it the desktop entry point.
 const LIB_RS = `mod commands;
 mod users;
@@ -230,6 +230,17 @@ test('injectCommandsRs adds the use import and the three command adapters', () =
   assert.match(out, /store\.save\(id, reference, total\)\.map_err\(\|e\| e\.to_string\(\)\)/);
   // The exemplar's own adapters survive alongside the new ones.
   assert.match(out, /pub fn users_list\(/);
+});
+
+// The invoke payload stays camelCase: the command layer maps a camelCase argument onto a
+// snake_case parameter by default, and a camelCase parameter only draws non_snake_case warnings.
+test('injectCommandsRs names a multi-word field in snake_case', () => {
+  const out = injectCommandsRs(COMMANDS_RS, validateSpec({
+    name: 'Person', icon: 'lucideUser', fields: [{ name: 'firstName', type: 'string', label: 'First name' }],
+  }));
+  assert.match(out, /    first_name: String,/);
+  assert.match(out, /store\.save\(id, first_name\)/);
+  assert.doesNotMatch(out, /firstName/);
 });
 // thick:end
 test('every injector is idempotent', () => {

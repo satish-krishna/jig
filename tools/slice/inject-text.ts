@@ -2,7 +2,7 @@
 // parser is available for either target language here (unlike inject-ts.ts, which walks
 // the TypeScript AST), so every injector below locates its insertion point with a single
 // anchor string and splices plain text after it — the same anchored-insertion technique
-// tools/init/thin.ts uses for the thin cut, including its loud-failure rule: a missing
+// the template's thin cut uses, including its loud-failure rule: a missing
 // anchor throws naming the file and the anchor, and an ambiguous one throws too, so a
 // splice never lands silently in the wrong place. Most anchors are a structural signature
 // the target file cannot lose without ceasing to be that file (a method's opening brace,
@@ -11,9 +11,9 @@
 // convention this template happens to ship rather than a structural guarantee, so it
 // throws loudly if removed instead of failing silently, but the anchor could be lost
 // without the file ceasing to be lib.rs. No anchor here is a line that only exists
-// because the `users` sample slice was generated — a spec-generated app built with
-// `--sample false` must still splice cleanly. Every function here is pure — a source
-// string, a spec, and an optional product name in, a source string out, no disk access —
+// because the `users` sample slice was generated — an app that has deleted the sample
+// must still splice cleanly. Every function here is pure — a source string, a spec, and
+// (for injectDbContext) the product name in, a source string out, no disk access —
 // and every function short-circuits to a no-op when its slice is already present.
 
 import type { SliceNames, SliceSpec } from './spec.ts';
@@ -21,6 +21,7 @@ import { deriveNames } from './spec.ts';
 import { pascalField, uniqueField } from './csharp.ts';
 // thick:start
 import { RUST_TYPE } from './emit-rust.ts';
+import { snake } from './naming.ts';
 // thick:end
 
 /** Insert `text` immediately after the sole occurrence of `anchor`. Loud on miss or ambiguity. */
@@ -48,10 +49,8 @@ export function insertAfter(file: string, source: string, anchor: string, text: 
  * @intent Wire a generated slice's service into the application composition root without
  * depending on the sample slice being present.
  * @reuse Call once per slice from the generator CLI; idempotent on the service registration.
- * `product` is accepted but unused, to keep the call shape uniform across all four injectors
- * (only injectDbContext's anchor needs it — the DI module files never name the product).
  */
-export function injectApplicationModule(source: string, spec: SliceSpec, product?: string): string {
+export function injectApplicationModule(source: string, spec: SliceSpec): string {
   const n = deriveNames(spec);
   const registration = `services.AddScoped<${n.pascal}Service>();`;
   if (source.includes(registration)) return source;
@@ -72,10 +71,8 @@ export function injectApplicationModule(source: string, spec: SliceSpec, product
  * @intent Wire a generated slice's repository into the infrastructure composition root
  * without depending on the sample slice being present.
  * @reuse Call once per slice from the generator CLI; idempotent on the repository registration.
- * `product` is accepted but unused, for the same call-shape-uniformity reason as
- * injectApplicationModule.
  */
-export function injectInfrastructureModule(source: string, spec: SliceSpec, product?: string): string {
+export function injectInfrastructureModule(source: string, spec: SliceSpec): string {
   const n = deriveNames(spec);
   const registration = `services.AddScoped<I${n.pascal}Repository, ${n.pascal}Repository>();`;
   if (source.includes(registration)) return source;
@@ -160,14 +157,12 @@ export function injectDbContext(source: string, spec: SliceSpec, product = 'Jig'
  * @intent Wire a generated slice's store and commands into the desktop shell without
  * depending on the sample slice being present.
  * @reuse Call once per slice from the generator CLI; idempotent on the module declaration.
- * `product` is accepted but unused, for the same call-shape-uniformity reason as
- * injectApplicationModule — the entry point never names the product either.
  *
  * Any caller importing this function needs the same thick-marker treatment around that
  * import, or a thin clone's copy of the calling file would import a symbol this file no
  * longer exports.
  */
-export function injectLibRs(source: string, spec: SliceSpec, product?: string): string {
+export function injectLibRs(source: string, spec: SliceSpec): string {
   const n = deriveNames(spec);
   const moduleDecl = `mod ${n.snakePlural};`;
   if (source.includes(moduleDecl)) return source;
@@ -221,8 +216,10 @@ export function injectCommandsRs(source: string, spec: SliceSpec): string {
     `use crate::${n.snakePlural}::{${n.pascal}, ${n.pascal}Store};\n`,
   );
 
-  const params = spec.fields.map((f) => `    ${f.name}: ${RUST_TYPE[f.type]},`).join('\n');
-  const saveArgs = spec.fields.map((f) => f.name).join(', ');
+  // snake_case, like the store's own parameters: the invoke payload's camelCase keys map onto
+  // snake_case parameters by default, so the wire is unchanged.
+  const params = spec.fields.map((f) => `    ${snake(f.name)}: ${RUST_TYPE[f.type]},`).join('\n');
+  const saveArgs = spec.fields.map((f) => snake(f.name)).join(', ');
 
   const adapters = `
 /// ${n.opPrefix}.list — returns every ${n.camel}.

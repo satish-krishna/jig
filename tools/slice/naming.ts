@@ -15,6 +15,16 @@ export function words(raw: string): string[] {
     .filter(Boolean);
 }
 
+/** Any casing -> snake_case, e.g. "PurchaseOrder" -> "purchase_order", "firstName" -> "first_name". */
+export function snake(name: string): string {
+  return words(name).map((w) => w.toLowerCase()).join('_');
+}
+
+/** Capitalize the first letter only, for a heading: "purchase orders" -> "Purchase orders". */
+export function sentenceCase(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 /** kebab-case, hyphen-joined -> space-joined words, for a human-facing label. */
 export function label(kebab: string): string {
   return kebab.replace(/-/g, ' ');

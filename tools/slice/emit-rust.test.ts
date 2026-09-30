@@ -1,7 +1,7 @@
 // Tests for the desktop shell's per-slice store emitter. This whole file is thick-only —
 // a thin clone has no desktop shell to generate a store for — so its entire body sits
 // behind one thick-cut marker, mirroring how tools/slice/slice.ts wraps its import of
-// emitRustStore. See tools/init/thin.ts's marker mechanism.
+// emitRustStore; the template's thin cut strips everything between the markers.
 // thick:start
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -47,6 +47,44 @@ test('list sorts by the first field without unwrapping a None on NaN', () => {
   const { text } = emitRustStore(spec);
   assert.match(text, /partial_cmp\(&b\.reference\)\.unwrap_or\(std::cmp::Ordering::Equal\)/);
   assert.doesNotMatch(text, /partial_cmp\([^)]*\)\.unwrap\(\)/);
+});
+
+// The map iterates in a different order on every call, so rows that tie on the first field
+// would swap places between two refreshes of the same list. The API breaks ties by id too.
+test('list breaks a first-field tie by id, so equal rows keep one order', () => {
+  const { text } = emitRustStore(spec);
+  assert.match(text, /\.unwrap_or\(std::cmp::Ordering::Equal\)\.then_with\(\|\| a\.id\.cmp\(&b\.id\)\)\);/);
+});
+
+// A camelCase identifier in the native crate draws a non_snake_case warning for every field,
+// local and test name. The fields stay snake_case in source and serde renames them back,
+// so the JSON on the wire is unchanged.
+test('a multi-word entity and field emit snake_case source and camelCase JSON', () => {
+  const { text } = emitRustStore(validateSpec({
+    name: 'PurchaseOrder', icon: 'lucideReceipt',
+    fields: [{ name: 'firstName', type: 'string', label: 'First name' }],
+  }));
+  assert.match(text, /#\[serde\(rename_all = "camelCase"\)\]\npub struct PurchaseOrder \{/);
+  assert.match(text, /pub first_name: String,/);
+  assert.match(text, /pub fn save\(&self, id: Option<String>, first_name: String\)/);
+  assert.match(text, /let purchase_order = purchase_orders/);
+  assert.match(text, /purchase_order\.first_name = first_name;/);
+  assert.match(text, /fn save_creates_a_purchase_order_with_an_id\(\)/);
+  assert.doesNotMatch(text, /firstName|purchaseOrder/);
+});
+
+// The store is a reusable unit like every other layer the generator emits, so it carries
+// the same annotation the exemplar's store does and reaches the capability catalog.
+test('the store is annotated for the capability catalog', () => {
+  const { text } = emitRustStore(spec);
+  assert.match(text, /\/\/\/ @capability shell\.order-store\n\/\/\/ @intent /);
+});
+
+// Without a value check, a save that dropped a field on the floor would still pass.
+test('the create and update tests assert the values that were saved', () => {
+  const { text } = emitRustStore(spec);
+  assert.match(text, /assert_eq!\(order\.reference, "alpha"\);/);
+  assert.match(text, /assert_eq!\(updated\.total, 2\.0\);/);
 });
 
 test('save assigns every field on update and constructs every field on create', () => {

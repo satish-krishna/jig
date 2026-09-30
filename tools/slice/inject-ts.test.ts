@@ -34,7 +34,7 @@ const spec = validateSpec(base);
 // full copy of operations.ts did catch when checked against the actual file.
 //
 // The doc-comment prose below is paraphrased, not verbatim: the real file's wording
-// names the thick-client wire in words the repo-wide residue scan (tools/init/thin.test.ts)
+// names the thick-client wire in words the repo-wide residue scan (the template's thin-cut test)
 // forbids outside a file the thin cut knows how to patch, and this fixture is neither
 // that file nor patched by it. The code shape — every import, type, and member — is
 // still an exact copy, which is the half that actually drives the splice logic under test.
