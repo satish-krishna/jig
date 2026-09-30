@@ -51,7 +51,7 @@ interface FieldSpec {
 ]}
 ```
 
-Twelve lines producing twenty-four files. That ratio is the whole argument.
+Twelve lines producing a whole slice. That ratio is the whole argument.
 
 ### Classification
 
@@ -77,7 +77,7 @@ Every file is shape. The column records what the spec varies inside it.
 | `features/{es}/{es}.commands.ts` | names, icon |
 | the seven test files | fields (sample values) |
 
-The `users` files carry prose that is exemplar documentation rather than slice shape — "This is the reference ViewModel: copy its shape", the note in `user-form.ts` explaining why `hlm-field-error` is not guarded on `touched()`. Generated slices do not inherit that; it belongs to the exemplar's teaching job, not to the shape.
+The `users` files used to carry prose that was exemplar documentation rather than slice shape — "This is the reference ViewModel: copy its shape", the note in `user-form.ts` explaining why `hlm-field-error` is not guarded on `touched()`. That prose is gone: the exemplar is now the generator's exact output, and `tools/slice/golden.test.ts` fails the gate if the two differ (ADR 0015).
 
 ### The registries: what must be edited, not created
 

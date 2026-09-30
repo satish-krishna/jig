@@ -6,11 +6,11 @@
 
 ## Context
 
-`npm run slice -- --spec <file>` writes a whole vertical feature from a small JSON spec: ten .NET source files, two .NET test files, six Angular source files, five Angular spec files, one native store, and nine registry edits. It runs in two phases because codegen sits between them — the frontend consumes DTOs the API has not emitted until the .NET half compiles.
+`npm run slice -- --spec <file>` writes a whole vertical feature from a small JSON spec: the .NET layers and their tests, the Angular contract, screen and form and their tests, the native store, and the registry edits that wire them in (`--dry-run` lists every one). It runs in two phases because codegen sits between them — the frontend consumes DTOs the API has not emitted until the .NET half compiles.
 
 Every one of those files arrives written. The tests arrive written too, and they arrive passing.
 
-CLAUDE.md lists TDD as a non-negotiable gate, in these words: "no production line exists before a failing test that demands it." Read literally against the generator's output, twenty-four files appeared at once and not one of them was preceded by a red test. The generator is either a violation of a gate the repo says has no exceptions, or the gate means something the literal reading misses. This ADR says which, because an unstated answer becomes a per-agent judgment call, and half the agents will guess that the right thing to do is delete the generated tests and rewrite them by hand.
+CLAUDE.md lists TDD as a non-negotiable gate, in these words: "no production line exists before a failing test that demands it." Read literally against the generator's output, a whole slice of files appeared at once and not one of them was preceded by a red test. The generator is either a violation of a gate the repo says has no exceptions, or the gate means something the literal reading misses. This ADR says which, because an unstated answer becomes a per-agent judgment call, and half the agents will guess that the right thing to do is delete the generated tests and rewrite them by hand.
 
 This is the same shape as ADR 0010's argument about YAGNI and `frontend/libs/ui`, and the resolution is the same in structure. A gate is a rule with a purpose. When the literal rule and its purpose come apart, the purpose governs, and the boundary where the exemption stops has to be written down in the same breath — otherwise the exemption is a dial anyone can turn.
 
@@ -43,7 +43,7 @@ flowchart LR
 
   subgraph run["Running the generator"]
     spec["Slice spec"] --> slice["npm run slice"]
-    slice --> out["24 files: code and its tests,
+    slice --> out["Every file: code and its tests,
     one atomic step, green on arrival"]
     out --> extend["Agent adds failing tests
     for domain behavior — TDD again"]
@@ -71,7 +71,7 @@ It costs the agent input tokens to read a skeleton whose content the generator a
 
 Worse, it does not reliably converge. A skeleton is scaffolding, and scaffolding survives. A `NotImplementedException` left in a branch nobody exercised, a `TODO` in a validator, a method body the agent filled plausibly but differently from the other eight slices — each is a small divergence, and the whole point of a jig is that every part off it comes out identical. A fixture that produces parts needing hand-finishing is not a fixture.
 
-## The risk this does not solve
+## The risk this did not solve, and how it was closed
 
 **The emitters encode the `users` shape as of the day they were written, and nothing detects the exemplar drifting away from them.**
 
@@ -79,13 +79,13 @@ Worse, it does not reliably converge. A skeleton is scaffolding, and scaffolding
 
 This is not hypothetical. It had already happened before this ADR was written, in the more embarrassing direction. `frontend/src/app/features/users/user-form.ts` hand-wired a field block per field on signal-forms while `add-a-form/SKILL.md` and the generator both said to render through `SchemaForm`; `docs/architecture/forms.md` had been written to endorse the exemplar and contradicted the skill. Three sources, two stories, and a full green gate throughout. Nothing in the repository was capable of noticing, and it was found by a human reading the two files side by side.
 
-The honest mitigations available today are weak. Re-run the generator against the live tree and re-run the full gate whenever the frontend ruleset changes — which depends on someone remembering. Keep the exemplar and the emitters in the same commit when either moves — which depends on the same.
+The mitigations available when this ADR was written were weak. Re-run the generator against the live tree and re-run the full gate whenever the frontend ruleset changes — which depends on someone remembering. Keep the exemplar and the emitters in the same commit when either moves — which depends on the same.
 
-**What would actually close it is `slice --check`:** regenerate the `users` slice from `examples/slices/users.slice.json` into a scratch tree and diff it against the committed `frontend/src/app/features/users` and its .NET counterparts, failing the gate on any difference. That turns the exemplar into the generator's golden output, so the two cannot disagree without something going red. It would also force a real decision about the differences that are legitimate — the submit label on the users form is domain copy the spec does not carry today — which is a feature of the proposal, not an objection to it. It is not built, and until it is, this ADR's risk section is the record that it is missing.
+**It is closed by `slice --check`, built as `tools/slice/golden.test.ts`:** every `npm run verify` generates the `users` slice from `examples/slices/users.slice.json` in memory and fails on any committed file that differs from the output. The exemplar is now the generator's golden output, so the two cannot disagree without something going red. Building it forced the decisions this section predicted: the submit label became "Add {entity}" in the generator (the generated form only ever creates), exemplar-only prose was dropped, and four places where the exemplar was better than the generator (the article, the value assertions in the native tests, the native store's catalog annotation, distinctive test samples) were moved into the emitters. The test is template-only: in an app cloned from the template, `users` is the developer's to change, so init deletes it.
 
 ## Consequences
 
 - The four skills that used to spell out a layer's file sequence route to the generator first and keep only what it cannot do: the discover-first checklist, the TDD ordering for behavior beyond CRUD, the codegen handoff, the layer rules, and the review gates. They got shorter, which was the test of whether the generator was really carrying the shape.
-- A generated test that fails is a generator bug. Fix `tools/slice/` and regenerate; do not edit the generated file, or the next slice reintroduces it.
+- A generated test that fails is a generator bug. Fix `tools/slice/` and regenerate; do not edit the generated file, or the next slice reintroduces it. That advice holds until the slice has been extended: regenerating needs `--force`, which overwrites the extended code and tests too, so once a slice carries domain behavior, port the emitter fix into it by hand.
 - `npm run slice` refreshes the capability catalog before it returns, because every layer it emits is annotated and catalog freshness is the first step of the gate. "Arrives green" is a claim about `npm run verify`, so anything the generator leaves stale makes the claim false.
 - The generator is not exempt from review. It is the highest-leverage code in the repository: a defect in an emitter ships to every slice in every clone, which is the reason its own tests are held to the literal rule.

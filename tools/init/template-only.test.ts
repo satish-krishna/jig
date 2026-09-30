@@ -39,6 +39,13 @@ test('relativeImports finds every import form, not only the single-quoted from',
   assert.deepEqual(relativeImports(source), ['../x/a.ts', '../x/b.ts', '../x/c.ts', '../x/d.ts']);
 });
 
+// The golden test compares the users slice to the generator's output. In an app the users
+// slice is the developer's to change, so the test must not survive init, or the first edit
+// to it turns the app's gate red.
+test('the users golden test is template-only', () => {
+  assert.ok(isTemplateOnly('tools/slice/golden.test.ts'));
+});
+
 test('no surviving tool imports from a path init deletes', () => {
   const offenders: string[] = [];
   for (const file of sourceFiles(join(ROOT, 'tools'))) {
