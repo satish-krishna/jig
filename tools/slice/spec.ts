@@ -40,13 +40,20 @@ export interface EmittedFile {
 }
 
 /**
- * Pluralize a word using four rules, in order. Rules must not overlap: the -y
- * rule fires only on consonant+y, not vowel+y, so "Day" stays "Days" not "Daies".
+ * The -o nouns that take -es. Most -o nouns take plain -s (todos, photos, memos, logos), so
+ * -es is the exception, listed, and anything else can use the spec's `plural` override.
+ */
+const O_ES_NOUNS = new Set(['hero', 'potato', 'tomato', 'echo', 'veto', 'torpedo', 'embargo']);
+
+/**
+ * Pluralize a word using three rules, in order, plus the -o exception list. Rules must not
+ * overlap: the -y rule fires only on consonant+y, not vowel+y, so "Day" stays "Days" not
+ * "Daies". The -o list is matched on the last word, so "SuperHero" becomes "SuperHeroes".
  */
 function pluralize(singular: string): string {
   if (/[^aeiou]y$/.test(singular)) return singular.slice(0, -1) + 'ies';
   if (/(s|x|z|ch|sh)$/.test(singular)) return singular + 'es';
-  if (/[^aeiou]o$/.test(singular)) return singular + 'es';
+  if (O_ES_NOUNS.has(words(singular).at(-1)!.toLowerCase())) return singular + 'es';
   return singular + 's';
 }
 
@@ -65,6 +72,12 @@ const RESERVED_FIELD_NAMES = new Set(['id']);
  * parameter or local with that name.
  */
 const GENERATOR_LOCALS = new Set(['store', 'ct', 'current', 'existingId']);
+/**
+ * Locals bound beside the unique field only: the native conflict check's `|x|` closure and
+ * `existing` binding, and the endpoint test's `res`. Any other field may use these names —
+ * a Point with fields x and y is ordinary.
+ */
+const UNIQUE_FIELD_LOCALS = new Set(['x', 'existing', 'res']);
 /**
  * Entity names the emitted code cannot tell apart from a type already in scope: the
  * Domain's own Result, Error and ErrorKind, the implicit-using types an application noun is
@@ -107,13 +120,14 @@ const CSHARP_RESERVED = new Set([
   'using', 'virtual', 'void', 'volatile', 'while',
 ]);
 
+// thick:start
 /**
- * The native runtime's keywords (the strict, always-reserved set — not `union` or other
- * weak keywords that stay legal identifiers). A field name becomes a struct field
- * identifier in the generated store (`pub {name}: {type}`) and a command parameter
- * name; the native runtime has no fallback for a keyword there short of a raw
- * identifier this generator never emits. `Self` is left out below: a camelCase field
- * can never spell it.
+ * Rust's keywords (the strict, always-reserved set — not `union` or other weak keywords
+ * that stay legal identifiers). A field name becomes a struct field identifier in the
+ * generated store (`pub {name}: {type}`) and a command parameter name, and Rust has no
+ * fallback for a keyword there short of a raw identifier this generator never emits.
+ * `Self` is left out below: a camelCase field can never spell it. Thick-only, so a thin
+ * clone, which has no desktop shell, accepts a field called `type`.
  */
 const RUST_RESERVED = new Set([
   'as', 'async', 'await', 'break', 'const', 'continue', 'crate', 'dyn', 'else', 'enum',
@@ -123,10 +137,17 @@ const RUST_RESERVED = new Set([
 ]);
 
 /**
+ * The desktop shell's own modules. The generated store lands at `src/{snakePlural}.rs`, so
+ * an entity whose plural spells one of these would replace the shell's entry point or its
+ * command adapters.
+ */
+const SHELL_MODULES = new Set(['commands', 'lib', 'main']);
+
+// thick:end
+/**
  * TypeScript/JavaScript reserved words (not the contextual ones like `type`, `of`, or
- * `readonly`, which stay legal identifiers — and `type` is already covered above via
- * the native set). A field name is spliced as an identifier-shaped key into the
- * generated zod schema object and the form model.
+ * `readonly`, which stay legal identifiers). A field name is spliced as an
+ * identifier-shaped key into the generated zod schema object and the form model.
  */
 const TYPESCRIPT_RESERVED = new Set([
   'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default',
@@ -141,7 +162,9 @@ const TYPESCRIPT_RESERVED = new Set([
 function reservingLanguages(name: string): string[] {
   const langs: string[] = [];
   if (CSHARP_RESERVED.has(name)) langs.push('C#');
-  if (RUST_RESERVED.has(name)) langs.push('native');
+  // thick:start
+  if (RUST_RESERVED.has(name)) langs.push('Rust');
+  // thick:end
   if (TYPESCRIPT_RESERVED.has(name)) langs.push('TypeScript');
   return langs;
 }
@@ -229,6 +252,18 @@ export function validateSpec(raw: unknown): SliceSpec {
   // The emitted class, its native store's locals, and its plural map all take the entity's
   // own name, so a field spelled the same way collides with one of them.
   const entity = deriveNames({ name, plural: typeof obj.plural === 'string' ? obj.plural : undefined, icon, fields: [] });
+  // thick:start
+  if (SHELL_MODULES.has(entity.snakePlural)) {
+    throw new Error(
+      `name ${JSON.stringify(name)} would put its store at src/${entity.snakePlural}.rs, the desktop shell's own ` +
+        `module; pick another name or set plural`,
+    );
+  }
+  // thick:end
+
+  // The emitted service looks the unique value up into a `by{Unique}` local.
+  const uniqueName = (fields.find((f) => (f as Record<string, unknown>)?.unique === true) as Record<string, unknown> | undefined)?.name;
+  const uniqueLookupLocal = typeof uniqueName === 'string' ? `by${uniqueName.charAt(0).toUpperCase()}${uniqueName.slice(1)}` : undefined;
 
   // Validate each field structure
   const seen = new Set<string>();
@@ -248,6 +283,9 @@ export function validateSpec(raw: unknown): SliceSpec {
     }
     if (GENERATOR_LOCALS.has(f.name)) {
       throw new Error(`Field name ${JSON.stringify(f.name)} is reserved: the generated code already declares it`);
+    }
+    if ((f.unique === true && UNIQUE_FIELD_LOCALS.has(f.name)) || f.name === uniqueLookupLocal) {
+      throw new Error(`Field name ${JSON.stringify(f.name)} is reserved: the unique field's conflict check already declares it`);
     }
     if (f.name === entity.camel || f.name === entity.snakePlural) {
       throw new Error(`Field name ${JSON.stringify(f.name)} is named after the entity, which the generated code already uses`);

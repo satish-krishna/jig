@@ -144,11 +144,61 @@ test('validateSpec rejects a field name that is a C# keyword', () => {
   );
 });
 
-test('validateSpec rejects a field name that is a native-runtime keyword', () => {
+// thick:start
+// Only the desktop shell's language reserves these, so a thin clone, which has no desktop
+// shell, strips both the rule and this test and accepts a field called `type`.
+test('validateSpec rejects a field name that is a Rust keyword', () => {
   assert.throws(
     () => validateSpec({ ...base, fields: [{ name: 'impl', type: 'string', label: 'X' }] }),
-    /reserved.*native/,
+    /reserved: it is a keyword in Rust/,
   );
+});
+
+// The store module is named after the entity plural, so these would overwrite the shell's own
+// command adapters or entry points, and the collision check's --force advice would do it.
+test('validateSpec rejects an entity whose store module would replace a desktop shell file', () => {
+  assert.throws(() => validateSpec({ ...base, name: 'Command' }), /desktop shell's own/);
+  // lib.rs and main.rs are reachable only through a plural override.
+  assert.throws(() => validateSpec({ ...base, name: 'Library', plural: 'Lib' }), /desktop shell's own/);
+  assert.throws(() => validateSpec({ ...base, name: 'Entry', plural: 'Main' }), /desktop shell's own/);
+});
+
+// thick:end
+// A unique field is bound beside generated locals: the native conflict check's |x| closure
+// and `existing` binding, the endpoint test's `res`, and the service's `by{Unique}` lookup.
+test('validateSpec rejects a unique field named after a local its conflict check declares', () => {
+  for (const name of ['x', 'existing', 'res']) {
+    assert.throws(
+      () => validateSpec({ ...base, fields: [{ name, type: 'string', label: 'X', unique: true }] }),
+      /conflict check already declares/,
+      name,
+    );
+  }
+  assert.throws(
+    () => validateSpec({ ...base, fields: [
+      { name: 'email', type: 'string', label: 'Email', unique: true },
+      { name: 'byEmail', type: 'string', label: 'By email' },
+    ] }),
+    /conflict check already declares/,
+  );
+});
+
+test('validateSpec still accepts x and y on an entity with no unique field', () => {
+  assert.doesNotThrow(() => validateSpec({ ...base, name: 'Point', fields: [
+    { name: 'x', type: 'number', label: 'X' },
+    { name: 'y', type: 'number', label: 'Y' },
+  ] }));
+});
+
+// Most -o nouns take -s (todos, photos, memos); the few that take -es are the exception.
+test('deriveNames pluralizes -o nouns with -s unless they are known -es nouns', () => {
+  const plural = (name: string) => deriveNames(validateSpec({ ...base, name })).pascalPlural;
+  assert.equal(plural('Todo'), 'Todos');
+  assert.equal(plural('Photo'), 'Photos');
+  assert.equal(plural('Memo'), 'Memos');
+  assert.equal(plural('Hero'), 'Heroes');
+  assert.equal(plural('Potato'), 'Potatoes');
+  assert.equal(plural('SuperHero'), 'SuperHeroes');
 });
 
 test('validateSpec rejects a field name that is a TypeScript keyword', () => {
