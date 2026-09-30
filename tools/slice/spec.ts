@@ -4,7 +4,7 @@
 // the stack (Pascal/camel/kebab/snake casings, operation prefixes, route paths).
 
 import { readFileSync } from 'node:fs';
-import { words } from './naming.ts';
+import { camelFromSnake, snake, words } from './naming.ts';
 
 export interface FieldSpec {
   name: string;                          // camelCase
@@ -287,7 +287,18 @@ export function validateSpec(raw: unknown): SliceSpec {
     if ((f.unique === true && UNIQUE_FIELD_LOCALS.has(f.name)) || f.name === uniqueLookupLocal) {
       throw new Error(`Field name ${JSON.stringify(f.name)} is reserved: the unique field's conflict check already declares it`);
     }
-    if (f.name === entity.camel || f.name === entity.snakePlural) {
+    // The desktop store snake_cases the field and serde camelCases it back onto the wire; the
+    // API keeps it as written. A run of capitals (userID) does not come back the same, and the
+    // two clients would then disagree on the key.
+    if (camelFromSnake(snake(f.name)) !== f.name) {
+      throw new Error(
+        `Field name ${JSON.stringify(f.name)} does not survive the snake_case round trip ` +
+          `(it comes back as ${JSON.stringify(camelFromSnake(snake(f.name)))}); capitalize only the first letter of each word`,
+      );
+    }
+    // The native store's locals are snake_case, so compare in that form: a purchaseOrders field
+    // becomes purchase_orders, the store's map binding.
+    if (f.name === entity.camel || snake(f.name) === entity.snakePlural) {
       throw new Error(`Field name ${JSON.stringify(f.name)} is named after the entity, which the generated code already uses`);
     }
     const reservedIn = reservingLanguages(f.name);

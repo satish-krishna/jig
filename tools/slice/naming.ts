@@ -20,6 +20,15 @@ export function snake(name: string): string {
   return words(name).map((w) => w.toLowerCase()).join('_');
 }
 
+/**
+ * snake_case -> camelCase the way serde's `rename_all = "camelCase"` does it: drop each
+ * underscore and capitalize the letter after it. The desktop store relies on
+ * `camelFromSnake(snake(name)) === name` to put a field on the wire under the name the API uses.
+ */
+export function camelFromSnake(name: string): string {
+  return name.replace(/_(.)/g, (_, c: string) => c.toUpperCase());
+}
+
 /** Capitalize the first letter only, for a heading: "purchase orders" -> "Purchase orders". */
 export function sentenceCase(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);

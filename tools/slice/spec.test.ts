@@ -290,9 +290,27 @@ test('validateSpec rejects State, which the desktop command adapters already imp
   assert.throws(() => validateSpec({ ...base, name: 'State' }), /clashes with a type/);
 });
 
-test('validateSpec accepts a camelCase plural field on a multi-word entity', () => {
-  // The native store's map local is snake_case (stock_items); a camelCase field cannot spell it.
-  assert.doesNotThrow(() => validateSpec({
-    ...base, name: 'StockItem', fields: [{ name: 'stockItems', type: 'number', label: 'Stock items' }],
-  }));
+// The desktop store snake_cases every field and serde camelCases it back onto the wire, while
+// the API keeps the name as written. userID comes back as userId, so the two clients would
+// disagree on the key with nothing in the gate to notice. Digits round-trip; runs of capitals do not.
+test('validateSpec rejects a field name that does not survive the snake_case round trip', () => {
+  for (const name of ['userID', 'isAPIKey']) {
+    assert.throws(
+      () => validateSpec({ ...base, fields: [{ name, type: 'string', label: 'X' }] }),
+      /round trip/,
+      name,
+    );
+  }
+  for (const name of ['userId', 'line2', 'addressLine2']) {
+    assert.doesNotThrow(() => validateSpec({ ...base, fields: [{ name, type: 'string', label: 'X' }] }), name);
+  }
+});
+
+// The store binds its map to `let mut purchase_orders`, so a purchaseOrders field, snake_cased
+// to the same identifier, collides with it.
+test('validateSpec rejects a multi-word field named after the entity plural', () => {
+  assert.throws(
+    () => validateSpec({ ...base, name: 'PurchaseOrder', fields: [{ name: 'purchaseOrders', type: 'number', label: 'X' }] }),
+    /named after the entity/,
+  );
 });
