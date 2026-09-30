@@ -5,7 +5,7 @@ description: Use when adding a whole vertical slice to this app — anything tha
 
 # Add a feature
 
-A whole vertical slice is generated. `npm run slice` emits twenty-four files — the .NET layers and their tests, the contract, the screen, the form, the native store — edits nine registries, and leaves a tree that passes `npm run verify`. Do not hand-write a slice that the generator can emit.
+A whole vertical slice is generated. `npm run slice` emits the .NET layers and their tests, the contract, the screen, the form, and the native store, edits the registries that wire them in (`--dry-run` lists every file and edit), and leaves a tree that passes `npm run verify`. Do not hand-write a slice that the generator can emit.
 
 This skill covers the three things around it: what to do before you run it, what it cannot know, and who owns each of those.
 

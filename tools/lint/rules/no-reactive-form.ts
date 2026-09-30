@@ -2,12 +2,12 @@ import { classOf, componentImports, decoratorMetadata, hasDecorator, metadataPro
 
 /**
  * Container-tier only, for the same reason no-forms-module is: ReactiveFormsModule
- * is used in 25 files in this app and every one is legitimate — forms/schema-form.ts
+ * is used outside the container tier and every use is legitimate — forms/schema-form.ts
  * builds a reactive FormGroup from the schema by design (docs/architecture/forms.md),
- * and the showcase pages demo spartan controls against reactive forms deliberately
- * (8 under frontend/src/app/forms/controls/, 16 showcase pages, 1 schema-form.ts,
- * zero specs). features/ and shell/ have zero reactive forms today, so this rule is
- * prevention. See docs/architecture/rules/no-reactive-form.md.
+ * the registered controls under frontend/src/app/forms/controls/ are its parts, and the
+ * showcase pages demo spartan controls against reactive forms deliberately. features/ and
+ * shell/ have no reactive forms today, so this rule is prevention. See
+ * docs/architecture/rules/no-reactive-form.md.
  */
 export default {
   meta: {
