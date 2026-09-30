@@ -156,3 +156,9 @@ test('the list view heading and empty state read as words', () => {
   assert.match(view, /<h1 hlmH3>Purchase orders<\/h1>/);
   assert.match(view, /No purchase orders yet\./);
 });
+
+// The generated form only ever creates; the list screen has no edit path.
+test('the form and its schema do not claim to edit', () => {
+  assert.doesNotMatch(at('order-form.schema').text, /create\/edit/);
+  assert.doesNotMatch(at('order-form').text, /create\/edit/);
+});

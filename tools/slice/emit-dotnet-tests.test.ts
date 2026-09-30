@@ -64,3 +64,22 @@ test('a spec with no string field emits no invalid-body test, because nothing is
   }), 'Jig').find((f) => f.path.endsWith('ReadingsEndpointTests.cs'))!.text;
   assert.doesNotMatch(t, /save_with_invalid_body_returns_400/);
 });
+
+// The 400 test empties every string, so EmailAddress() never ran on its own: a malformed
+// address beside otherwise valid fields is the only request that proves the format rule.
+test('an email field gets an endpoint test that a malformed address alone returns 400', () => {
+  const t = emitDotnetTests(validateSpec({
+    name: 'Contact', icon: 'lucideUser',
+    fields: [
+      { name: 'name', type: 'string', label: 'Name' },
+      { name: 'email', type: 'string', label: 'Email', format: 'email', unique: true },
+    ],
+  }), 'Jig').find((f) => f.path.endsWith('ContactsEndpointTests.cs'))!.text;
+  assert.match(t, /public async Task save_with_malformed_email_returns_400\(\)/);
+  assert.match(t, /new \{ name = "alpha", email = "not-an-email" \}/);
+});
+
+test('a spec with no email field gets no malformed-address endpoint test', () => {
+  const t = emitDotnetTests(spec, 'Jig').find((f) => f.path.endsWith('OrdersEndpointTests.cs'))!.text;
+  assert.doesNotMatch(t, /malformed/);
+});

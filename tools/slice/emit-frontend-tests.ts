@@ -335,6 +335,26 @@ ${idChecks}
   });`);
   }
 
+  // The test above empties a field, so it proves the required rule; only a malformed address
+  // beside otherwise valid values proves the .email(...) rule.
+  const emailField = spec.fields.find((f) => f.format === 'email');
+  if (emailField) {
+    const malformedLiteral = spec.fields
+      .map((f) => `${f.name}: ${f === emailField ? `'not-an-email'` : sampleValue(f, 0)}`)
+      .join(', ');
+    tests.push(`  it('does not emit saved when the ${emailField.name} is malformed', () => {
+    const fixture = render();
+    const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
+    let emitted: unknown;
+    fixture.componentInstance.saved.subscribe((v) => (emitted = v));
+
+    schemaForm.form().setValue({ ${malformedLiteral} });
+    schemaForm.onSubmit();
+
+    expect(emitted).toBeUndefined();
+  });`);
+  }
+
   return {
     path: `frontend/src/app/features/${n.kebabPlural}/${n.kebab}-form.spec.ts`,
     text: `import { describe, it, expect } from 'vitest';

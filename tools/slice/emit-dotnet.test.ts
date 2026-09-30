@@ -191,3 +191,10 @@ test('the entity summary uses the right article and the entity as words', () => 
 test('the repository breaks a first-field tie by id', () => {
   assert.match(at('Infrastructure/OrderRepository.cs').text, /\.OrderBy\(x => x\.Reference, StringComparer\.Ordinal\)\.ThenBy\(x => x\.Id\)\.ToList\(\);/);
 });
+
+// "uni" sounds like "you" in unit and union, but an un- prefix before an n does not.
+test('an un- word before an n takes an', () => {
+  const cs = emitDotnet(validateSpec({ name: 'Uninstaller', icon: 'lucideBox', fields: [{ name: 'label', type: 'string', label: 'Label' }] }), 'Jig')
+    .find((f) => f.path.endsWith('Jig.Domain/Uninstaller.cs'))!.text;
+  assert.match(cs, /\/\/\/ <summary>An uninstaller\.<\/summary>/);
+});

@@ -3,7 +3,7 @@ import { SchemaForm } from '../../forms/schema-form';
 import { userFormSchema, type UserFormModel } from './user-form.schema';
 
 /**
- * The user create/edit form. Renders entirely through SchemaForm: the schema
+ * The form that adds users. Renders entirely through SchemaForm: the schema
  * carries every field's shape, validation, and control kind, so this component
  * wires nothing per field and holds no form state of its own.
  */

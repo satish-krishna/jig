@@ -278,4 +278,12 @@ test('injectLibRs throws with the file and the anchor when the entry point is un
 test('injectCommandsRs throws with the file and the anchor when the adapter file is unrecognizable', () => {
   assert.throws(() => injectCommandsRs('// nothing here', spec), /commands\.rs: anchor not found/);
 });
+
+test('injectCommandsRs describes a multi-word entity in words', () => {
+  const out = injectCommandsRs(COMMANDS_RS, validateSpec({
+    name: 'PurchaseOrder', icon: 'lucideReceipt', fields: [{ name: 'reference', type: 'string', label: 'Reference' }],
+  }));
+  assert.match(out, /\/\/\/ purchaseOrders\.list — returns every purchase order\./);
+  assert.match(out, /\/\/\/ purchaseOrders\.get — one purchase order, or/);
+});
 // thick:end

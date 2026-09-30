@@ -21,7 +21,7 @@ import { deriveNames } from './spec.ts';
 import { pascalField, uniqueField } from './csharp.ts';
 // thick:start
 import { RUST_TYPE } from './emit-rust.ts';
-import { snake } from './naming.ts';
+import { label, snake } from './naming.ts';
 // thick:end
 
 /** Insert `text` immediately after the sole occurrence of `anchor`. Loud on miss or ambiguity. */
@@ -222,13 +222,13 @@ export function injectCommandsRs(source: string, spec: SliceSpec): string {
   const saveArgs = spec.fields.map((f) => snake(f.name)).join(', ');
 
   const adapters = `
-/// ${n.opPrefix}.list — returns every ${n.camel}.
+/// ${n.opPrefix}.list — returns every ${label(n.kebab)}.
 #[tauri::command]
 pub fn ${n.snakePlural}_list(store: State<'_, ${n.pascal}Store>) -> Vec<${n.pascal}> {
     store.list()
 }
 
-/// ${n.opPrefix}.get — one ${n.camel}, or a rejected invoke carrying the not-found message.
+/// ${n.opPrefix}.get — one ${label(n.kebab)}, or a rejected invoke carrying the not-found message.
 #[tauri::command]
 pub fn ${n.snakePlural}_get(id: String, store: State<'_, ${n.pascal}Store>) -> Result<${n.pascal}, String> {
     store.get(&id).map_err(|e| e.to_string())

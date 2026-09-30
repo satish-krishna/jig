@@ -148,3 +148,22 @@ test('an apostrophe in a label or placeholder does not break the emitted spec fi
   const ts = emitFrontendTests(quoted).find((f) => f.path.endsWith('owner-form.spec.ts'))!.text;
   assert.match(ts, /Owner\\'s name is required/);
 });
+
+// Every other negative test empties the first string field, so .email(...) had no runtime
+// test anywhere: a malformed address with every other field valid isolates the format rule.
+test('an email field gets a test that a malformed address alone is rejected', () => {
+  const contact = validateSpec({
+    name: 'Contact', icon: 'lucideUser',
+    fields: [
+      { name: 'name', type: 'string', label: 'Name' },
+      { name: 'email', type: 'string', label: 'Email', format: 'email' },
+    ],
+  });
+  const ts = emitFrontendTests(contact).find((f) => f.path.endsWith('contact-form.spec.ts'))!.text;
+  assert.match(ts, /it\('does not emit saved when the email is malformed'/);
+  assert.match(ts, /setValue\(\{ name: 'alpha', email: 'not-an-email' \}\)/);
+});
+
+test('a spec with no email field gets no malformed-address test', () => {
+  assert.doesNotMatch(at('order-form.spec').text, /is malformed/);
+});

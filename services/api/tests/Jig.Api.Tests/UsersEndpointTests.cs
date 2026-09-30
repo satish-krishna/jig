@@ -42,6 +42,13 @@ public class UsersEndpointTests : IClassFixture<ApiFixture>
     }
 
     [Fact]
+    public async Task save_with_malformed_email_returns_400()
+    {
+        var res = await _client.PostAsJsonAsync("/users", new { name = "alpha", email = "not-an-email" });
+        res.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task get_unknown_id_returns_404()
     {
         var res = await _client.GetAsync($"/users/{Guid.NewGuid()}");

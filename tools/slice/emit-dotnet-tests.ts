@@ -208,6 +208,21 @@ function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): Emi
     }`);
   }
 
+  // The fact above empties every string, so NotEmpty() alone already fails it; only a
+  // malformed address beside otherwise valid values proves EmailAddress().
+  const emailField = spec.fields.find((f) => f.format === 'email');
+  if (emailField) {
+    const malformedProps = spec.fields
+      .map((f) => `${f.name} = ${f === emailField ? '"not-an-email"' : sample(f, 0)}`)
+      .join(', ');
+    facts.push(`    [Fact]
+    public async Task save_with_malformed_${emailField.name}_returns_400()
+    {
+        var res = await _client.PostAsJsonAsync("${n.route}", new { ${malformedProps} });
+        res.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }`);
+  }
+
   facts.push(`    [Fact]
     public async Task get_unknown_id_returns_404()
     {

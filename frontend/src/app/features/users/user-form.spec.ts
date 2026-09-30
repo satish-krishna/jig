@@ -77,4 +77,16 @@ describe('UserForm', () => {
 
     expect(emitted).toBeUndefined();
   });
+
+  it('does not emit saved when the email is malformed', () => {
+    const fixture = render();
+    const schemaForm = fixture.debugElement.query(By.directive(SchemaForm)).componentInstance as SchemaForm;
+    let emitted: unknown;
+    fixture.componentInstance.saved.subscribe((v) => (emitted = v));
+
+    schemaForm.form().setValue({ name: 'alpha', email: 'not-an-email' });
+    schemaForm.onSubmit();
+
+    expect(emitted).toBeUndefined();
+  });
 });

@@ -226,7 +226,7 @@ function emitFormSchema(spec: SliceSpec, n: SliceNames): EmittedFile {
 import type { FormFieldMeta } from '../../forms/form-field-meta';
 
 /**
- * The one source of truth for the create/edit ${n.camel} form: shape, validation, and
+ * The one source of truth for the form that adds ${label(n.kebabPlural)}: shape, validation, and
  * field presentation all live here. The model type is inferred, never hand-written.
  */
 export const ${n.camel}FormSchema = z.object({
@@ -251,7 +251,7 @@ import { SchemaForm } from '../../forms/schema-form';
 import { ${n.camel}FormSchema, type ${n.pascal}FormModel } from './${n.kebab}-form.schema';
 
 /**
- * The ${n.camel} create/edit form. Renders entirely through SchemaForm: the schema
+ * The form that adds ${label(n.kebabPlural)}. Renders entirely through SchemaForm: the schema
  * carries every field's shape, validation, and control kind, so this component
  * wires nothing per field and holds no form state of its own.
  */
