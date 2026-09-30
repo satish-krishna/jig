@@ -301,7 +301,7 @@ test('validateSpec rejects a field name that does not survive the snake_case rou
       name,
     );
   }
-  for (const name of ['userId', 'line2', 'addressLine2']) {
+  for (const name of ['userId', 'line2', 'addressLine2', 'address2Line']) {
     assert.doesNotThrow(() => validateSpec({ ...base, fields: [{ name, type: 'string', label: 'X' }] }), name);
   }
 });
@@ -313,4 +313,12 @@ test('validateSpec rejects a multi-word field named after the entity plural', ()
     () => validateSpec({ ...base, name: 'PurchaseOrder', fields: [{ name: 'purchaseOrders', type: 'number', label: 'X' }] }),
     /named after the entity/,
   );
+});
+
+// A two-letter name with a capital second (aB) round-trips on the desktop wire, but the C#
+// property is AB and the API's camelCase JSON policy lowercases a leading run of capitals,
+// so the API would send ab. Longer names (xYz, xY2) keep their shape on both wires.
+test('validateSpec rejects a two-letter name the API would lowercase', () => {
+  assert.throws(() => validateSpec({ ...base, fields: [{ name: 'xY', type: 'number', label: 'X' }] }), /round trip/);
+  assert.doesNotThrow(() => validateSpec({ ...base, fields: [{ name: 'xYz', type: 'number', label: 'X' }] }));
 });

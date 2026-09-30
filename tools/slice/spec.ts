@@ -296,6 +296,15 @@ export function validateSpec(raw: unknown): SliceSpec {
           `(it comes back as ${JSON.stringify(camelFromSnake(snake(f.name)))}); capitalize only the first letter of each word`,
       );
     }
+    // The C# property of a two-letter name like xY is XY, and the API's camelCase JSON policy
+    // lowercases a leading run of capitals, so the API would send xy. Longer names keep their
+    // shape (XYz becomes xYz), so only this exact shape is affected.
+    if (/^[a-z][A-Z]$/.test(f.name)) {
+      throw new Error(
+        `Field name ${JSON.stringify(f.name)} does not survive the round trip to the API's JSON ` +
+          `(it comes back as ${JSON.stringify(f.name.toLowerCase())}); use a longer name`,
+      );
+    }
     // The native store's locals are snake_case, so compare in that form: a purchaseOrders field
     // becomes purchase_orders, the store's map binding.
     if (f.name === entity.camel || snake(f.name) === entity.snakePlural) {
