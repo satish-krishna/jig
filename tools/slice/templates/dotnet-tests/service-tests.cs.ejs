@@ -47,7 +47,10 @@ public class <%- m.pascal %>ServiceTests
     [Fact]
     public async Task SaveAsync_new_<%- m.camel %>_creates_and_returns_it()
     {
-<%- m.uniqueStubNoConflict %>        A.CallTo(() => _repo.UpsertAsync(A<<%- m.pascal %>>._, A<CancellationToken>._))
+<%_ if (m.unique) { _%>
+        A.CallTo(() => _repo.GetBy<%- m.uniquePropertyName %>Async(A<<%- m.uniqueCsType %>>._, A<CancellationToken>._)).Returns((<%- m.pascal %>?)null);
+<%_ } _%>
+        A.CallTo(() => _repo.UpsertAsync(A<<%- m.pascal %>>._, A<CancellationToken>._))
             .ReturnsLazily((<%- m.pascal %> x, CancellationToken _) => x);
 
         var result = await Sut().SaveAsync(null, <%- m.saveArgs0 %>, CancellationToken.None);
@@ -77,7 +80,10 @@ public class <%- m.pascal %>ServiceTests
     [Fact]
     public async Task SaveAsync_update_of_unknown_id_returns_NotFound()
     {
-<%- m.uniqueStubNoConflict %>        A.CallTo(() => _repo.GetByIdAsync(A<Guid>._, A<CancellationToken>._)).Returns((<%- m.pascal %>?)null);
+<%_ if (m.unique) { _%>
+        A.CallTo(() => _repo.GetBy<%- m.uniquePropertyName %>Async(A<<%- m.uniqueCsType %>>._, A<CancellationToken>._)).Returns((<%- m.pascal %>?)null);
+<%_ } _%>
+        A.CallTo(() => _repo.GetByIdAsync(A<Guid>._, A<CancellationToken>._)).Returns((<%- m.pascal %>?)null);
 
         var result = await Sut().SaveAsync(Guid.NewGuid(), <%- m.saveArgs1 %>, CancellationToken.None);
 

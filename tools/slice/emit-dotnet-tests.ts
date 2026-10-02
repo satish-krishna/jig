@@ -55,10 +55,10 @@ interface ServiceTestsModel {
   saveArgs1: string;
   assertFieldProperty: string;
   assertFieldValue: string;
-  uniqueStubNoConflict: string;
   unique: boolean;
   uniqueName: string;
   uniquePropertyName: string;
+  uniqueCsType: string;
   uniqueSampleVariant1: string;
 }
 
@@ -72,12 +72,6 @@ function serviceTestsModel(spec: SliceSpec, n: SliceNames, product: string): Ser
   // Positional argument list matching SaveAsync's generated signature, in field order.
   const saveArgs = (variant: 0 | 1) => spec.fields.map((f) => sample(f, variant)).join(', ');
 
-  // The emitted SaveAsync checks the unique lookup before anything else (see emit-dotnet.ts's
-  // conflictCheck), so every SaveAsync call needs it stubbed once a unique field exists.
-  const uniqueStubNoConflict = unique
-    ? `        A.CallTo(() => _repo.GetBy${pascalField(unique.name)}Async(A<${CS_TYPE[unique.type]}>._, A<CancellationToken>._)).Returns((${n.pascal}?)null);\n`
-    : '';
-
   return {
     product,
     pascal: n.pascal,
@@ -89,10 +83,10 @@ function serviceTestsModel(spec: SliceSpec, n: SliceNames, product: string): Ser
     saveArgs1: saveArgs(1),
     assertFieldProperty: pascalField(assertField.name),
     assertFieldValue: sample(assertField, 0),
-    uniqueStubNoConflict,
     unique: !!unique,
     uniqueName: unique?.name || '',
     uniquePropertyName: unique ? pascalField(unique.name) : '',
+    uniqueCsType: unique ? CS_TYPE[unique.type] : '',
     uniqueSampleVariant1: unique ? sample(unique, 1) : '',
   };
 }
