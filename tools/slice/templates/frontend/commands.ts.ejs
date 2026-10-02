@@ -1,0 +1,27 @@
+import { computed, inject, provideAppInitializer, type EnvironmentProviders } from '@angular/core';
+import { MenuService, navigateCommand, type Command } from '../../menu';
+import { <%- m.pascal %>ListViewModel } from './<%- m.kebab %>-list.view-model';
+
+/** The <%- m.kebabPlural %> slice's action command: opens the create form, disabled mid-save. */
+export function new<%- m.pascal %>Command(vm: <%- m.pascal %>ListViewModel): Command {
+  return {
+    id: 'new-<%- m.kebab %>',
+    label: '<%- m.newCommandLabel %>',
+    icon: 'lucidePlus',
+    canExecute: computed(() => !vm.saving()),
+    execute: () => vm.openForm(),
+  };
+}
+
+/**
+ * Registers the <%- m.kebabPlural %> NAV command app-wide (it must be reachable from anywhere,
+ * so it lives for the app's lifetime — provideAppInitializer runs in the root
+ * injection context). The ACTION command is registered view-scoped in the view.
+ */
+export function register<%- m.pascalPlural %>Nav(menu: MenuService): void {
+  menu.register('sidebar', navigateCommand({ id: 'nav-<%- m.kebabPlural %>', label: '<%- m.navLabel %>', icon: '<%- m.icon %>', route: '<%- m.route %>' }));
+}
+
+export function provide<%- m.pascalPlural %>Menu(): EnvironmentProviders {
+  return provideAppInitializer(() => register<%- m.pascalPlural %>Nav(inject(MenuService)));
+}

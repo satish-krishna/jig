@@ -1,0 +1,27 @@
+import { Component, output } from '@angular/core';
+import { SchemaForm } from '../../forms/schema-form';
+import { <%- m.camel %>FormSchema, type <%- m.pascal %>FormModel } from './<%- m.kebab %>-form.schema';
+
+/**
+ * The form that adds <%- m.formLabel %>. Renders entirely through SchemaForm: the schema
+ * carries every field's shape, validation, and control kind, so this component
+ * wires nothing per field and holds no form state of its own.
+ */
+@Component({
+  selector: 'app-<%- m.kebab %>-form',
+  imports: [SchemaForm],
+  template: `<app-schema-form [schema]="<%- m.camel %>FormSchema" submitLabel="<%- m.submitLabel %>" (submitted)="onSubmitted($event)" />`,
+})
+export class <%- m.pascal %>Form {
+  protected readonly <%- m.camel %>FormSchema = <%- m.camel %>FormSchema;
+  readonly saved = output<<%- m.pascal %>FormModel>();
+
+  // SchemaForm.submitted is output<Record<string, unknown>> because it renders a
+  // schema it only knows about at runtime; Angular templates have no `as`, so the
+  // narrowing to this form's own model has to happen here rather than inline in the
+  // binding above. It only ever emits after safeParse against <%- m.camel %>FormSchema (the
+  // very schema passed to it above), so the payload is this model by construction.
+  protected onSubmitted(value: Record<string, unknown>): void {
+    this.saved.emit(value as <%- m.pascal %>FormModel);
+  }
+}

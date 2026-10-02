@@ -1,0 +1,29 @@
+import { Injectable, inject } from '@angular/core';
+import type { Observable } from 'rxjs';
+import type { Save<%- m.pascal %>Input, <%- m.pascal %>Dto } from '../contracts';
+import { Transport } from '../transport';
+
+/**
+ * The <%- m.camel %> operations facade: speaks operations, never URLs or command names.
+ * Identical across both wires because it only ever talks to the Transport port.
+ *
+ * @capability operations.<%- m.camel %>
+ * @intent Domain-facing <%- m.camel %> data access that is oblivious to the transport underneath.
+ * @reuse Inject <%- m.pascal %>Operations from ViewModels; copy this shape for new feature facades.
+ */
+@Injectable({ providedIn: 'root' })
+export class <%- m.pascal %>Operations {
+  private readonly transport = inject(Transport);
+
+  list(): Observable<<%- m.pascal %>Dto[]> {
+    return this.transport.request('<%- m.opPrefix %>.list', {});
+  }
+
+  get(id: string): Observable<<%- m.pascal %>Dto> {
+    return this.transport.request('<%- m.opPrefix %>.get', { id });
+  }
+
+  save(<%- m.camel %>: Save<%- m.pascal %>Input): Observable<<%- m.pascal %>Dto> {
+    return this.transport.request('<%- m.opPrefix %>.save', <%- m.camel %>);
+  }
+}
