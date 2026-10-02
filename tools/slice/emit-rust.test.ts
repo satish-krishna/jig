@@ -113,4 +113,11 @@ test('a label with a quote or a brace is escaped for the format! conflict messag
   }));
   assert.ok(awkward.text.includes(String.raw`format!("The \"{{x}}\" tag {tag} is already in use.")`), awkward.text);
 });
+
+// The test name reads as English: "a user", "an order" — the same article rule the API's doc comments use.
+test('the create test name uses the right article for the entity', () => {
+  assert.match(emitRustStore(spec).text, /fn save_creates_an_order_with_an_id\(\)/);
+  const user = emitRustStore(validateSpec({ name: 'User', icon: 'lucideUser', fields: [{ name: 'label', type: 'string', label: 'Label' }] }));
+  assert.match(user.text, /fn save_creates_a_user_with_an_id\(\)/);
+});
 // thick:end

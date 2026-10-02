@@ -9,7 +9,7 @@ import type { EmittedFile, FieldSpec, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { interpolatedString } from './literal.ts';
 import { uniqueField } from './csharp.ts';
-import { label, snake } from './naming.ts';
+import { articleFor, label, snake } from './naming.ts';
 import { renderTemplate } from './render.ts';
 
 /** Native type for each spec field type, matching the shape of the exemplar's own store. */
@@ -34,6 +34,7 @@ interface RustStoreModel {
   kebab: string;
   noun: string;
   entity: string;
+  article: string;
   first: string;
   fields: Array<{ snake: string; rustType: string }>;
   unique: { snake: string; labelInterpolated: string } | null;
@@ -81,6 +82,7 @@ function rustStoreModel(spec: SliceSpec): RustStoreModel {
     kebab: n.kebab,
     noun,
     entity,
+    article: articleFor(label(n.kebab)).toLowerCase(),
     first,
     fields,
     unique: uniqueModel,

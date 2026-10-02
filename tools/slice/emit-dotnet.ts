@@ -8,18 +8,8 @@ import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
 import { interpolatedString } from './literal.ts';
-import { label } from './naming.ts';
+import { articleFor, label } from './naming.ts';
 import { renderTemplate } from './render.ts';
-
-/** "A" or "An", by the first sound of the noun that follows. */
-function articleFor(word: string): 'A' | 'An' {
-  // By sound, not letter: a vowel that sounds like "you" or "wo" takes "a" (a user, a unit,
-  // a one-off), and a silent h takes "an" (an hour). An un- prefix before an n (uninstaller)
-  // keeps its vowel sound.
-  if (/^(uni(?!n)|use|usa|usu|uti|ure|eu|one|once)/i.test(word)) return 'A';
-  if (/^(hour|honest|honor|heir)/i.test(word)) return 'An';
-  return /^[aeiou]/i.test(word) ? 'An' : 'A';
-}
 
 // ---------------------------------------------------------------------------
 // services/api/src/{P}.Domain/{E}.cs — shape source: Jig.Domain/User.cs

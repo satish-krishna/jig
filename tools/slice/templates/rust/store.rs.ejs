@@ -102,7 +102,7 @@ mod tests {
     }
 
     #[test]
-    fn save_creates_a_<%- m.entity %>_with_an_id() {
+    fn save_creates_<%- m.article %>_<%- m.entity %>_with_an_id() {
         let store = <%- m.pascal %>Store::default();
         let <%- m.entity %> = store.save(None, <%- m.sample0 %>).unwrap();
         assert!(!<%- m.entity %>.id.is_empty());

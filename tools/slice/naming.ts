@@ -3,6 +3,16 @@
 // sibling does not have to import that file's internals for a two-line function, mirroring
 // how csharp.ts holds the shared C#-naming helpers.
 
+/** "A" or "An", by the first sound of the noun that follows. */
+export function articleFor(word: string): 'A' | 'An' {
+  // By sound, not letter: a vowel that sounds like "you" or "wo" takes "a" (a user, a unit,
+  // a one-off), and a silent h takes "an" (an hour). An un- prefix before an n (uninstaller)
+  // keeps its vowel sound.
+  if (/^(uni(?!n)|use|usa|usu|uti|ure|eu|one|once)/i.test(word)) return 'A';
+  if (/^(hour|honest|honor|heir)/i.test(word)) return 'An';
+  return /^[aeiou]/i.test(word) ? 'An' : 'A';
+}
+
 /**
  * Split a name given in Pascal/camel/kebab/snake/spaced form into its words. Lives here, not
  * in tools/init, because init deletes tools/init from every app it creates and the slice
