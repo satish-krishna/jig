@@ -1,7 +1,6 @@
-// Small naming helpers shared across emitters for the vertical-slice generator (frontend
-// production and frontend test). Kept separate from emit-frontend.ts so its test-emitter
-// sibling does not have to import that file's internals for a two-line function, mirroring
-// how csharp.ts holds the shared C#-naming helpers.
+// The vertical-slice generator's shared naming helpers: casing, word splitting, articles and
+// labels, used by the spec, every emitter, the injectors and template init. Kept apart from
+// any one emitter so none has to import another's internals, as csharp.ts does for C# names.
 
 /** "A" or "An", by the first sound of the noun that follows. */
 export function articleFor(word: string): 'A' | 'An' {
@@ -14,9 +13,9 @@ export function articleFor(word: string): 'A' | 'An' {
 }
 
 /**
- * Split a name given in Pascal/camel/kebab/snake/spaced form into its words. Lives here, not
- * in tools/init, because init deletes tools/init from every app it creates and the slice
- * generator has to keep working there; template init imports it from here instead.
+ * Split a name given in Pascal/camel/kebab/snake/spaced form into its words. It lives here
+ * because the slice generator needs it in every app, including after template init has
+ * removed its own tooling; template init imports it from here.
  */
 export function words(raw: string): string[] {
   return raw

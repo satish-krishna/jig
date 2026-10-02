@@ -1,9 +1,9 @@
 // The desktop shell's per-slice store emitter. This file builds the model that fills
 // tools/slice/templates/, mirroring the shape of the exemplar's own hand-written store
 // with the spec's own fields substituted in. This whole file is thick-only: a thin clone
-// has no desktop shell to generate a store for, so its entire body sits behind one thick-cut
-// marker, mirroring how tools/slice/slice.ts wraps its import of emitRustStore. No disk access here — the CLI
-// decides where this EmittedFile lands.
+// has no desktop shell to generate a store for, so its entire body sits behind one
+// thick-cut marker, mirroring how tools/slice/slice.ts wraps its import of emitRustStore.
+// No disk access here — the CLI decides where this EmittedFile lands.
 // thick:start
 import type { EmittedFile, FieldSpec, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
@@ -82,7 +82,7 @@ function rustStoreModel(spec: SliceSpec): RustStoreModel {
     kebab: n.kebab,
     noun,
     entity,
-    article: articleFor(label(n.kebab)).toLowerCase(),
+    article: articleFor(noun).toLowerCase(),
     first,
     fields,
     unique: uniqueModel,

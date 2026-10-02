@@ -18,20 +18,19 @@ import { tsString } from './literal.ts';
 import { renderTemplate } from './render.ts';
 
 // ---------------------------------------------------------------------------
-// The per-field model; its zod chain is laid out in form-schema.ts.ejs.
-// Copied verbatim from the task brief: it reproduces user-form.schema.ts's shape
-// field by field, decimal validation for strings, the email validator, and the
-// FormFieldMeta the control registry (and SchemaForm) reads to render and label it.
+// The per-field model. It reproduces user-form.schema.ts's shape field by field: the
+// required rule for strings, the email validator, and the FormFieldMeta the control
+// registry (and SchemaForm) reads to render and label it.
 // ---------------------------------------------------------------------------
 
 /** One schema field, decided here; its zod chain is laid out in form-schema.ts.ejs. */
 interface SchemaField {
   name: string;
-  zodType: 'string' | 'number' | 'boolean';
-  // label and placeholder are the spec author's own words, so they go through tsString
-  // rather than straight into the literal — see literal.ts.
+  zodType: FieldSpec['type'];
   requiredMessage: string | null;
   email: boolean;
+  // label, placeholder and requiredMessage carry the spec author's own words, so they go
+  // through tsString rather than straight into the literal — see literal.ts.
   label: string;
   control: string | null;
   placeholder: string | null;

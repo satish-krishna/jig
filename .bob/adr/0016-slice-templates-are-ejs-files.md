@@ -16,7 +16,7 @@ Emitted text lives in `tools/slice/templates/**/*.ejs`, rendered by `tools/slice
 
 ## Why the old objection no longer holds
 
-ADR 0015 built `slice --check`, a golden test that renders the `users` exemplar and compares it against the committed baseline on every `npm run verify`. The emitter tests (`tools/slice/emit-*.test.ts`) and `acceptance.test.ts` cover other spec shapes. A template that emits broken code for the `users` shape fails the gate, because that output is compiled, linted, and tested as real code; for other shapes the emitter tests check the rendered text and the acceptance test parses it.
+ADR 0015 built `slice --check`, a golden test that renders the `users` exemplar and compares it against the committed baseline on every `npm run verify`. The emitter tests (`tools/slice/emit-*.test.ts`) and `acceptance.test.ts` cover other spec shapes. A template that emits broken code for the `users` shape fails the gate, because that output is compiled, linted, and tested as real code; for other shapes the emitter tests check the rendered text and the acceptance test parses the emitted TypeScript.
 
 ## What it costs, and how each cost is contained
 
@@ -24,7 +24,7 @@ Templates lose `tsc` checking of their substitutions in the template syntax itse
 
 ## Consequences
 
-- The body of `emit-rust.ts` sits inside thick markers; only its header comment, which names no desktop-shell vocabulary, sits above them. The `store.rs.ejs` template is deleted whole through `THIN_DELETE` in `tools/init/thin.ts` and carries no Rust or Tauri vocabulary in the thin residue.
+- The body of `emit-rust.ts` sits inside thick markers; only its header comment, which names no Rust or Tauri vocabulary, sits above them. The `store.rs.ejs` template is deleted whole through `THIN_DELETE` in `tools/init/thin.ts` and carries no Rust or Tauri vocabulary in the thin residue.
 - The catalog does not scan `.ejs` files. Capability annotations in the emitted files (the templates' output) reach the catalog through the committed `users` exemplar, not through the `.ejs` source.
 - A change to generated text is now a template edit plus a regenerated `users` exemplar, which the golden test demands on the next `npm run verify`. The migration from template literals to templates was validated by rendering a seven-case matrix against the live slices and asserting byte-identical output.
 
