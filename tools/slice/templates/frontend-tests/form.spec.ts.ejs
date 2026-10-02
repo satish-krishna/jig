@@ -76,7 +76,7 @@ describe('<%- m.pascal %>Form', () => {
     let emitted: unknown;
     fixture.componentInstance.saved.subscribe((v) => (emitted = v));
 
-    schemaForm.form().setValue({ <%- m.invalidLiteral %> });
+    schemaForm.form().setValue({ <%- m.validated.invalidLiteral %> });
     schemaForm.onSubmit();
 
     expect(emitted).toBeUndefined();

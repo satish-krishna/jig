@@ -148,36 +148,22 @@ function emitListViewSpec(spec: SliceSpec, n: SliceNames): EmittedFile {
 // has and some specs do not.
 // ---------------------------------------------------------------------------
 
-interface IdCheck {
-  fieldName: string;
-}
-
-interface EmailTest {
-  inWords: string;
-  literal: string;
-}
-
 interface FormSpecModel {
   pascal: string;
   kebab: string;
   labelKebab: string;
-  idChecks: IdCheck[];
-  validated: { name: string; message: string } | null;
+  idChecks: { fieldName: string }[];
+  validated: { name: string; message: string; invalidLiteral: string } | null;
   firstFieldName: string;
   fieldsLiteral0: string;
-  invalidLiteral: string;
-  emailTests: EmailTest[];
+  emailTests: { inWords: string; literal: string }[];
 }
 
 function formSpecModel(spec: SliceSpec, n: SliceNames): FormSpecModel {
   const validated = spec.fields.find((f) => f.type === 'string');
   const firstField = spec.fields[0];
 
-  const invalidLiteral = validated
-    ? spec.fields.map((f) => `${f.name}: ${f === validated ? `''` : sampleValue(f, 0)}`).join(', ')
-    : '';
-
-  const emailTests: EmailTest[] = spec.fields
+  const emailTests: FormSpecModel['emailTests'] = spec.fields
     .filter((f) => f.format === 'email')
     .map((emailField) => {
       const malformedLiteral = spec.fields
@@ -195,10 +181,10 @@ function formSpecModel(spec: SliceSpec, n: SliceNames): FormSpecModel {
     validated: validated ? {
       name: validated.name,
       message: tsString(`${validated.label} is required`),
+      invalidLiteral: spec.fields.map((f) => `${f.name}: ${f === validated ? `''` : sampleValue(f, 0)}`).join(', '),
     } : null,
     firstFieldName: firstField.name,
     fieldsLiteral0: fieldsLiteral(spec, 0),
-    invalidLiteral,
     emailTests,
   };
 }

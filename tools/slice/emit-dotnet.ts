@@ -166,14 +166,14 @@ function endpointModel(n: SliceNames, product: string): EndpointModel {
   };
 }
 
-function emitListEndpoint(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+function emitListEndpoint(n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/List${n.pascalPlural}Endpoint.cs`,
     text: renderTemplate('dotnet/list-endpoint.cs.ejs', endpointModel(n, product)),
   };
 }
 
-function emitGetEndpoint(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+function emitGetEndpoint(n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/Get${n.pascal}Endpoint.cs`,
     text: renderTemplate('dotnet/get-endpoint.cs.ejs', endpointModel(n, product)),
@@ -327,8 +327,8 @@ export function emitDotnet(spec: SliceSpec, product: string): EmittedFile[] {
     emitRepositoryPort(spec, n, product),
     emitService(spec, n, product),
     emitContracts(spec, n, product),
-    emitListEndpoint(spec, n, product),
-    emitGetEndpoint(spec, n, product),
+    emitListEndpoint(n, product),
+    emitGetEndpoint(n, product),
     emitSaveEndpoint(spec, n, product),
     emitValidator(spec, n, product),
     emitMapping(spec, n, product),

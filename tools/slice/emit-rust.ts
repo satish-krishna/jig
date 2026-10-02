@@ -102,8 +102,7 @@ function rustStoreModel(spec: SliceSpec): RustStoreModel {
  * @reuse Call once per slice from the generator CLI; the result is a single EmittedFile.
  */
 export function emitRustStore(spec: SliceSpec): EmittedFile {
-  const n = deriveNames(spec);
-  const text = renderTemplate('rust/store.rs.ejs', rustStoreModel(spec));
-  return { path: `apps/desktop/src-tauri/src/${n.snakePlural}.rs`, text };
+  const model = rustStoreModel(spec);
+  return { path: `apps/desktop/src-tauri/src/${model.snakePlural}.rs`, text: renderTemplate('rust/store.rs.ejs', model) };
 }
 // thick:end
