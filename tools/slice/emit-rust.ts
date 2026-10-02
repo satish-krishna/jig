@@ -2,7 +2,7 @@
 // tools/slice/templates/, mirroring the shape of the exemplar's own hand-written store
 // with the spec's own fields substituted in. This whole file is thick-only: a thin clone
 // has no desktop shell to generate a store for, so its entire body sits behind one thick-cut
-// marker, mirroring how tools/slice/slice.ts wraps its import. No disk access here — the CLI
+// marker, mirroring how tools/slice/slice.ts wraps its import of emitRustStore. No disk access here — the CLI
 // decides where this EmittedFile lands.
 // thick:start
 import type { EmittedFile, FieldSpec, SliceSpec } from './spec.ts';

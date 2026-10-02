@@ -30,8 +30,9 @@ test('generating the users slice from its spec reproduces the committed exemplar
   assert.deepEqual(
     drifted,
     [],
-    'These exemplar files no longer match what the generator emits. Change the emitter in ' +
-      'tools/slice/ and regenerate users with `npm run slice -- --spec examples/slices/users.slice.json --force`, ' +
+    'These exemplar files no longer match what the generator emits. Change the template in ' +
+      'tools/slice/templates/ for text, or the emitter\'s model in tools/slice/emit-*.ts for a decision; ' +
+      'regenerate users with `npm run slice -- --spec examples/slices/users.slice.json --force`, ' +
       'or the next generated slice will not match the exemplar either.',
   );
 });

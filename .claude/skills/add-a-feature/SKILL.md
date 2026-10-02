@@ -47,7 +47,7 @@ It emits CRUD: list, get, save, a list screen, a form over the spec's fields. Ev
 
 **Extend the generated tests; do not replace them.** They cover CRUD and they were written red-green-refactor against the emitters, one level up. `.bob/adr/0015-generated-slices-satisfy-tdd-at-the-generator.md` records why that satisfies the TDD gate and where the exemption stops.
 
-**A generated file that is wrong is a generator bug.** Fix the emitter in `tools/slice/`, add its unit test, and regenerate. Editing the generated file means the next slice reintroduces the defect.
+**A generated file that is wrong is a generator bug.** Fix the template under `tools/slice/templates/` for text, or the emitter's model in `tools/slice/emit-*.ts` for a decision; add its unit test, and regenerate. Editing the generated file means the next slice reintroduces the defect.
 
 ## Changing a slice that already exists
 
