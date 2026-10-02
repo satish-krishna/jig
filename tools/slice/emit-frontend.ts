@@ -18,30 +18,37 @@ import { tsString } from './literal.ts';
 import { renderTemplate } from './render.ts';
 
 // ---------------------------------------------------------------------------
-// The zod-type fragment and per-field .meta() block, shared by the schema file.
+// The per-field model; its zod chain is laid out in form-schema.ts.ejs.
 // Copied verbatim from the task brief: it reproduces user-form.schema.ts's shape
 // field by field, decimal validation for strings, the email validator, and the
 // FormFieldMeta the control registry (and SchemaForm) reads to render and label it.
 // ---------------------------------------------------------------------------
 
-const ZOD_TYPE: Record<FieldSpec['type'], string> = {
-  string: 'z\n    .string()',
-  number: 'z\n    .number()',
-  boolean: 'z\n    .boolean()',
-};
-
-function zodField(f: FieldSpec, order: number): string {
-  const lines = [`  ${f.name}: ${ZOD_TYPE[f.type]}`];
+/** One schema field, decided here; its zod chain is laid out in form-schema.ts.ejs. */
+interface SchemaField {
+  name: string;
+  zodType: 'string' | 'number' | 'boolean';
   // label and placeholder are the spec author's own words, so they go through tsString
   // rather than straight into the literal — see literal.ts.
-  if (f.type === 'string') lines.push(`    .min(1, ${tsString(`${f.label} is required`)})`);
-  if (f.format === 'email') lines.push(`    .email('Enter a valid email')`);
-  const meta = [`label: ${tsString(f.label)}`];
-  if (f.format) meta.push(`control: '${f.format}'`);
-  if (f.placeholder) meta.push(`placeholder: ${tsString(f.placeholder)}`);
-  meta.push(`order: ${order}`);
-  lines.push(`    .meta({ ${meta.join(', ')} } satisfies FormFieldMeta),`);
-  return lines.join('\n');
+  requiredMessage: string | null;
+  email: boolean;
+  label: string;
+  control: string | null;
+  placeholder: string | null;
+  order: number;
+}
+
+function schemaField(f: FieldSpec, order: number): SchemaField {
+  return {
+    name: f.name,
+    zodType: f.type,
+    requiredMessage: f.type === 'string' ? tsString(`${f.label} is required`) : null,
+    email: f.format === 'email',
+    label: tsString(f.label),
+    control: f.format ?? null,
+    placeholder: f.placeholder ? tsString(f.placeholder) : null,
+    order,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -113,14 +120,14 @@ function emitListView(spec: SliceSpec, n: SliceNames): EmittedFile {
 
 interface FormSchemaModel extends SliceNames {
   formLabel: string;
-  zodFields: string[];
+  fields: SchemaField[];
 }
 
 function formSchemaModel(spec: SliceSpec, n: SliceNames): FormSchemaModel {
   return {
     ...n,
     formLabel: label(n.kebabPlural),
-    zodFields: spec.fields.map((f, i) => zodField(f, i + 1)),
+    fields: spec.fields.map((f, i) => schemaField(f, i + 1)),
   };
 }
 
