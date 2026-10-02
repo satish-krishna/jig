@@ -39,8 +39,6 @@ interface RustStoreModel {
   fields: Array<{ snake: string; rustType: string }>;
   unique: { snake: string; labelInterpolated: string } | null;
   changed: { snake: string; value1: string } | null;
-  params: string;
-  construct: string;
   sample0: string;
   sample1: string;
   sampleKeepingUnique1: string;
@@ -59,8 +57,6 @@ function rustStoreModel(spec: SliceSpec): RustStoreModel {
     rustType: RUST_TYPE[f.type],
   }));
 
-  const params = spec.fields.map((f) => `${snake(f.name)}: ${RUST_TYPE[f.type]}`).join(', ');
-  const construct = spec.fields.map((f) => snake(f.name)).join(', ');
   const sampleArgs = (variant: 0 | 1) => spec.fields.map((f) => rustSample(f, variant)).join(', ');
   const sampleArgsKeepingUnique = (otherVariant: 0 | 1) =>
     spec.fields.map((f) => rustSample(f, f === unique ? 0 : otherVariant)).join(', ');
@@ -90,8 +86,6 @@ function rustStoreModel(spec: SliceSpec): RustStoreModel {
     fields,
     unique: uniqueModel,
     changed: changedModel,
-    params,
-    construct,
     sample0: sampleArgs(0),
     sample1: sampleArgs(1),
     sampleKeepingUnique1: sampleArgsKeepingUnique(1),

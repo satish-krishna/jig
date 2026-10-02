@@ -61,7 +61,7 @@ impl <%- m.pascal %>Store {
             .ok_or_else(|| StoreError::NotFound(format!("<%- m.pascal %> {id} was not found.")))
     }
 
-    pub fn save(&self, id: Option<String>, <%- m.params %>) -> Result<<%- m.pascal %>, StoreError> {
+    pub fn save(&self, id: Option<String><% for (const f of m.fields) { %>, <%- f.snake %>: <%- f.rustType %><% } %>) -> Result<<%- m.pascal %>, StoreError> {
         let mut <%- m.snakePlural %> = self.<%- m.snakePlural %>.lock().unwrap();
 
 <%_ if (m.unique) { _%>
@@ -83,7 +83,7 @@ impl <%- m.pascal %>Store {
                 Ok(<%- m.entity %>.clone())
             }
             None => {
-                let <%- m.entity %> = <%- m.pascal %> { id: Uuid::new_v4().to_string(), <%- m.construct %> };
+                let <%- m.entity %> = <%- m.pascal %> { id: Uuid::new_v4().to_string()<% for (const f of m.fields) { %>, <%- f.snake %><% } %> };
                 <%- m.snakePlural %>.insert(<%- m.entity %>.id.clone(), <%- m.entity %>.clone());
                 Ok(<%- m.entity %>)
             }
