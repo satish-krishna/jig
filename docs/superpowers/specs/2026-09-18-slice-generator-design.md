@@ -161,7 +161,7 @@ Exact reproduction of the `users` files is deliberately *not* the acceptance tes
 
 **Marker interfaces plus assembly scanning for .NET registration.** `AddFastEndpoints()` already scans, so endpoints, validators, and mappers register themselves today. The entire remaining .NET registration surface is three lines. A scanning convention to avoid three lines also trades a compile error for a runtime surprise, against ADR 0009.
 
-**Plop and Hygen.** Both want a `_templates/` directory: a parallel copy of the slice written in a language the linter cannot parse, the compiler cannot check, and the catalog cannot see. That is the fourth source of truth the prime directive exists to prevent.
+**Plop and Hygen.** Both want a `_templates/` directory: a parallel copy of the slice written in a language the linter cannot parse, the compiler cannot check, and the catalog cannot see. That is the fourth source of truth the prime directive exists to prevent. Revisited in ADR 0016: with the golden test rendering users through them on every verify, the text now lives in EJS templates; the decisions, injectors and CLI stay code.
 
 **Bun.** The repo runs `node tools/x.ts` on Node 22+ with native type stripping. A second runtime buys nothing.
 

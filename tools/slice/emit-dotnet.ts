@@ -1,7 +1,8 @@
 // .NET production emitters for the vertical-slice generator. Ten pure functions, one per
 // C# file, each reproducing the shape of the `users` reference slice (services/api/src/Jig.*)
-// with the product namespace and the spec's own names substituted in. No disk access here —
-// the CLI (a later task) decides where these EmittedFile entries land.
+// with the product namespace and the spec's own names substituted in. The text lives in
+// tools/slice/templates/dotnet/, and this file builds the models that fill it. No disk
+// access here — the CLI (a later task) decides where these EmittedFile entries land.
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';

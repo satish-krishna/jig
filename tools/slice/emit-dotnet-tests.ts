@@ -1,9 +1,11 @@
 // .NET test emitters for the vertical-slice generator. Two pure functions, one per C# test
 // file, reproducing the shape of the users reference slice's tests (services/api/tests/
 // Jig.Application.Tests/UserServiceTests.cs and Jig.Api.Tests/UsersEndpointTests.cs) with the
-// product namespace and the spec's own names substituted in. No disk access here — the CLI
-// (a later task) decides where these EmittedFile entries land, and the endpoint test consumes
-// the ApiFixture that already exists in every clone rather than emitting its own copy.
+// product namespace and the spec's own names substituted in. The text lives in
+// tools/slice/templates/dotnet-tests/, and this file builds the models that fill it. No disk
+// access here — the CLI (a later task) decides where these EmittedFile entries land, and the
+// endpoint test consumes the ApiFixture that already exists in every clone rather than
+// emitting its own copy.
 
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';

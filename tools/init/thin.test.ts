@@ -155,7 +155,6 @@ const SCAN_EXEMPT = [
   '.bob/registry/',
   'docs/superpowers/',
   'tools/init/',
-  'tools/slice/migration.fixture.json', // TEMPORARY: deleted by task 8 of the slice-templates plan
   'frontend/package.json',
   'frontend/package-lock.json',
 ];

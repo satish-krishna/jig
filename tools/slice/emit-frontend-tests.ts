@@ -1,8 +1,9 @@
 // Angular test emitters for the vertical-slice generator. Five pure functions, one per
 // Vitest spec file, reproducing the shape of the users reference slice's tests
 // (frontend/src/app/operations/user.operations.spec.ts and the four specs under
-// frontend/src/app/features/users) with the spec's own names substituted in. No disk
-// access here — the CLI (a later task) decides where these EmittedFile entries land.
+// frontend/src/app/features/users) with the spec's own names substituted in. The text lives
+// in tools/slice/templates/frontend-tests/, and this file builds the models that fill it. No
+// disk access here — the CLI (a later task) decides where these EmittedFile entries land.
 //
 // There is no {kebab}-form.view-model.spec.ts: emit-frontend.ts emits no form ViewModel
 // for the same reason — the form renders entirely through SchemaForm, and SchemaForm's

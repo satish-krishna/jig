@@ -1,6 +1,7 @@
 // Angular production emitters for the vertical-slice generator. Six pure functions, one
 // per TypeScript file, each reproducing the shape of the `users` reference slice
-// (frontend/src/app/features/users) with the spec's own names substituted in. No disk
+// (frontend/src/app/features/users) with the spec's own names substituted in. The text lives
+// in tools/slice/templates/frontend/, and this file builds the models that fill it. No disk
 // access here — the CLI (a later task) decides where these EmittedFile entries land.
 //
 // The form is rendered through SchemaForm, not hand-wired: no {kebab}-form.view-model.ts
