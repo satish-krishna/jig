@@ -42,10 +42,15 @@ export function renderSource(source: string, model: object, name = '<inline>'): 
     strict: true,
     _with: false,
     unsafePrototypeLocals: true,
-  } as any);
+  } as ejs.Options & { unsafePrototypeLocals: boolean }) as string;
 }
 
-/** Render `tools/slice/templates/<name>` against a model. */
+/**
+ * Render `tools/slice/templates/<name>` against a model.
+ * @capability tools.slice.render-template
+ * @intent Render EJS templates for slice generation with strict model validation
+ * @reuse Used by every emitter (emit-*.ts) to render the final output
+ */
 export function renderTemplate(name: string, model: object): string {
   let source: string;
   try {
