@@ -41,8 +41,8 @@ describe('<%- m.pascal %>Form', () => {
 
     fixture.detectChanges();
 
-    const error = fixture.nativeElement.querySelector('[data-error-for="<%- m.validatedName %>"]');
-    expect(error.textContent).toContain(<%- m.validatedMessage %>);
+    const error = fixture.nativeElement.querySelector('[data-error-for="<%- m.validated.name %>"]');
+    expect(error.textContent).toContain(<%- m.validated.message %>);
   });
 <%_ } _%>
 

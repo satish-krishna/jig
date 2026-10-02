@@ -57,11 +57,7 @@ interface ServiceTestsModel {
   saveArgs1: string;
   assertFieldProperty: string;
   assertFieldValue: string;
-  unique: boolean;
-  uniqueName: string;
-  uniquePropertyName: string;
-  uniqueCsType: string;
-  uniqueSampleVariant1: string;
+  unique: { name: string; property: string; csType: string; sampleVariant1: string } | null;
 }
 
 function serviceTestsModel(spec: SliceSpec, n: SliceNames, product: string): ServiceTestsModel {
@@ -85,11 +81,12 @@ function serviceTestsModel(spec: SliceSpec, n: SliceNames, product: string): Ser
     saveArgs1: saveArgs(1),
     assertFieldProperty: pascalField(assertField.name),
     assertFieldValue: sample(assertField, 0),
-    unique: !!unique,
-    uniqueName: unique?.name || '',
-    uniquePropertyName: unique ? pascalField(unique.name) : '',
-    uniqueCsType: unique ? CS_TYPE[unique.type] : '',
-    uniqueSampleVariant1: unique ? sample(unique, 1) : '',
+    unique: unique ? {
+      name: unique.name,
+      property: pascalField(unique.name),
+      csType: CS_TYPE[unique.type],
+      sampleVariant1: sample(unique, 1),
+    } : null,
   };
 }
 
@@ -116,11 +113,7 @@ interface EndpointTestsModel {
   hasValidatedField: boolean;
   invalidProps: string;
   emailFacts: { name: string; props: string }[];
-  unique: boolean;
-  uniqueName: string;
-  uniqueLiteral: string;
-  dupProps0: string;
-  dupProps1: string;
+  unique: { name: string; literal: string; dupProps0: string; dupProps1: string } | null;
 }
 
 function endpointTestsModel(spec: SliceSpec, n: SliceNames, product: string): EndpointTestsModel {
@@ -154,15 +147,14 @@ function endpointTestsModel(spec: SliceSpec, n: SliceNames, product: string): En
     });
 
   // Duplicate field test props
-  let dupProps0 = '';
-  let dupProps1 = '';
-  if (unique) {
+  const uniqueData = unique ? (() => {
     const otherFields = spec.fields.filter((f) => f !== unique);
     // The unique field's own entry has no "= value": it is the projection-initializer shorthand
     // `new { x }`, which C# treats as `new { x = x }` against the local variable declared below.
-    dupProps0 = [...otherFields.map((f) => `${f.name} = ${sample(f, 0)}`), unique.name].join(', ');
-    dupProps1 = [...otherFields.map((f) => `${f.name} = ${sample(f, 1)}`), unique.name].join(', ');
-  }
+    const dupProps0 = [...otherFields.map((f) => `${f.name} = ${sample(f, 0)}`), unique.name].join(', ');
+    const dupProps1 = [...otherFields.map((f) => `${f.name} = ${sample(f, 1)}`), unique.name].join(', ');
+    return { name: unique.name, literal: uniqueSample(unique, 1), dupProps0, dupProps1 };
+  })() : null;
 
   return {
     product,
@@ -175,11 +167,7 @@ function endpointTestsModel(spec: SliceSpec, n: SliceNames, product: string): En
     hasValidatedField,
     invalidProps,
     emailFacts,
-    unique: !!unique,
-    uniqueName: unique?.name || '',
-    uniqueLiteral: unique ? uniqueSample(unique, 1) : '',
-    dupProps0,
-    dupProps1,
+    unique: uniqueData,
   };
 }
 

@@ -162,9 +162,7 @@ interface FormSpecModel {
   kebab: string;
   labelKebab: string;
   idChecks: IdCheck[];
-  validated: boolean;
-  validatedName: string;
-  validatedMessage: string;
+  validated: { name: string; message: string } | null;
   firstFieldName: string;
   fieldsLiteral0: string;
   invalidLiteral: string;
@@ -194,9 +192,10 @@ function formSpecModel(spec: SliceSpec, n: SliceNames): FormSpecModel {
     kebab: n.kebab,
     labelKebab: label(n.kebab),
     idChecks: spec.fields.map((f) => ({ fieldName: f.name })),
-    validated: !!validated,
-    validatedName: validated?.name || '',
-    validatedMessage: validated ? tsString(`${validated.label} is required`) : '',
+    validated: validated ? {
+      name: validated.name,
+      message: tsString(`${validated.label} is required`),
+    } : null,
     firstFieldName: firstField.name,
     fieldsLiteral0: fieldsLiteral(spec, 0),
     invalidLiteral,

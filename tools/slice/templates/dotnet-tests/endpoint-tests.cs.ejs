@@ -61,12 +61,12 @@ public class <%- m.pascalPlural %>EndpointTests : IClassFixture<ApiFixture>
 <%_ if (m.unique) { _%>
 
     [Fact]
-    public async Task save_duplicate_<%- m.uniqueName %>_returns_409()
+    public async Task save_duplicate_<%- m.unique.name %>_returns_409()
     {
-        var <%- m.uniqueName %> = <%- m.uniqueLiteral %>;
-        (await _client.PostAsJsonAsync("<%- m.route %>", new { <%- m.dupProps0 %> })).EnsureSuccessStatusCode();
+        var <%- m.unique.name %> = <%- m.unique.literal %>;
+        (await _client.PostAsJsonAsync("<%- m.route %>", new { <%- m.unique.dupProps0 %> })).EnsureSuccessStatusCode();
 
-        var res = await _client.PostAsJsonAsync("<%- m.route %>", new { <%- m.dupProps1 %> });
+        var res = await _client.PostAsJsonAsync("<%- m.route %>", new { <%- m.unique.dupProps1 %> });
         res.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 <%_ } _%>
