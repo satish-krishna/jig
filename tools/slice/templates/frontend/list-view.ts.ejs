@@ -34,7 +34,7 @@ import { new<%- m.pascal %>Command } from './<%- m.kebabPlural %>.commands';
 
       <ul hlmUl>
         @for (<%- m.camel %> of vm.<%- m.camelPlural %>(); track <%- m.camel %>.id) {
-          <li><%- m.rowDisplay %></li>
+          <li><% for (const f of m.rowFields) { %><%- f.sep %>{{ <%- m.camel %>.<%- f.name %> }}<% } %></li>
         } @empty {
           <li hlmMuted>No <%- m.emptyMessage %> yet.</li>
         }

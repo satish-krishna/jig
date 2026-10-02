@@ -108,12 +108,11 @@ interface ListViewModel {
   camel: string;
   camelPlural: string;
   listHeading: string;
-  rowDisplay: string;
+  rowFields: { name: string; sep: string }[];
   emptyMessage: string;
 }
 
 function listViewModel(spec: SliceSpec, n: SliceNames): ListViewModel {
-  const row = spec.fields.map((f) => `{{ ${n.camel}.${f.name} }}`).join(' · ');
   return {
     pascal: n.pascal,
     kebab: n.kebab,
@@ -121,7 +120,7 @@ function listViewModel(spec: SliceSpec, n: SliceNames): ListViewModel {
     camel: n.camel,
     camelPlural: n.camelPlural,
     listHeading: sentenceCase(label(n.kebabPlural)),
-    rowDisplay: row,
+    rowFields: spec.fields.map((f, i) => ({ name: f.name, sep: i === 0 ? '' : ' · ' })),
     emptyMessage: label(n.kebabPlural),
   };
 }
