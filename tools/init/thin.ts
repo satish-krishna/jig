@@ -32,6 +32,8 @@
 /** Paths deleted outright by the thin cut. Directories are removed recursively. */
 export const THIN_DELETE: readonly string[] = [
   'apps',
+  // The desktop store's template: a thin clone has no desktop shell to generate a store for.
+  'tools/slice/templates/rust',
   'frontend/src/app/transport/ipc.transport.ts',
   'frontend/src/app/transport/ipc.transport.spec.ts',
   // The conduit skill itself survives: its subject is the contract seam — the

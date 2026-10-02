@@ -1,0 +1,158 @@
+//! <%- m.pascal %> store for the desktop client. Holds the same <%- m.noun %> use-cases the
+//! .NET API does, so the frontend behaves identically whether it talks to the native
+//! store or to the API over HTTP. Command adapters are thin wrappers over this; the
+//! logic is here and unit-tested in isolation.
+
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Mutex;
+use uuid::Uuid;
+
+/// The <%- m.noun %> shape crossing the wire. Serializes to the same JSON as the .NET
+/// <%- m.pascal %>Response, so the operation registry's res type fits both.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct <%- m.pascal %> {
+    pub id: String,
+<%_ for (const field of m.fields) { _%>
+    pub <%- field.snake %>: <%- field.rustType %>,
+<%_ } _%>
+}
+
+/// An expected failure. Maps to a rejected invoke on the wire.
+#[derive(Debug, PartialEq)]
+pub enum StoreError {
+    NotFound(String),
+    Conflict(String),
+}
+
+impl std::fmt::Display for StoreError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StoreError::NotFound(m) | StoreError::Conflict(m) => write!(f, "{m}"),
+        }
+    }
+}
+
+/// In-memory <%- m.noun %> store. A template default: swap the Mutex<HashMap> for SQLite or
+/// a file store without changing the commands or the frontend.
+///
+/// @capability shell.<%- m.kebab %>-store
+/// @intent The desktop client's <%- m.noun %> use-cases, mirroring the API so both wires agree.
+/// @reuse Manage one <%- m.pascal %>Store in the app state; commands delegate to it.
+#[derive(Default)]
+pub struct <%- m.pascal %>Store {
+    <%- m.snakePlural %>: Mutex<HashMap<String, <%- m.pascal %>>>,
+}
+
+impl <%- m.pascal %>Store {
+    pub fn list(&self) -> Vec<<%- m.pascal %>> {
+        let mut all: Vec<<%- m.pascal %>> = self.<%- m.snakePlural %>.lock().unwrap().values().cloned().collect();
+        all.sort_by(|a, b| a.<%- m.first %>.partial_cmp(&b.<%- m.first %>).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.id.cmp(&b.id)));
+        all
+    }
+
+    pub fn get(&self, id: &str) -> Result<<%- m.pascal %>, StoreError> {
+        self.<%- m.snakePlural %>
+            .lock()
+            .unwrap()
+            .get(id)
+            .cloned()
+            .ok_or_else(|| StoreError::NotFound(format!("<%- m.pascal %> {id} was not found.")))
+    }
+
+    pub fn save(&self, id: Option<String>, <%- m.params %>) -> Result<<%- m.pascal %>, StoreError> {
+        let mut <%- m.snakePlural %> = self.<%- m.snakePlural %>.lock().unwrap();
+
+<%_ if (m.unique) { _%>
+        if let Some(existing) = <%- m.snakePlural %>.values().find(|x| x.<%- m.unique.snake %> == <%- m.unique.snake %>) {
+            if Some(&existing.id) != id.as_ref() {
+                return Err(StoreError::Conflict(format!("<%- m.unique.labelInterpolated %> {<%- m.unique.snake %>} is already in use.")));
+            }
+        }
+
+<%_ } _%>
+        match id {
+            Some(id) => {
+                let <%- m.entity %> = <%- m.snakePlural %>
+                    .get_mut(&id)
+                    .ok_or_else(|| StoreError::NotFound(format!("<%- m.pascal %> {id} was not found.")))?;
+<%_ for (const field of m.fields) { _%>
+                <%- m.entity %>.<%- field.snake %> = <%- field.snake %>;
+<%_ } _%>
+                Ok(<%- m.entity %>.clone())
+            }
+            None => {
+                let <%- m.entity %> = <%- m.pascal %> { id: Uuid::new_v4().to_string(), <%- m.construct %> };
+                <%- m.snakePlural %>.insert(<%- m.entity %>.id.clone(), <%- m.entity %>.clone());
+                Ok(<%- m.entity %>)
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn list_is_empty_on_a_fresh_store() {
+        let store = <%- m.pascal %>Store::default();
+        assert_eq!(store.list(), vec![]);
+    }
+
+    #[test]
+    fn save_creates_a_<%- m.entity %>_with_an_id() {
+        let store = <%- m.pascal %>Store::default();
+        let <%- m.entity %> = store.save(None, <%- m.sample0 %>).unwrap();
+        assert!(!<%- m.entity %>.id.is_empty());
+        assert_eq!(<%- m.entity %>.<%- m.first %>, <%- m.firstValue0 %>);
+        assert_eq!(store.list().len(), 1);
+    }
+
+    #[test]
+    fn get_unknown_id_is_not_found() {
+        let store = <%- m.pascal %>Store::default();
+        assert_eq!(
+            store.get("missing"),
+            Err(StoreError::NotFound("<%- m.pascal %> missing was not found.".into()))
+        );
+    }
+
+    #[test]
+    fn save_then_get_roundtrips() {
+        let store = <%- m.pascal %>Store::default();
+        let created = store.save(None, <%- m.sample0 %>).unwrap();
+        assert_eq!(store.get(&created.id).unwrap(), created);
+    }
+<%_ if (m.unique) { _%>
+
+    #[test]
+    fn save_duplicate_<%- m.unique.snake %>_on_a_different_<%- m.entity %>_is_conflict() {
+        let store = <%- m.pascal %>Store::default();
+        store.save(None, <%- m.sample0 %>).unwrap();
+        let result = store.save(None, <%- m.sampleKeepingUnique1 %>);
+        assert!(matches!(result, Err(StoreError::Conflict(_))));
+    }
+
+    #[test]
+    fn save_update_keeps_the_same_<%- m.unique.snake %>_without_conflict() {
+        let store = <%- m.pascal %>Store::default();
+        let created = store.save(None, <%- m.sample0 %>).unwrap();
+        let updated = store
+            .save(Some(created.id.clone()), <%- m.sampleKeepingUnique1 %>)
+            .unwrap();
+        assert_eq!(updated.id, created.id);
+<%_ if (m.changed) { _%>
+        assert_eq!(updated.<%- m.changed.snake %>, <%- m.changed.value1 %>);
+<%_ } _%>
+    }
+<%_ } _%>
+
+    #[test]
+    fn save_update_of_unknown_id_is_not_found() {
+        let store = <%- m.pascal %>Store::default();
+        let result = store.save(Some("ghost".to_string()), <%- m.sample1 %>);
+        assert!(matches!(result, Err(StoreError::NotFound(_))));
+    }
+}
