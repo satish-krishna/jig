@@ -28,11 +28,11 @@ jobs:
     # compiles without the Linux system-dependency setup.
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # the selector diffs against the merge base
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24' # latest 24.x, within the supported Node range
 
@@ -56,7 +56,7 @@ jobs:
 
       # `tools` needs .NET too: the contract freshness step builds and boots the API, and
       # it runs whenever the generator itself changes.
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         if: contains(steps.select.outputs.areas, 'dotnet') || contains(steps.select.outputs.areas, 'contracts') || contains(steps.select.outputs.areas, 'tools')
         with:
           dotnet-version: '10.0.x'
