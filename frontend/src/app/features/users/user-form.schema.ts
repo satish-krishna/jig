@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { FormFieldMeta } from '../../forms/form-field-meta';
 
 /**
- * The one source of truth for the create/edit user form: shape, validation, and
+ * The one source of truth for the form that adds users: shape, validation, and
  * field presentation all live here. The model type is inferred, never hand-written.
  */
 export const userFormSchema = z.object({

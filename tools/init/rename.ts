@@ -3,6 +3,8 @@
 // lib, no-hyphen for the bundle id), so replacement is ordered and case-aware,
 // not a blind find-replace. Kept pure so it is unit-tested without touching disk.
 
+import { words } from '../slice/naming.ts';
+
 export interface Names {
   /** PascalCase — .NET namespaces/projects, Tauri productName. e.g. AcmePortal */
   pascal: string;
@@ -14,14 +16,6 @@ export interface Names {
   lower: string;
   /** reverse-DNS bundle identifier. e.g. com.acmeportal.app */
   bundleId: string;
-}
-
-/** Split a name given in Pascal/camel/kebab/snake/spaced form into its words. */
-function words(raw: string): string[] {
-  return raw
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .split(/[\s\-_]+/)
-    .filter(Boolean);
 }
 
 export function deriveNames(rawName: string, bundleId?: string): Names {

@@ -11,15 +11,15 @@ export default {
   meta: {
     type: 'problem' as const,
     docs: {
-      description: 'A container component does not import FormsModule. Signal-forms owns known forms.',
+      description: 'A container component does not import FormsModule. A zod schema owns shape and validation.',
       url: 'docs/architecture/rules/no-forms-module.md',
     },
     schema: [],
     messages: {
       formsModule:
-        'FormsModule is the template-driven forms API. This app uses signal-forms with a zod ' +
-        'schema as the single source of truth. ' +
-        'Good: form(this.model, (path) => validateStandardSchema(path, userFormSchema))  ' +
+        'FormsModule is the template-driven forms API. This app renders every form from a zod ' +
+        'schema through forms/schema-form.ts. ' +
+        'Good: <app-schema-form [schema]="userFormSchema" (submitted)="onSubmitted($event)" />  ' +
         'Bad: imports: [FormsModule] with [(ngModel)] in the template. ' +
         'Copy frontend/src/app/features/users/user-form.ts.',
     },

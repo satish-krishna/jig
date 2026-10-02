@@ -1,7 +1,7 @@
 namespace Jig.Api.Users;
 
 /// <summary>The user shape returned on the wire. This is the DTO OpenAPI describes and
-/// the frontend generates its TypeScript type from, so HTTP and IPC cannot disagree about it.</summary>
+/// the frontend generates its TypeScript type from, so client and API cannot disagree about it.</summary>
 public sealed class UserResponse
 {
     public Guid Id { get; set; }

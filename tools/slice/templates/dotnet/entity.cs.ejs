@@ -1,0 +1,10 @@
+namespace <%- m.product %>.Domain;
+
+/// <summary><%- m.article %> <%- m.noun %>.</summary>
+public sealed class <%- m.pascal %>
+{
+    public Guid Id { get; set; }
+<%_ for (const p of m.props) { _%>
+    public required <%- p.type %> <%- p.name %> { get; set; }
+<%_ } _%>
+}

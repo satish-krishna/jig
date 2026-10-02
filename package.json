@@ -26,13 +26,16 @@
     "showcase:api": "node tools/showcase-api/showcase-api.ts",
     "showcase:shots": "node tools/showcase-shots/showcase-shots.ts",
     "stylelint": "node tools/lint/stylelint-frontend.ts",
-    "ui:style": "node tools/ui-style/ui-style.ts"
+    "ui:style": "node tools/ui-style/ui-style.ts",
+    "slice": "node tools/slice/slice.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
+    "@types/ejs": "^3.1.5",
     "@types/node": "^26.4.1",
     "angular-eslint": "^20.7.0",
+    "ejs": "^6.0.1",
     "eslint": "^9.39.5",
     "openapi-typescript": "^7.0.0",
     "stylelint": "^16.26.1",

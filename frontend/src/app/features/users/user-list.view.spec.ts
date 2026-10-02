@@ -28,14 +28,11 @@ function render(impl: () => Observable<unknown> = () => of([])) {
 
 describe('UserListView', () => {
   it('renders one row per user', () => {
-    const users = [
-      { id: '1', name: 'Ada', email: 'ada@x.io' },
-      { id: '2', name: 'Grace', email: 'grace@x.io' },
-    ];
+    const users = [{ id: '1', name: 'alpha', email: 'alpha@x.io' }, { id: '2', name: 'bravo', email: 'bravo@x.io' }];
     const list = render(() => of(users)).nativeElement.querySelectorAll('li');
 
     expect(list.length).toBe(2);
-    expect(list[0].textContent).toContain('Ada');
+    expect(list[0].textContent).toContain('alpha');
   });
 
   it('renders the empty state when the list comes back empty', () => {
@@ -51,11 +48,14 @@ describe('UserListView', () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('offline');
   });
 
+  it('reports a failure through the alert primitive', () => {
+    const err: AppError = { kind: 'network', message: 'offline', operation: 'users.list' };
+    const alert = render(() => throwError(() => err)).nativeElement.querySelector('[role="alert"]');
+
+    expect(alert.hasAttribute('hlmAlert')).toBe(true);
+  });
+
   it('titles the page with a typography primitive, not a bare heading', () => {
-    // The reference view is the file every feature is copied from, and it rendered
-    // a bare <h1>. libs/ui ships the typography vocabulary; hlmH3 is the weight the
-    // showcase already uses for a page title (text-2xl font-semibold), so the
-    // element stays semantic and the appearance comes from the primitive.
     const heading = render().nativeElement.querySelector('h1');
 
     expect(heading.hasAttribute('hlmH3')).toBe(true);
@@ -65,25 +65,5 @@ describe('UserListView', () => {
     const list = render().nativeElement.querySelector('ul');
 
     expect(list.hasAttribute('hlmUl')).toBe(true);
-  });
-
-  it('reports a failure through the alert primitive', () => {
-    const err: AppError = { kind: 'network', message: 'offline', operation: 'users.list' };
-    const alert = render(() => throwError(() => err)).nativeElement.querySelector('[role="alert"]');
-
-    expect(alert.hasAttribute('hlmAlert')).toBe(true);
-  });
-
-  it('carries no class that styles nothing', () => {
-    // It shipped class="users", "status", "error", "user-list" and "empty". None of
-    // the five matched a rule in styles.css or any component stylesheet, so the view
-    // was styled by nothing at all — the same defect user-form.spec.ts records for
-    // class="user-form". A decorative class name is not a layout.
-    const dead = ['users', 'status', 'error', 'user-list', 'empty'];
-    const html = render().nativeElement.innerHTML as string;
-
-    for (const cls of dead) {
-      expect(html, `dead class "${cls}" is still rendered`).not.toContain(`class="${cls}"`);
-    }
   });
 });

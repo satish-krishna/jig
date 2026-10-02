@@ -10,7 +10,8 @@ export default {
       orphanNgSubmit:
         '(ngSubmit) with no [formGroup] on the same element binds to the template-driven NgForm ' +
         'directive, not the reactive FormGroupDirective. This app has no template-driven forms — ' +
-        'signal-forms submits through the native (submit) event instead. ' +
+        'SchemaForm pairs (ngSubmit) with [formGroup], and signal-forms submits through the ' +
+        'native (submit) event. ' +
         'Good: <form [formGroup]="form()" (ngSubmit)="onSubmit()">  ' +
         'Bad: <form (ngSubmit)="onSubmit()"> with no [formGroup]. ' +
         'Copy frontend/src/app/forms/schema-form.ts.',

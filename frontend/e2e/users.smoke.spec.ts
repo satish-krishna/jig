@@ -15,9 +15,11 @@ test('users slice boots and validates the form', async ({ page }) => {
   await page.getByRole('button', { name: 'Add user' }).click();
   await expect(page.locator('[data-error-for="name"]')).toContainText('Name is required');
 
-  // Valid input clears the error.
+  // Valid input clears the error. The slot itself stays in the DOM, because
+  // hlm-field-error holds a stable id for aria-describedby and hides rather than
+  // unmounts — so the assertion is on the message, not on the element's existence.
   await page.locator('#name').fill('Ada Lovelace');
   await page.locator('#email').fill('ada@example.io');
   await page.getByRole('button', { name: 'Add user' }).click();
-  await expect(page.locator('[data-error-for="name"]')).toHaveCount(0);
+  await expect(page.locator('[data-error-for="name"]')).not.toBeVisible();
 });

@@ -2,16 +2,17 @@ export default {
   meta: {
     type: 'problem' as const,
     docs: {
-      description: 'No ngModel. Signal-forms and the dynamic renderer own binding, not template-driven forms.',
+      description: 'No ngModel. The schema renderer and signal-forms own binding, not template-driven forms.',
       url: 'docs/architecture/rules/no-ng-model.md',
     },
     schema: [],
     messages: {
       ngModel:
         'ngModel is the template-driven forms API. This app validates through a zod schema — ' +
-        'signal-forms for a form you author, forms/schema-form.ts for one built from a runtime ' +
-        'schema. ' +
-        'Good: [formField]="form.name"  Bad: [(ngModel)]="name". ' +
+        'forms/schema-form.ts renders it by default, and signal-forms is the exception for a form ' +
+        'whose fields you bind one by one. ' +
+        'Good: <app-schema-form [schema]="userFormSchema" />, or [formField]="form.name" in a ' +
+        'signal form.  Bad: [(ngModel)]="name". ' +
         'Copy frontend/src/app/features/users/user-form.ts.',
     },
   },

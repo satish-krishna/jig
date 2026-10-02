@@ -3,7 +3,7 @@ using Jig.Domain;
 namespace Jig.Application;
 
 /// <summary>The user use-cases: list, get, and save. Returns Result envelopes so
-/// expected failures (not-found, duplicate email) travel as data, not exceptions.</summary>
+/// expected failures travel as data, not exceptions.</summary>
 /// <capability>api.user-service</capability>
 /// <intent>One cohesive place for the user use-case logic, independent of transport and database.</intent>
 /// <reuse>Inject UserService into endpoints; it speaks IUserRepository, never EF Core directly.</reuse>

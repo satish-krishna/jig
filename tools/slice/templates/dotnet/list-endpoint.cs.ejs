@@ -1,0 +1,24 @@
+using FastEndpoints;
+using <%- m.product %>.Application;
+
+namespace <%- m.product %>.Api.<%- m.pascalPlural %>;
+
+/// <summary><%- m.opPrefix %>.list — GET <%- m.route %>. Returns every <%- m.camel %>.</summary>
+public sealed class List<%- m.pascalPlural %>Endpoint : EndpointWithoutRequest<IEnumerable<<%- m.pascal %>Response>>
+{
+    private readonly <%- m.pascal %>Service _<%- m.camelPlural %>;
+
+    public List<%- m.pascalPlural %>Endpoint(<%- m.pascal %>Service <%- m.camelPlural %>) => _<%- m.camelPlural %> = <%- m.camelPlural %>;
+
+    public override void Configure()
+    {
+        Get("<%- m.route %>");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var result = await _<%- m.camelPlural %>.ListAsync(ct);
+        await Send.OkAsync(result.Value!.Select(x => x.ToResponse()), ct);
+    }
+}

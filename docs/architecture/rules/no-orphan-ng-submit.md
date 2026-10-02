@@ -8,7 +8,7 @@ An `(ngSubmit)` event binding on an element that carries no `[formGroup]` bindin
 
 ## Why
 
-`docs/architecture/forms.md` mandates two form systems, neither of which is template-driven forms. The dynamic `SchemaForm` renderer (`frontend/src/app/forms/schema-form.ts`) is reactive by design — it pairs `[formGroup]="form()"` with `(ngSubmit)="onSubmit()"`, the idiomatic Angular reactive-forms submit pattern. Signal-forms, by contrast, submits through the native `(submit)` event (see `frontend/src/app/features/users/user-form.ts`), not `ngSubmit` at all. So the only shape this app ever legitimately wants is `(ngSubmit)` paired with `[formGroup]`; a bare `(ngSubmit)` with no `[formGroup]` can only be binding to `NgForm`, which means a template-driven form has crept in — exactly the pattern `no-forms-module` and `no-ng-model` also exist to keep out.
+`docs/architecture/forms.md` mandates two form systems, neither of which is template-driven forms. The dynamic `SchemaForm` renderer (`frontend/src/app/forms/schema-form.ts`) is reactive by design — it pairs `[formGroup]="form()"` with `(ngSubmit)="onSubmit()"`, the idiomatic Angular reactive-forms submit pattern. Signal-forms, by contrast, submits through the native `(submit)` event (see `frontend/src/app/showcase/pages/signal-form.page.ts`, the only signal-forms code left in the app since the renderer became the default), not `ngSubmit` at all. So the only shape this app ever legitimately wants is `(ngSubmit)` paired with `[formGroup]`; a bare `(ngSubmit)` with no `[formGroup]` can only be binding to `NgForm`, which means a template-driven form has crept in — exactly the pattern `no-forms-module` and `no-ng-model` also exist to keep out.
 
 A rule that flagged every `(ngSubmit)` unconditionally would also flag `schema-form.ts`'s own legitimate, by-design usage, putting the gate at odds with `docs/architecture/forms.md`. Requiring the `[formGroup]` pairing is what keeps the rule aimed at the actual defect — a template-driven `ngSubmit` — without contradicting the one reactive form this app is supposed to have.
 
@@ -17,8 +17,8 @@ A rule that flagged every `(ngSubmit)` unconditionally would also flag `schema-f
     <!-- frontend/src/app/forms/schema-form.ts — the dynamic renderer, reactive by design -->
     <form hlmFieldGroup [formGroup]="form()" (ngSubmit)="onSubmit()">...</form>
 
-    <!-- frontend/src/app/features/users/user-form.ts — signal-forms submits natively -->
-    <form hlmFieldGroup (submit)="onSubmit($event)">...</form>
+    <!-- frontend/src/app/showcase/pages/signal-form.page.ts — signal-forms submits natively -->
+    <form hlmFieldGroup (submit)="onAuthoredSubmit($event)">...</form>
 
 ## Rejected form
 

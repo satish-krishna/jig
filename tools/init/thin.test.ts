@@ -13,6 +13,10 @@ import {
   toThin,
 } from './thin.ts';
 import { stripTemplateBlocks } from './rename.ts';
+// tools/init is deleted by init (TEMPLATE_ONLY), so this test file never survives into an
+// app; reaching across to the generator here costs the shipped app nothing.
+import { injectRegistry } from '../slice/inject-ts.ts';
+import { validateSpec } from '../slice/spec.ts';
 import { TEMPLATE_ONLY } from './init.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -136,7 +140,7 @@ const FORBIDDEN: readonly (readonly [string, RegExp])[] = [
   ['isTauri() call', /isTauri/],
   ['IpcTransport symbol', /IpcTransport/],
   ['ipc.transport module', /ipc\.transport/],
-  ['Tauri prose', /\bTauri\b/],
+  ['Tauri prose', /\bTauri\b/i],
   ['IPC prose', /\bIPC\b/],
   ['Rust prose', /\brust(c|-analyzer)?\b/i],
   ['cargo command', /\bcargo\b/i],
@@ -190,4 +194,33 @@ test('the thin cut leaves no reference to the Rust core it deleted', () => {
   }
 
   assert.deepEqual(residue, [], `thin cut left ${residue.length} reference(s) to the removed Rust core:\n${residue.join('\n')}`);
+});
+
+// The thin cut's patches are literal text, and that is deliberate: a missed anchor throws
+// instead of silently shipping a half-cut app. But a literal anchor that spells out the
+// CONTENTS of a growing list is a different thing from one that names a sentence. The
+// slice generator adds an entry to the transport registry's command map for every slice it
+// emits, so an anchor quoting that map's entries matches nothing the moment an app has
+// generated even one slice — and toThin then throws for good. An app that had run the
+// generator could never be cut again.
+//
+// This runs the generator's own injector against the live registry and then cuts, which is
+// the composition that actually has to hold. Asserting on a hand-written fixture instead
+// would prove only that the fixture and the anchor agree with each other.
+test('the thin cut still applies to a registry the slice generator has injected into', () => {
+  const rel = 'frontend/src/app/contracts/registry.ts';
+  const spec = validateSpec({
+    name: 'SliceProbe',
+    icon: 'lucideBox',
+    fields: [{ name: 'reference', type: 'string', label: 'Reference' }],
+  });
+
+  const injected = injectRegistry(readFileSync(join(ROOT, rel), 'utf8'), spec);
+  assert.ok(injected.includes('slice_probes_list'), 'the injector did not reach the command map');
+
+  const thinned = toThin(rel, injected);
+
+  assert.ok(!thinned.includes('export const COMMANDS'), 'the cut left the command map behind');
+  assert.ok(!thinned.includes('slice_probes_list'), 'the cut left an injected command name behind');
+  assert.ok(thinned.includes(`'sliceProbes.list': { method: 'GET'`), 'the cut removed the HTTP route too');
 });

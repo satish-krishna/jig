@@ -82,9 +82,11 @@ const serverSchema = z.object({
 });
 
 /**
- * SchemaForm usages. This page is the component's first consumer in the app —
- * the users slice hand-authors its form through signal-forms instead — so the
- * examples here are also what proves the renderer works end to end.
+ * SchemaForm usages. The renderer is the default for every form in the app
+ * (docs/architecture/forms.md), so the users slice renders through it too; what
+ * this page adds is the shapes a feature form does not reach for — a repeater, a
+ * nested group, an enum select — which is what proves the renderer works beyond
+ * the flat case.
  */
 @Component({
   selector: 'app-schema-form-page',

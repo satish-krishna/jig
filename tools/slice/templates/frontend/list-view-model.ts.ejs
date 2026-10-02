@@ -1,0 +1,46 @@
+import { Injectable, inject, signal } from '@angular/core';
+import type { Save<%- m.pascal %>Input, <%- m.pascal %>Dto } from '../../contracts';
+import type { AppError } from '../../transport';
+import { <%- m.pascal %>Operations } from '../../operations/<%- m.kebab %>.operations';
+
+/**
+ * ViewModel for the <%- m.kebabPlural %> slice. Exposes signals only; the View binds to them
+ * and never touches a facade or transport. Depends on <%- m.pascal %>Operations, which speaks
+ * operations, so this class is identical regardless of which transport is underneath.
+ */
+@Injectable()
+export class <%- m.pascal %>ListViewModel {
+  private readonly ops = inject(<%- m.pascal %>Operations);
+
+  readonly <%- m.camelPlural %> = signal<<%- m.pascal %>Dto[]>([]);
+  readonly loading = signal(false);
+  readonly error = signal<AppError | null>(null);
+  readonly formOpen = signal(false);
+  readonly saving = signal(false);
+
+  openForm(): void { this.formOpen.set(true); }
+
+  load(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.ops.list().subscribe({
+      next: (<%- m.camelPlural %>) => {
+        this.<%- m.camelPlural %>.set(<%- m.camelPlural %>);
+        this.loading.set(false);
+      },
+      error: (err: AppError) => {
+        this.error.set(err);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  save(input: Save<%- m.pascal %>Input): void {
+    this.error.set(null);
+    this.saving.set(true);
+    this.ops.save(input).subscribe({
+      next: () => { this.saving.set(false); this.formOpen.set(false); this.load(); },
+      error: (err: AppError) => { this.saving.set(false); this.error.set(err); },
+    });
+  }
+}

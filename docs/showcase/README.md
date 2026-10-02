@@ -669,7 +669,7 @@ Overlay-based components (dialog, sheet, drawer, popover, tooltip, dropdown-menu
 
 ![Signal form](images/signal-form.png)
 
-- **An authored form** — The model type is z.infer — never a hand-written interface. Reference: features/users/user-form.ts.
+- **An authored form** — The model type is z.infer — never a hand-written interface. The schema and the form are authored together.
 - **Labels come from the schema** — formMeta(schema) reads .meta() off each field. No label string is written in the template.
 - **Validation is native zod** — Pre-filled with a bad address and touched, so the schema's own message is on screen.
 - **Submit runs only when valid** — submit() never invokes its callback on an invalid form, so there is no guard to forget.

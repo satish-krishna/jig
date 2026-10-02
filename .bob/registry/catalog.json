@@ -244,7 +244,7 @@
     },
     {
       "capability": "operations.user",
-      "intent": "Domain-facing user data access that is oblivious to HTTP vs IPC.",
+      "intent": "Domain-facing user data access that is oblivious to the transport underneath.",
       "reuse": "Inject UserOperations from ViewModels; copy this shape for new feature facades.",
       "file": "frontend/src/app/operations/user.operations.ts",
       "language": "typescript",
@@ -252,8 +252,8 @@
     },
     {
       "capability": "shell.user-store",
-      "intent": "The thick client's user use-cases, mirroring the API so both wires agree.",
-      "reuse": "Manage one UserStore in the Tauri app state; commands delegate to it.",
+      "intent": "The desktop client's user use-cases, mirroring the API so both wires agree.",
+      "reuse": "Manage one UserStore in the app state; commands delegate to it.",
       "file": "apps/desktop/src-tauri/src/users.rs",
       "language": "rust",
       "symbol": "UserStore"

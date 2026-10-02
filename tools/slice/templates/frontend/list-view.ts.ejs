@@ -1,0 +1,60 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmTypographyImports } from '@spartan-ng/helm/typography';
+import { MenuService } from '../../menu';
+import { <%- m.pascal %>Form } from './<%- m.kebab %>-form';
+import type { <%- m.pascal %>FormModel } from './<%- m.kebab %>-form.schema';
+import { <%- m.pascal %>ListViewModel } from './<%- m.kebab %>-list.view-model';
+import { new<%- m.pascal %>Command } from './<%- m.kebabPlural %>.commands';
+
+/**
+ * The <%- m.kebabPlural %> slice view. Binds only to the ViewModel's signals and the form
+ * component. It has no idea a transport or a repository exists.
+ */
+@Component({
+  selector: 'app-<%- m.kebab %>-list',
+  imports: [<%- m.pascal %>Form, HlmTypographyImports, HlmAlertImports],
+  providers: [<%- m.pascal %>ListViewModel],
+  template: `
+    <section class="grid gap-m">
+      <h1 hlmH3><%- m.listHeading %></h1>
+
+      @if (vm.formOpen()) {
+        <app-<%- m.kebab %>-form (saved)="onSaved($event)" />
+      }
+
+      @if (vm.loading()) {
+        <p hlmMuted>Loading...</p>
+      }
+      @if (vm.error(); as err) {
+        <div hlmAlert variant="destructive">
+          <p hlmAlertDescription>{{ err.message }}</p>
+        </div>
+      }
+
+      <ul hlmUl>
+        @for (<%- m.camel %> of vm.<%- m.camelPlural %>(); track <%- m.camel %>.id) {
+          <li><% for (const f of m.rowFields) { %><%- f.sep %>{{ <%- m.camel %>.<%- f.name %> }}<% } %></li>
+        } @empty {
+          <li hlmMuted>No <%- m.emptyMessage %> yet.</li>
+        }
+      </ul>
+    </section>
+  `,
+})
+export class <%- m.pascal %>ListView implements OnInit {
+  protected readonly vm = inject(<%- m.pascal %>ListViewModel);
+
+  constructor() {
+    const menu = inject(MenuService);
+    menu.register('header', new<%- m.pascal %>Command(this.vm));
+  }
+
+  ngOnInit(): void {
+    this.vm.load();
+  }
+
+  onSaved(value: <%- m.pascal %>FormModel): void {
+    this.vm.save(value);
+  }
+}

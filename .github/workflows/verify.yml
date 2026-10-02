@@ -90,7 +90,13 @@ jobs:
 
       - name: Verify
         if: steps.select.outputs.areas != ''
-        run: npm run verify -- ${{ steps.select.outputs.since }}
+        # Through an env var, not spliced into the command: a base branch named by the repo's
+        # own convention (feat(tools)/x) has parentheses, which PowerShell parses as a
+        # subexpression on the command line but passes through untouched from a variable.
+        env:
+          SINCE: ${{ steps.select.outputs.since }}
+        run: |
+          if ($env:SINCE) { npm run verify -- $env:SINCE } else { npm run verify }
 
       - name: Nothing to verify
         if: steps.select.outputs.areas == ''

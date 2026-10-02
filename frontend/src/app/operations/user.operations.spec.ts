@@ -36,7 +36,7 @@ describe('UserOperations', () => {
 
   it('save() asks for users.save with the user body', async () => {
     const { transport, ops } = setup();
-    await firstValueFrom(ops.save({ name: 'A', email: 'a@x.io' }));
-    expect(transport.calls).toEqual([{ op: 'users.save', payload: { name: 'A', email: 'a@x.io' } }]);
+    await firstValueFrom(ops.save({ name: 'alpha', email: 'alpha@x.io' }));
+    expect(transport.calls).toEqual([{ op: 'users.save', payload: { name: 'alpha', email: 'alpha@x.io' } }]);
   });
 });

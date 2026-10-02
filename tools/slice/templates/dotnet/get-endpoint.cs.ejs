@@ -1,0 +1,20 @@
+using <%- m.product %>.Application;
+
+namespace <%- m.product %>.Api.<%- m.pascalPlural %>;
+
+/// <summary><%- m.opPrefix %>.get — GET <%- m.route %>/{id}. Returns one <%- m.camel %> or 404.</summary>
+public sealed class Get<%- m.pascal %>Endpoint : ResultEndpoint<Get<%- m.pascal %>Request, <%- m.pascal %>Response>
+{
+    private readonly <%- m.pascal %>Service _<%- m.camelPlural %>;
+
+    public Get<%- m.pascal %>Endpoint(<%- m.pascal %>Service <%- m.camelPlural %>) => _<%- m.camelPlural %> = <%- m.camelPlural %>;
+
+    public override void Configure()
+    {
+        Get("<%- m.route %>/{id}");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(Get<%- m.pascal %>Request req, CancellationToken ct)
+        => await SendResultAsync(await _<%- m.camelPlural %>.GetAsync(req.Id, ct), x => x.ToResponse(), ct);
+}

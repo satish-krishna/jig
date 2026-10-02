@@ -1,0 +1,45 @@
+using <%- m.product %>.Application;
+using <%- m.product %>.Domain;
+using Microsoft.EntityFrameworkCore;
+
+namespace <%- m.product %>.Infrastructure;
+
+/// <summary>EF Core implementation of the <%- m.camel %> persistence port.</summary>
+/// <capability>api.<%- m.kebab %>-repository</capability>
+/// <intent>The only place that touches EF Core for <%- m.camelPlural %>; the application never sees a DbContext.</intent>
+/// <reuse>Registered for I<%- m.pascal %>Repository by AddInfrastructure; do not new it up directly.</reuse>
+public sealed class <%- m.pascal %>Repository : I<%- m.pascal %>Repository
+{
+    private readonly <%- m.product %>DbContext _db;
+
+    public <%- m.pascal %>Repository(<%- m.product %>DbContext db) => _db = db;
+
+    public async Task<IReadOnlyList<<%- m.pascal %>>> GetAllAsync(CancellationToken ct)
+        => (await _db.<%- m.pascalPlural %>.AsNoTracking().ToListAsync(ct)).OrderBy(<%- m.sortKey %>).ThenBy(x => x.Id).ToList();
+
+    public Task<<%- m.pascal %>?> GetByIdAsync(Guid id, CancellationToken ct)
+        => _db.<%- m.pascalPlural %>.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
+<%_ if (m.lookupMethod) { _%>
+
+    public Task<<%- m.pascal %>?> GetBy<%- m.lookupMethod.property %>Async(<%- m.lookupMethod.type %> <%- m.lookupMethod.param %>, CancellationToken ct)
+        => _db.<%- m.pascalPlural %>.AsNoTracking().FirstOrDefaultAsync(x => x.<%- m.lookupMethod.property %> == <%- m.lookupMethod.param %>, ct);
+<%_ } _%>
+
+    public async Task<<%- m.pascal %>> UpsertAsync(<%- m.pascal %> <%- m.camel %>, CancellationToken ct)
+    {
+        var existing = await _db.<%- m.pascalPlural %>.FirstOrDefaultAsync(x => x.Id == <%- m.camel %>.Id, ct);
+        if (existing is null)
+        {
+            _db.<%- m.pascalPlural %>.Add(<%- m.camel %>);
+        }
+        else
+        {
+<%_ for (const assign of m.assignExisting) { _%>
+            existing.<%- assign.property %> = <%- m.camel %>.<%- assign.property %>;
+<%_ } _%>
+        }
+
+        await _db.SaveChangesAsync(ct);
+        return existing ?? <%- m.camel %>;
+    }
+}

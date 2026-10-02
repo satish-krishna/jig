@@ -163,15 +163,15 @@
 ## operations
 
 ### `operations.user` — UserOperations (typescript)
-- **Intent:** Domain-facing user data access that is oblivious to HTTP vs IPC.
+- **Intent:** Domain-facing user data access that is oblivious to the transport underneath.
 - **Reuse:** Inject UserOperations from ViewModels; copy this shape for new feature facades.
 - **Where:** `frontend/src/app/operations/user.operations.ts`
 
 ## shell
 
 ### `shell.user-store` — UserStore (rust)
-- **Intent:** The thick client's user use-cases, mirroring the API so both wires agree.
-- **Reuse:** Manage one UserStore in the Tauri app state; commands delegate to it.
+- **Intent:** The desktop client's user use-cases, mirroring the API so both wires agree.
+- **Reuse:** Manage one UserStore in the app state; commands delegate to it.
 - **Where:** `apps/desktop/src-tauri/src/users.rs`
 
 ## testing

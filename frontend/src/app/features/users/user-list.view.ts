@@ -9,18 +9,12 @@ import { newUserCommand } from './users.commands';
 
 /**
  * The users slice view. Binds only to the ViewModel's signals and the form
- * component. It has no idea a transport, a wire, or a repository exists.
- * This is the reference view to copy for a new feature.
+ * component. It has no idea a transport or a repository exists.
  */
 @Component({
   selector: 'app-user-list',
   imports: [UserForm, HlmTypographyImports, HlmAlertImports],
   providers: [UserListViewModel],
-  // Composed from the helm vocabulary, not from hand-rolled class names. The
-  // element stays semantic (<h1> is still a heading) and the appearance comes
-  // from the primitive: hlmH3 is the page-title weight the showcase already
-  // uses, not hlmH1, whose text-4xl belongs to a marketing page rather than a
-  // compact desktop shell. HlmAlert supplies its own role="alert".
   template: `
     <section class="grid gap-m">
       <h1 hlmH3>Users</h1>

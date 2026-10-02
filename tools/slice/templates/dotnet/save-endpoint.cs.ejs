@@ -1,0 +1,20 @@
+using <%- m.product %>.Application;
+
+namespace <%- m.product %>.Api.<%- m.pascalPlural %>;
+
+/// <summary><%- m.opPrefix %>.save — POST <%- m.route %>. Creates (null Id) or updates <%- m.article %> <%- m.noun %>.</summary>
+public sealed class Save<%- m.pascal %>Endpoint : ResultEndpoint<Save<%- m.pascal %>Request, <%- m.pascal %>Response>
+{
+    private readonly <%- m.pascal %>Service _<%- m.camelPlural %>;
+
+    public Save<%- m.pascal %>Endpoint(<%- m.pascal %>Service <%- m.camelPlural %>) => _<%- m.camelPlural %> = <%- m.camelPlural %>;
+
+    public override void Configure()
+    {
+        Post("<%- m.route %>");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(Save<%- m.pascal %>Request req, CancellationToken ct)
+        => await SendResultAsync(await _<%- m.camelPlural %>.SaveAsync(req.Id<% for (const p of m.saveArgs) { %>, req.<%- p %><% } %>, ct), x => x.ToResponse(), ct);
+}

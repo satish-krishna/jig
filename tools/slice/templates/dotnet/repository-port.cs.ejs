@@ -1,0 +1,18 @@
+using <%- m.product %>.Domain;
+
+namespace <%- m.product %>.Application;
+
+/// <summary>Persistence port for <%- m.camelPlural %>. The application depends on this abstraction;
+/// Infrastructure supplies the EF Core implementation.</summary>
+/// <capability>api.<%- m.kebab %>-repository-port</capability>
+/// <intent>The use-case layer owns the persistence contract it needs, not the database.</intent>
+/// <reuse>Depend on I<%- m.pascal %>Repository from application services; implement it in Infrastructure only.</reuse>
+public interface I<%- m.pascal %>Repository
+{
+    Task<IReadOnlyList<<%- m.pascal %>>> GetAllAsync(CancellationToken ct);
+    Task<<%- m.pascal %>?> GetByIdAsync(Guid id, CancellationToken ct);
+<%_ if (m.lookup) { _%>
+    Task<<%- m.pascal %>?> GetBy<%- m.lookup.property %>Async(<%- m.lookup.type %> <%- m.lookup.param %>, CancellationToken ct);
+<%_ } _%>
+    Task<<%- m.pascal %>> UpsertAsync(<%- m.pascal %> <%- m.camel %>, CancellationToken ct);
+}

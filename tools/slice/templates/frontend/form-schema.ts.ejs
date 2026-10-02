@@ -1,0 +1,22 @@
+import { z } from 'zod';
+import type { FormFieldMeta } from '../../forms/form-field-meta';
+
+/**
+ * The one source of truth for the form that adds <%- m.formLabel %>: shape, validation, and
+ * field presentation all live here. The model type is inferred, never hand-written.
+ */
+export const <%- m.camel %>FormSchema = z.object({
+<%_ for (const f of m.fields) { _%>
+  <%- f.name %>: z
+    .<%- f.zodType %>()
+<%_ if (f.requiredMessage) { _%>
+    .min(1, <%- f.requiredMessage %>)
+<%_ } _%>
+<%_ if (f.email) { _%>
+    .email('Enter a valid email')
+<%_ } _%>
+    .meta({ label: <%- f.label %><% if (f.control) { %>, control: '<%- f.control %>'<% } %><% if (f.placeholder) { %>, placeholder: <%- f.placeholder %><% } %>, order: <%- f.order %> } satisfies FormFieldMeta),
+<%_ } _%>
+});
+
+export type <%- m.pascal %>FormModel = z.infer<typeof <%- m.camel %>FormSchema>;

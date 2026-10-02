@@ -13,6 +13,11 @@
 //     a Rust core. The marker lives next to what it describes, so anyone editing
 //     that code sees it. Both cuts consume them: `--thin` drops the block, and the
 //     thick default drops just the marker lines (see stripThickMarkers).
+//     A span whose CONTENTS grow has to be a marked block rather than a patch, even
+//     though a patch could express it today. `tools/slice` adds an entry to the transport
+//     registry's COMMANDS map per generated slice, so an anchor quoting that map's entries
+//     stops matching after the first slice and the cut throws for good — the app could
+//     never be thinned again. Markers do not care what is between them.
 //   - What is REWRITTEN is patched by exact match. A sentence that loses a clause,
 //     or `isTauri() ? 'ipc' : 'http'` collapsing to `'http'`, cannot be expressed as
 //     a marked block without writing both variants side by side and letting them
@@ -27,6 +32,8 @@
 /** Paths deleted outright by the thin cut. Directories are removed recursively. */
 export const THIN_DELETE: readonly string[] = [
   'apps',
+  // The desktop store's template: a thin clone has no desktop shell to generate a store for.
+  'tools/slice/templates/rust',
   'frontend/src/app/transport/ipc.transport.ts',
   'frontend/src/app/transport/ipc.transport.spec.ts',
   // The conduit skill itself survives: its subject is the contract seam — the
@@ -216,17 +223,6 @@ export const THIN_PATCHES: readonly Patch[] = [
  * @intent Compiler-enforced parity: every operation has a route.
  * @reuse Add the operation to Operations, then its ROUTES entry; omissions fail the build.`,
       ],
-      [
-        `
-/** The Tauri command name each operation invokes on the IPC wire. */
-export const COMMANDS: { [K in OperationName]: string } = {
-  'users.list': 'users_list',
-  'users.get': 'users_get',
-  'users.save': 'users_save',
-};
-`,
-        '',
-      ],
     ],
   },
 
@@ -238,32 +234,6 @@ export const COMMANDS: { [K in OperationName]: string } = {
         `// The web build talks to the .NET API here; under Tauri the IPC wire is chosen
 // instead and this base URL is unused. Point it at your API for the browser build.`,
         '// Where the app talks to the .NET API. Point it at your own deployment.',
-      ],
-    ],
-  },
-  {
-    path: 'frontend/src/app/operations/user.operations.ts',
-    edits: [
-      [
-        ` * The user operations facade: speaks operations, never URLs or command names. Identical
- * across both wires because it only ever talks to the Transport port.
- *
- * @capability operations.user
- * @intent Domain-facing user data access that is oblivious to HTTP vs IPC.`,
-        ` * The user operations facade: speaks operations, never URLs. It only ever talks to the
- * Transport port, so route knowledge stays in the registry.
- *
- * @capability operations.user
- * @intent Domain-facing user data access that is oblivious to the wire.`,
-      ],
-    ],
-  },
-  {
-    path: 'frontend/src/app/features/users/user-list.view-model.ts',
-    edits: [
-      [
-        ` * operations, so this class is identical whether the wire is IPC or HTTP.`,
-        ` * operations, so this class never learns how a request reaches the API.`,
       ],
     ],
   },
@@ -302,15 +272,6 @@ export const COMMANDS: { [K in OperationName]: string } = {
   },
 
   // ---- backend ------------------------------------------------------------
-  {
-    path: 'services/api/src/Jig.Api/Users/UserContracts.cs',
-    edits: [
-      [
-        '/// the frontend generates its TypeScript type from, so HTTP and IPC cannot disagree about it.</summary>',
-        '/// the frontend generates its TypeScript type from, so client and API cannot disagree about it.</summary>',
-      ],
-    ],
-  },
   {
     path: 'package.json',
     edits: [

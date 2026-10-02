@@ -70,6 +70,7 @@ The everyday commands. Full per-language build/test commands live in `CONTRIBUTI
 | `npm run lint:report` | How often the edit-time hook fired and whether the correction landed. Reads the git-ignored firing log |
 | `npm run catalog` | Regenerate the capability catalog after annotating code |
 | `npm run skills:check` | Check that every path and lint rule a skill names still resolves |
+| `npm run slice -- --spec <file>` | Generate a whole vertical slice from a JSON spec; `--dry-run` lists what it would write. Read the `add-a-feature` skill first |
 | `npm run codegen` | Emit OpenAPI from the API and generate the TypeScript DTOs |
 | `npm run codegen -- --check` | Prove the committed contracts still match the API without rewriting them. A gate step, not something you run by hand |
 | `npm run showcase:api` | Regenerate the showcase API tables from `libs/ui` (verify checks freshness) |
@@ -93,8 +94,8 @@ apps/desktop/          Tauri shell (Rust core, src-tauri)
 frontend/src/app/
   contracts/           operation registry + generated DTOs (single source of truth)
   transport/           port, http/ipc/normalizing transports, provide-transport
-  repositories/        speak operations only
-  forms/               FormFieldMeta, zod-meta, dynamic SchemaForm renderer (signal-forms for authored forms)
+  operations/          speak operations only
+  forms/               FormFieldMeta, zod-meta, control registry, SchemaForm renderer (every app form)
   menu/                region-keyed Command registry (sidebar/header contributions)
   theme/               light/dark mode; toggles the `dark` class on the document root
 <!-- thick:start -->
@@ -115,7 +116,7 @@ frontend/src/styles.css theme tokens: color AND radius (OKLCH, light + dark). Co
 services/api/          .NET FastEndpoints (Jig.sln): Api, Application, Domain, Infrastructure
 contracts/openapi/     OpenAPI spec emitted by the API (source for TS codegen)
 tools/                 setup, init (template rename), dev, catalog, codegen, design-tokens,
-                       showcase-api, ui-style,
+                       showcase-api, ui-style, slice (the vertical-slice generator),
   lint/                the frontend ruleset: 26 ESLint rules + stylelint, one doc each (ADR 0012)
                        analyzers (Roslyn layer rules, ADR 0009), hooks, verify (the gate)
 ```

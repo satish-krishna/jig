@@ -1,6 +1,6 @@
 namespace Jig.Domain;
 
-/// <summary>A user. The one domain entity the reference slice exercises end to end.</summary>
+/// <summary>A user.</summary>
 public sealed class User
 {
     public Guid Id { get; set; }

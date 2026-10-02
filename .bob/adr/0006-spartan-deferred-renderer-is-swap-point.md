@@ -3,6 +3,7 @@
 - Status: accepted (supersedes the earlier "spartan deferred" decision)
 - Date: 2026-07-03
 - Scope: `forms`
+- Superseded in part by ADR 0013 and `docs/architecture/forms.md` for form authoring guidance
 
 ## Context
 

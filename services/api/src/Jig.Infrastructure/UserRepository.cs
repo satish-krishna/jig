@@ -15,17 +15,17 @@ public sealed class UserRepository : IUserRepository
     public UserRepository(JigDbContext db) => _db = db;
 
     public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken ct)
-        => await _db.Users.AsNoTracking().OrderBy(u => u.Name).ToListAsync(ct);
+        => (await _db.Users.AsNoTracking().ToListAsync(ct)).OrderBy(x => x.Name, StringComparer.Ordinal).ThenBy(x => x.Id).ToList();
 
     public Task<User?> GetByIdAsync(Guid id, CancellationToken ct)
-        => _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
+        => _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
 
     public Task<User?> GetByEmailAsync(string email, CancellationToken ct)
-        => _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, ct);
+        => _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Email == email, ct);
 
     public async Task<User> UpsertAsync(User user, CancellationToken ct)
     {
-        var existing = await _db.Users.FirstOrDefaultAsync(u => u.Id == user.Id, ct);
+        var existing = await _db.Users.FirstOrDefaultAsync(x => x.Id == user.Id, ct);
         if (existing is null)
         {
             _db.Users.Add(user);

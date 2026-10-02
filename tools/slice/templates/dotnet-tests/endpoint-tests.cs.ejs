@@ -1,0 +1,73 @@
+using System.Net;
+using System.Net.Http.Json;
+using Shouldly;
+using <%- m.product %>.Api.<%- m.pascalPlural %>;
+
+namespace <%- m.product %>.Api.Tests;
+
+public class <%- m.pascalPlural %>EndpointTests : IClassFixture<ApiFixture>
+{
+    private readonly HttpClient _client;
+
+    public <%- m.pascalPlural %>EndpointTests(ApiFixture app) => _client = app.Client;
+
+    private static object New<%- m.pascal %>() => new { <%- m.factoryProps %> };
+
+    [Fact]
+    public async Task list_returns_200()
+    {
+        var res = await _client.GetAsync("<%- m.route %>");
+        res.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task save_then_get_roundtrips_the_<%- m.camel %>()
+    {
+        var post = await _client.PostAsJsonAsync("<%- m.route %>", New<%- m.pascal %>());
+        post.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var created = await post.Content.ReadFromJsonAsync<<%- m.pascal %>Response>();
+        created!.Id.ShouldNotBe(Guid.Empty);
+
+        var get = await _client.GetAsync($"<%- m.route %>/{created.Id}");
+        get.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var fetched = await get.Content.ReadFromJsonAsync<<%- m.pascal %>Response>();
+        fetched!.<%- m.roundtripField %>.ShouldBe(created.<%- m.roundtripField %>);
+    }
+<%_ if (m.hasValidatedField) { _%>
+
+    [Fact]
+    public async Task save_with_invalid_body_returns_400()
+    {
+        var res = await _client.PostAsJsonAsync("<%- m.route %>", new { <%- m.invalidProps %> });
+        res.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+<%_ } _%>
+<%_ for (const e of m.emailFacts) { _%>
+
+    [Fact]
+    public async Task save_with_malformed_<%- e.name %>_returns_400()
+    {
+        var res = await _client.PostAsJsonAsync("<%- m.route %>", new { <%- e.props %> });
+        res.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+<%_ } _%>
+
+    [Fact]
+    public async Task get_unknown_id_returns_404()
+    {
+        var res = await _client.GetAsync($"<%- m.route %>/{Guid.NewGuid()}");
+        res.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+<%_ if (m.unique) { _%>
+
+    [Fact]
+    public async Task save_duplicate_<%- m.unique.name %>_returns_409()
+    {
+        var <%- m.unique.name %> = <%- m.unique.literal %>;
+        (await _client.PostAsJsonAsync("<%- m.route %>", new { <%- m.unique.dupProps0 %> })).EnsureSuccessStatusCode();
+
+        var res = await _client.PostAsJsonAsync("<%- m.route %>", new { <%- m.unique.dupProps1 %> });
+        res.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+<%_ } _%>
+}
