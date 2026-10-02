@@ -12,11 +12,11 @@ The design spec rejected Plop and Hygen because their templates are "a language 
 
 ## Decision
 
-Emitted text lives in `tools/slice/templates/**/*.ejs`, rendered by `tools/slice/render.ts` with EJS. Templates hold layout only. Every decision that fills the templates — field iteration, control flow, content selection — stays in typed TypeScript model builders. Injectors, spec validation, the CLI, and the emitter functions all remain code.
+Emitted text lives in `tools/slice/templates/**/*.ejs`, rendered by `tools/slice/render.ts` with EJS. Templates hold layout only. Which fields appear, which blocks appear, and every computed fragment are decided in typed TypeScript model builders; templates iterate and branch only on model values. Injectors, spec validation, the CLI, and the emitter functions all remain code.
 
 ## Why the old objection no longer holds
 
-ADR 0015 built `slice --check`, a golden test that renders the `users` exemplar through the emitters on every `npm run verify`. The rendered output is compiled, linted, and tested as real code. A template that emits broken code fails the gate, because the rendered files are committed exemplars that the test compares against them on every `verify`.
+ADR 0015 built `slice --check`, a golden test that renders the `users` exemplar and compares it against the committed baseline on every `npm run verify`. The emitter tests (`tools/slice/emit-*.test.ts`) and `acceptance.test.ts` cover other spec shapes. A template that emits broken code fails the gate, because the rendered `users` output is compiled, linted, and tested as real code.
 
 ## What it costs, and how each cost is contained
 
@@ -24,6 +24,10 @@ Templates lose `tsc` checking of their substitutions in the template syntax itse
 
 ## Consequences
 
-- The Rust template is marked as thick-only and listed in `THIN_DELETE`. It is fully inside thick markers and carries no Rust or Tauri vocabulary outside them.
-- The catalog does not scan `.ejs` files, so templates carry no capability annotations of their own. Capabilities are listed in the TypeScript model builders that feed them.
+- The `emit-rust.ts` emitter is fully inside thick markers. The `store.rs.ejs` template is deleted whole through `THIN_DELETE` in `tools/init/thin.ts` and carries no Rust or Tauri vocabulary in the thin residue.
+- The catalog does not scan `.ejs` files. Capability annotations in the emitted files (the templates' output) reach the catalog through the committed `users` exemplar, not through the `.ejs` source.
 - A change to generated text is now a template edit plus a regenerated `users` exemplar, which the golden test demands on the next `npm run verify`. The migration from template literals to templates was validated by rendering a seven-case matrix against the live slices and asserting byte-identical output.
+
+## Per-field list rule
+
+Blocks of per-field lines become template `for` loops when each line has a fixed shape with field-dependent substitutions. An inline separator-joined list of short value fragments — such as comma-joined arguments or sample values — may be joined in TypeScript or looped inline; both patterns are in use and both are acceptable.
