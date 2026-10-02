@@ -49,7 +49,17 @@ interface ServiceTestsModel {
   pascal: string;
   camelPlural: string;
   camel: string;
-  facts: string;
+  fieldInit0: string;
+  fieldInit1: string;
+  saveArgs0: string;
+  saveArgs1: string;
+  assertFieldProperty: string;
+  assertFieldValue: string;
+  uniqueStubNoConflict: string;
+  unique: boolean;
+  uniqueName: string;
+  uniquePropertyName: string;
+  uniqueSampleVariant1: string;
 }
 
 function serviceTestsModel(spec: SliceSpec, n: SliceNames, product: string): ServiceTestsModel {
@@ -68,88 +78,22 @@ function serviceTestsModel(spec: SliceSpec, n: SliceNames, product: string): Ser
     ? `        A.CallTo(() => _repo.GetBy${pascalField(unique.name)}Async(A<${CS_TYPE[unique.type]}>._, A<CancellationToken>._)).Returns((${n.pascal}?)null);\n`
     : '';
 
-  const facts: string[] = [
-    `    [Fact]
-    public async Task ListAsync_returns_all_${n.camelPlural}_as_success()
-    {
-        var ${n.camelPlural} = new List<${n.pascal}> { new() { Id = Guid.NewGuid(), ${fieldInit(0)} } };
-        A.CallTo(() => _repo.GetAllAsync(A<CancellationToken>._)).Returns(${n.camelPlural});
-
-        var result = await Sut().ListAsync(CancellationToken.None);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(${n.camelPlural});
-    }`,
-    `    [Fact]
-    public async Task GetAsync_unknown_id_returns_NotFound()
-    {
-        A.CallTo(() => _repo.GetByIdAsync(A<Guid>._, A<CancellationToken>._)).Returns((${n.pascal}?)null);
-
-        var result = await Sut().GetAsync(Guid.NewGuid(), CancellationToken.None);
-
-        result.IsSuccess.ShouldBeFalse();
-        result.Error!.Kind.ShouldBe(ErrorKind.NotFound);
-    }`,
-    `    [Fact]
-    public async Task GetAsync_known_id_returns_${n.camel}()
-    {
-        var ${n.camel} = new ${n.pascal} { Id = Guid.NewGuid(), ${fieldInit(1)} };
-        A.CallTo(() => _repo.GetByIdAsync(${n.camel}.Id, A<CancellationToken>._)).Returns(${n.camel});
-
-        var result = await Sut().GetAsync(${n.camel}.Id, CancellationToken.None);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(${n.camel});
-    }`,
-    `    [Fact]
-    public async Task SaveAsync_new_${n.camel}_creates_and_returns_it()
-    {
-${uniqueStubNoConflict}        A.CallTo(() => _repo.UpsertAsync(A<${n.pascal}>._, A<CancellationToken>._))
-            .ReturnsLazily((${n.pascal} x, CancellationToken _) => x);
-
-        var result = await Sut().SaveAsync(null, ${saveArgs(0)}, CancellationToken.None);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Id.ShouldNotBe(Guid.Empty);
-        result.Value.${pascalField(assertField.name)}.ShouldBe(${sample(assertField, 0)});
-        A.CallTo(() => _repo.UpsertAsync(A<${n.pascal}>.That.Matches(x => x.${pascalField(assertField.name)} == ${sample(assertField, 0)}), A<CancellationToken>._))
-            .MustHaveHappenedOnceExactly();
-    }`,
-  ];
-
-  // The Conflict outcome only exists when SaveAsync has a uniqueness check to trigger it.
-  if (unique) {
-    facts.push(`    [Fact]
-    public async Task SaveAsync_duplicate_${unique.name}_returns_Conflict()
-    {
-        var other = new ${n.pascal} { Id = Guid.NewGuid(), ${fieldInit(1)} };
-        A.CallTo(() => _repo.GetBy${pascalField(unique.name)}Async(${sample(unique, 1)}, A<CancellationToken>._)).Returns(other);
-
-        var result = await Sut().SaveAsync(null, ${saveArgs(1)}, CancellationToken.None);
-
-        result.IsSuccess.ShouldBeFalse();
-        result.Error!.Kind.ShouldBe(ErrorKind.Conflict);
-        A.CallTo(() => _repo.UpsertAsync(A<${n.pascal}>._, A<CancellationToken>._)).MustNotHaveHappened();
-    }`);
-  }
-
-  facts.push(`    [Fact]
-    public async Task SaveAsync_update_of_unknown_id_returns_NotFound()
-    {
-${uniqueStubNoConflict}        A.CallTo(() => _repo.GetByIdAsync(A<Guid>._, A<CancellationToken>._)).Returns((${n.pascal}?)null);
-
-        var result = await Sut().SaveAsync(Guid.NewGuid(), ${saveArgs(1)}, CancellationToken.None);
-
-        result.IsSuccess.ShouldBeFalse();
-        result.Error!.Kind.ShouldBe(ErrorKind.NotFound);
-    }`);
-
   return {
     product,
     pascal: n.pascal,
     camelPlural: n.camelPlural,
     camel: n.camel,
-    facts: facts.join('\n\n'),
+    fieldInit0: fieldInit(0),
+    fieldInit1: fieldInit(1),
+    saveArgs0: saveArgs(0),
+    saveArgs1: saveArgs(1),
+    assertFieldProperty: pascalField(assertField.name),
+    assertFieldValue: sample(assertField, 0),
+    uniqueStubNoConflict,
+    unique: !!unique,
+    uniqueName: unique?.name || '',
+    uniquePropertyName: unique ? pascalField(unique.name) : '',
+    uniqueSampleVariant1: unique ? sample(unique, 1) : '',
   };
 }
 

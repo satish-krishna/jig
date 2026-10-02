@@ -9,5 +9,79 @@ public class <%- m.pascal %>ServiceTests
     private readonly I<%- m.pascal %>Repository _repo = A.Fake<I<%- m.pascal %>Repository>();
     private <%- m.pascal %>Service Sut() => new(_repo);
 
-<%- m.facts %>
+    [Fact]
+    public async Task ListAsync_returns_all_<%- m.camelPlural %>_as_success()
+    {
+        var <%- m.camelPlural %> = new List<<%- m.pascal %>> { new() { Id = Guid.NewGuid(), <%- m.fieldInit0 %> } };
+        A.CallTo(() => _repo.GetAllAsync(A<CancellationToken>._)).Returns(<%- m.camelPlural %>);
+
+        var result = await Sut().ListAsync(CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(<%- m.camelPlural %>);
+    }
+
+    [Fact]
+    public async Task GetAsync_unknown_id_returns_NotFound()
+    {
+        A.CallTo(() => _repo.GetByIdAsync(A<Guid>._, A<CancellationToken>._)).Returns((<%- m.pascal %>?)null);
+
+        var result = await Sut().GetAsync(Guid.NewGuid(), CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.Kind.ShouldBe(ErrorKind.NotFound);
+    }
+
+    [Fact]
+    public async Task GetAsync_known_id_returns_<%- m.camel %>()
+    {
+        var <%- m.camel %> = new <%- m.pascal %> { Id = Guid.NewGuid(), <%- m.fieldInit1 %> };
+        A.CallTo(() => _repo.GetByIdAsync(<%- m.camel %>.Id, A<CancellationToken>._)).Returns(<%- m.camel %>);
+
+        var result = await Sut().GetAsync(<%- m.camel %>.Id, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(<%- m.camel %>);
+    }
+
+    [Fact]
+    public async Task SaveAsync_new_<%- m.camel %>_creates_and_returns_it()
+    {
+<%- m.uniqueStubNoConflict %>        A.CallTo(() => _repo.UpsertAsync(A<<%- m.pascal %>>._, A<CancellationToken>._))
+            .ReturnsLazily((<%- m.pascal %> x, CancellationToken _) => x);
+
+        var result = await Sut().SaveAsync(null, <%- m.saveArgs0 %>, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Id.ShouldNotBe(Guid.Empty);
+        result.Value.<%- m.assertFieldProperty %>.ShouldBe(<%- m.assertFieldValue %>);
+        A.CallTo(() => _repo.UpsertAsync(A<<%- m.pascal %>>.That.Matches(x => x.<%- m.assertFieldProperty %> == <%- m.assertFieldValue %>), A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+<%_ if (m.unique) { _%>
+
+    [Fact]
+    public async Task SaveAsync_duplicate_<%- m.uniqueName %>_returns_Conflict()
+    {
+        var other = new <%- m.pascal %> { Id = Guid.NewGuid(), <%- m.fieldInit1 %> };
+        A.CallTo(() => _repo.GetBy<%- m.uniquePropertyName %>Async(<%- m.uniqueSampleVariant1 %>, A<CancellationToken>._)).Returns(other);
+
+        var result = await Sut().SaveAsync(null, <%- m.saveArgs1 %>, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.Kind.ShouldBe(ErrorKind.Conflict);
+        A.CallTo(() => _repo.UpsertAsync(A<<%- m.pascal %>>._, A<CancellationToken>._)).MustNotHaveHappened();
+    }
+<%_ } _%>
+
+    [Fact]
+    public async Task SaveAsync_update_of_unknown_id_returns_NotFound()
+    {
+<%- m.uniqueStubNoConflict %>        A.CallTo(() => _repo.GetByIdAsync(A<Guid>._, A<CancellationToken>._)).Returns((<%- m.pascal %>?)null);
+
+        var result = await Sut().SaveAsync(Guid.NewGuid(), <%- m.saveArgs1 %>, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.Kind.ShouldBe(ErrorKind.NotFound);
+    }
 }
