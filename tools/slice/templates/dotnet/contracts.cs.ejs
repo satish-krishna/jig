@@ -1,0 +1,26 @@
+namespace <%- m.product %>.Api.<%- m.pascalPlural %>;
+
+/// <summary>The <%- m.camel %> shape returned on the wire. This is the DTO OpenAPI describes and
+/// the frontend generates its TypeScript type from, so client and API cannot disagree about it.</summary>
+public sealed class <%- m.pascal %>Response
+{
+    public Guid Id { get; set; }
+<%_ for (const p of m.responseProps) { _%>
+    public <%- p.type %> <%- p.name %> { get; set; }<%- p.initializer %>
+<%_ } _%>
+}
+
+/// <summary>Route request for <%- m.opPrefix %>.get.</summary>
+public sealed class Get<%- m.pascal %>Request
+{
+    public Guid Id { get; set; }
+}
+
+/// <summary>Body request for <%- m.opPrefix %>.save. A null Id means create; a set Id means update.</summary>
+public sealed class Save<%- m.pascal %>Request
+{
+    public Guid? Id { get; set; }
+<%_ for (const p of m.saveProps) { _%>
+    public <%- p.type %> <%- p.name %> { get; set; }<%- p.initializer %>
+<%_ } _%>
+}

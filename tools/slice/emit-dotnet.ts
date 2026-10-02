@@ -8,6 +8,7 @@ import { deriveNames } from './spec.ts';
 import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
 import { interpolatedString } from './literal.ts';
 import { label } from './naming.ts';
+import { renderTemplate } from './render.ts';
 
 /** "A" or "An", by the first sound of the noun that follows. */
 function articleFor(word: string): 'A' | 'An' {
@@ -23,21 +24,28 @@ function articleFor(word: string): 'A' | 'An' {
 // services/api/src/{P}.Domain/{E}.cs — shape source: Jig.Domain/User.cs
 // ---------------------------------------------------------------------------
 
+interface EntityModel {
+  product: string;
+  article: string;
+  noun: string;
+  pascal: string;
+  props: { type: string; name: string }[];
+}
+
+function entityModel(spec: SliceSpec, n: SliceNames, product: string): EntityModel {
+  return {
+    product,
+    article: articleFor(label(n.kebab)),
+    noun: label(n.kebab),
+    pascal: n.pascal,
+    props: spec.fields.map((f) => ({ type: CS_TYPE[f.type], name: pascalField(f.name) })),
+  };
+}
+
 function emitEntity(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
-  const props = spec.fields
-    .map((f) => `    public required ${CS_TYPE[f.type]} ${pascalField(f.name)} { get; set; }`)
-    .join('\n');
   return {
     path: `services/api/src/${product}.Domain/${n.pascal}.cs`,
-    text: `namespace ${product}.Domain;
-
-/// <summary>${articleFor(label(n.kebab))} ${label(n.kebab)}.</summary>
-public sealed class ${n.pascal}
-{
-    public Guid Id { get; set; }
-${props}
-}
-`,
+    text: renderTemplate('dotnet/entity.cs.ejs', entityModel(spec, n, product)),
   };
 }
 
@@ -45,29 +53,33 @@ ${props}
 // services/api/src/{P}.Application/I{E}Repository.cs — shape source: IUserRepository.cs
 // ---------------------------------------------------------------------------
 
-function emitRepositoryPort(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+interface RepositoryPortModel {
+  product: string;
+  camelPlural: string;
+  kebab: string;
+  pascal: string;
+  camel: string;
+  lookup: { property: string; type: string; param: string } | null;
+}
+
+function repositoryPortModel(spec: SliceSpec, n: SliceNames, product: string): RepositoryPortModel {
   const unique = uniqueField(spec);
-  const lookupLine = unique
-    ? `    Task<${n.pascal}?> GetBy${pascalField(unique.name)}Async(${CS_TYPE[unique.type]} ${unique.name}, CancellationToken ct);\n`
-    : '';
+  return {
+    product,
+    camelPlural: n.camelPlural,
+    kebab: n.kebab,
+    pascal: n.pascal,
+    camel: n.camel,
+    lookup: unique
+      ? { property: pascalField(unique.name), type: CS_TYPE[unique.type], param: unique.name }
+      : null,
+  };
+}
+
+function emitRepositoryPort(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Application/I${n.pascal}Repository.cs`,
-    text: `using ${product}.Domain;
-
-namespace ${product}.Application;
-
-/// <summary>Persistence port for ${n.camelPlural}. The application depends on this abstraction;
-/// Infrastructure supplies the EF Core implementation.</summary>
-/// <capability>api.${n.kebab}-repository-port</capability>
-/// <intent>The use-case layer owns the persistence contract it needs, not the database.</intent>
-/// <reuse>Depend on I${n.pascal}Repository from application services; implement it in Infrastructure only.</reuse>
-public interface I${n.pascal}Repository
-{
-    Task<IReadOnlyList<${n.pascal}>> GetAllAsync(CancellationToken ct);
-    Task<${n.pascal}?> GetByIdAsync(Guid id, CancellationToken ct);
-${lookupLine}    Task<${n.pascal}> UpsertAsync(${n.pascal} ${n.camel}, CancellationToken ct);
-}
-`,
+    text: renderTemplate('dotnet/repository-port.cs.ejs', repositoryPortModel(spec, n, product)),
   };
 }
 
@@ -75,66 +87,41 @@ ${lookupLine}    Task<${n.pascal}> UpsertAsync(${n.pascal} ${n.camel}, Cancellat
 // services/api/src/{P}.Application/{E}Service.cs — shape source: UserService.cs
 // ---------------------------------------------------------------------------
 
-function emitService(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+interface ServiceModel {
+  product: string;
+  camel: string;
+  kebab: string;
+  pascal: string;
+  saveParams: { type: string; name: string }[];
+  assignExisting: { property: string; param: string }[];
+  newFields: { property: string; param: string }[];
+  conflictCheck: { property: string; param: string; message: string } | null;
+}
+
+function serviceModel(spec: SliceSpec, n: SliceNames, product: string): ServiceModel {
   const unique = uniqueField(spec);
-  const saveParams = spec.fields.map((f) => `${CS_TYPE[f.type]} ${f.name}`).join(', ');
-  const assignExisting = spec.fields.map((f) => `            current.${pascalField(f.name)} = ${f.name};`).join('\n');
-  const newFields = spec.fields.map((f) => `${pascalField(f.name)} = ${f.name}`).join(', ');
+  return {
+    product,
+    camel: n.camel,
+    kebab: n.kebab,
+    pascal: n.pascal,
+    saveParams: spec.fields.map((f) => ({ type: CS_TYPE[f.type], name: f.name })),
+    assignExisting: spec.fields.map((f) => ({ property: pascalField(f.name), param: f.name })),
+    newFields: spec.fields.map((f) => ({ property: pascalField(f.name), param: f.name })),
+    conflictCheck: unique
+      ? {
+          property: pascalField(unique.name),
+          param: unique.name,
+          message: `${interpolatedString(unique.label)} {${unique.name}} is already in use.`,
+        }
+      : null,
+  };
+}
 
-  const conflictCheck = unique
-    ? `        var by${pascalField(unique.name)} = await _repo.GetBy${pascalField(unique.name)}Async(${unique.name}, ct);
-        if (by${pascalField(unique.name)} is not null && by${pascalField(unique.name)}.Id != id)
-            return Error.Conflict($"${interpolatedString(unique.label)} {${unique.name}} is already in use.");
-
-`
-    : '';
-
+function emitService(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Application/${n.pascal}Service.cs`,
-    text: `using ${product}.Domain;
-
-namespace ${product}.Application;
-
-/// <summary>The ${n.camel} use-cases: list, get, and save. Returns Result envelopes so
-/// expected failures travel as data, not exceptions.</summary>
-/// <capability>api.${n.kebab}-service</capability>
-/// <intent>One cohesive place for the ${n.camel} use-case logic, independent of transport and database.</intent>
-/// <reuse>Inject ${n.pascal}Service into endpoints; it speaks I${n.pascal}Repository, never EF Core directly.</reuse>
-public sealed class ${n.pascal}Service
-{
-    private readonly I${n.pascal}Repository _repo;
-
-    public ${n.pascal}Service(I${n.pascal}Repository repo) => _repo = repo;
-
-    public async Task<Result<IReadOnlyList<${n.pascal}>>> ListAsync(CancellationToken ct)
-        => Result<IReadOnlyList<${n.pascal}>>.Success(await _repo.GetAllAsync(ct));
-
-    public async Task<Result<${n.pascal}>> GetAsync(Guid id, CancellationToken ct)
-    {
-        var ${n.camel} = await _repo.GetByIdAsync(id, ct);
-        return ${n.camel} is null ? Error.NotFound($"${n.pascal} {id} was not found.") : ${n.camel};
-    }
-
-    public async Task<Result<${n.pascal}>> SaveAsync(Guid? id, ${saveParams}, CancellationToken ct)
-    {
-${conflictCheck}        ${n.pascal} ${n.camel};
-        if (id is Guid existingId)
-        {
-            var current = await _repo.GetByIdAsync(existingId, ct);
-            if (current is null)
-                return Error.NotFound($"${n.pascal} {existingId} was not found.");
-${assignExisting}
-            ${n.camel} = current;
-        }
-        else
-        {
-            ${n.camel} = new ${n.pascal} { Id = Guid.NewGuid(), ${newFields} };
-        }
-
-        return await _repo.UpsertAsync(${n.camel}, ct);
-    }
-}
-`,
+    text: renderTemplate('dotnet/service.cs.ejs', serviceModel(spec, n, product)),
   };
 }
 
@@ -142,39 +129,40 @@ ${assignExisting}
 // services/api/src/{P}.Api/{Es}/{E}Contracts.cs — shape source: UserContracts.cs
 // ---------------------------------------------------------------------------
 
-function emitContracts(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+interface ContractsModel {
+  product: string;
+  pascalPlural: string;
+  camel: string;
+  pascal: string;
+  opPrefix: string;
+  responseProps: { type: string; name: string; initializer: string }[];
+  saveProps: { type: string; name: string; initializer: string }[];
+}
+
+function contractsModel(spec: SliceSpec, n: SliceNames, product: string): ContractsModel {
   // Non-nullable reference types (string) need an initializer to avoid a nullability
   // warning; value types (decimal, bool) do not, matching how UserResponse handles Name/Email.
-  const prop = (f: FieldSpec) =>
-    `    public ${CS_TYPE[f.type]} ${pascalField(f.name)} { get; set; }${f.type === 'string' ? ' = "";' : ''}`;
-  const responseProps = spec.fields.map(prop).join('\n');
-  const saveProps = spec.fields.map(prop).join('\n');
+  const prop = (f: FieldSpec) => ({
+    type: CS_TYPE[f.type],
+    name: pascalField(f.name),
+    initializer: f.type === 'string' ? ' = "";' : '',
+  });
 
   return {
+    product,
+    pascalPlural: n.pascalPlural,
+    camel: n.camel,
+    pascal: n.pascal,
+    opPrefix: n.opPrefix,
+    responseProps: spec.fields.map(prop),
+    saveProps: spec.fields.map(prop),
+  };
+}
+
+function emitContracts(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+  return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/${n.pascal}Contracts.cs`,
-    text: `namespace ${product}.Api.${n.pascalPlural};
-
-/// <summary>The ${n.camel} shape returned on the wire. This is the DTO OpenAPI describes and
-/// the frontend generates its TypeScript type from, so client and API cannot disagree about it.</summary>
-public sealed class ${n.pascal}Response
-{
-    public Guid Id { get; set; }
-${responseProps}
-}
-
-/// <summary>Route request for ${n.opPrefix}.get.</summary>
-public sealed class Get${n.pascal}Request
-{
-    public Guid Id { get; set; }
-}
-
-/// <summary>Body request for ${n.opPrefix}.save. A null Id means create; a set Id means update.</summary>
-public sealed class Save${n.pascal}Request
-{
-    public Guid? Id { get; set; }
-${saveProps}
-}
-`,
+    text: renderTemplate('dotnet/contracts.cs.ejs', contractsModel(spec, n, product)),
   };
 }
 
@@ -182,34 +170,32 @@ ${saveProps}
 // services/api/src/{P}.Api/{Es}/List{Es}Endpoint.cs — shape source: ListUsersEndpoint.cs
 // ---------------------------------------------------------------------------
 
+interface ListEndpointModel {
+  product: string;
+  opPrefix: string;
+  route: string;
+  camel: string;
+  camelPlural: string;
+  pascal: string;
+  pascalPlural: string;
+}
+
+function listEndpointModel(spec: SliceSpec, n: SliceNames, product: string): ListEndpointModel {
+  return {
+    product,
+    opPrefix: n.opPrefix,
+    route: n.route,
+    camel: n.camel,
+    camelPlural: n.camelPlural,
+    pascal: n.pascal,
+    pascalPlural: n.pascalPlural,
+  };
+}
+
 function emitListEndpoint(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/List${n.pascalPlural}Endpoint.cs`,
-    text: `using FastEndpoints;
-using ${product}.Application;
-
-namespace ${product}.Api.${n.pascalPlural};
-
-/// <summary>${n.opPrefix}.list — GET ${n.route}. Returns every ${n.camel}.</summary>
-public sealed class List${n.pascalPlural}Endpoint : EndpointWithoutRequest<IEnumerable<${n.pascal}Response>>
-{
-    private readonly ${n.pascal}Service _${n.camelPlural};
-
-    public List${n.pascalPlural}Endpoint(${n.pascal}Service ${n.camelPlural}) => _${n.camelPlural} = ${n.camelPlural};
-
-    public override void Configure()
-    {
-        Get("${n.route}");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(CancellationToken ct)
-    {
-        var result = await _${n.camelPlural}.ListAsync(ct);
-        await Send.OkAsync(result.Value!.Select(x => x.ToResponse()), ct);
-    }
-}
-`,
+    text: renderTemplate('dotnet/list-endpoint.cs.ejs', listEndpointModel(spec, n, product)),
   };
 }
 
@@ -217,30 +203,32 @@ public sealed class List${n.pascalPlural}Endpoint : EndpointWithoutRequest<IEnum
 // services/api/src/{P}.Api/{Es}/Get{E}Endpoint.cs — shape source: GetUserEndpoint.cs
 // ---------------------------------------------------------------------------
 
+interface GetEndpointModel {
+  product: string;
+  opPrefix: string;
+  route: string;
+  camel: string;
+  camelPlural: string;
+  pascal: string;
+  pascalPlural: string;
+}
+
+function getEndpointModel(spec: SliceSpec, n: SliceNames, product: string): GetEndpointModel {
+  return {
+    product,
+    opPrefix: n.opPrefix,
+    route: n.route,
+    camel: n.camel,
+    camelPlural: n.camelPlural,
+    pascal: n.pascal,
+    pascalPlural: n.pascalPlural,
+  };
+}
+
 function emitGetEndpoint(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/Get${n.pascal}Endpoint.cs`,
-    text: `using ${product}.Application;
-
-namespace ${product}.Api.${n.pascalPlural};
-
-/// <summary>${n.opPrefix}.get — GET ${n.route}/{id}. Returns one ${n.camel} or 404.</summary>
-public sealed class Get${n.pascal}Endpoint : ResultEndpoint<Get${n.pascal}Request, ${n.pascal}Response>
-{
-    private readonly ${n.pascal}Service _${n.camelPlural};
-
-    public Get${n.pascal}Endpoint(${n.pascal}Service ${n.camelPlural}) => _${n.camelPlural} = ${n.camelPlural};
-
-    public override void Configure()
-    {
-        Get("${n.route}/{id}");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(Get${n.pascal}Request req, CancellationToken ct)
-        => await SendResultAsync(await _${n.camelPlural}.GetAsync(req.Id, ct), x => x.ToResponse(), ct);
-}
-`,
+    text: renderTemplate('dotnet/get-endpoint.cs.ejs', getEndpointModel(spec, n, product)),
   };
 }
 
@@ -248,31 +236,36 @@ public sealed class Get${n.pascal}Endpoint : ResultEndpoint<Get${n.pascal}Reques
 // services/api/src/{P}.Api/{Es}/Save{E}Endpoint.cs — shape source: SaveUserEndpoint.cs
 // ---------------------------------------------------------------------------
 
+interface SaveEndpointModel {
+  product: string;
+  opPrefix: string;
+  route: string;
+  article: string;
+  noun: string;
+  camelPlural: string;
+  pascal: string;
+  pascalPlural: string;
+  saveArgs: string[];
+}
+
+function saveEndpointModel(spec: SliceSpec, n: SliceNames, product: string): SaveEndpointModel {
+  return {
+    product,
+    opPrefix: n.opPrefix,
+    route: n.route,
+    article: articleFor(label(n.kebab)).toLowerCase(),
+    noun: label(n.kebab),
+    camelPlural: n.camelPlural,
+    pascal: n.pascal,
+    pascalPlural: n.pascalPlural,
+    saveArgs: spec.fields.map((f) => pascalField(f.name)),
+  };
+}
+
 function emitSaveEndpoint(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
-  const saveArgs = spec.fields.map((f) => `req.${pascalField(f.name)}`).join(', ');
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/Save${n.pascal}Endpoint.cs`,
-    text: `using ${product}.Application;
-
-namespace ${product}.Api.${n.pascalPlural};
-
-/// <summary>${n.opPrefix}.save — POST ${n.route}. Creates (null Id) or updates ${articleFor(label(n.kebab)).toLowerCase()} ${label(n.kebab)}.</summary>
-public sealed class Save${n.pascal}Endpoint : ResultEndpoint<Save${n.pascal}Request, ${n.pascal}Response>
-{
-    private readonly ${n.pascal}Service _${n.camelPlural};
-
-    public Save${n.pascal}Endpoint(${n.pascal}Service ${n.camelPlural}) => _${n.camelPlural} = ${n.camelPlural};
-
-    public override void Configure()
-    {
-        Post("${n.route}");
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(Save${n.pascal}Request req, CancellationToken ct)
-        => await SendResultAsync(await _${n.camelPlural}.SaveAsync(req.Id, ${saveArgs}, ct), x => x.ToResponse(), ct);
-}
-`,
+    text: renderTemplate('dotnet/save-endpoint.cs.ejs', saveEndpointModel(spec, n, product)),
   };
 }
 
@@ -280,32 +273,39 @@ public sealed class Save${n.pascal}Endpoint : ResultEndpoint<Save${n.pascal}Requ
 // services/api/src/{P}.Api/{Es}/Save{E}Validator.cs — shape source: SaveUserValidator.cs
 // ---------------------------------------------------------------------------
 
-function emitValidator(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+interface ValidatorModel {
+  product: string;
+  opPrefix: string;
+  pascal: string;
+  pascalPlural: string;
+  rules: { property: string; suffix: string }[];
+}
+
+function validatorModel(spec: SliceSpec, n: SliceNames, product: string): ValidatorModel {
   // NotEmpty() compares a value type against its default: default(bool) is false and
   // default(decimal) is 0, so on either it rejects ordinary data (an unchecked checkbox, a
   // zero quantity) that the emitted zod schema accepts. Presence is already enforced by the
   // non-nullable request property, so only a string field gets a rule.
   const rules = spec.fields
     .filter((f) => f.type === 'string')
-    .map((f) => `        RuleFor(x => x.${pascalField(f.name)}).NotEmpty()${f.format === 'email' ? '.EmailAddress()' : ''};`)
-    .join('\n');
-  const body = rules ? `${rules}\n` : '';
+    .map((f) => ({
+      property: pascalField(f.name),
+      suffix: f.format === 'email' ? '.EmailAddress()' : '',
+    }));
+
+  return {
+    product,
+    opPrefix: n.opPrefix,
+    pascal: n.pascal,
+    pascalPlural: n.pascalPlural,
+    rules,
+  };
+}
+
+function emitValidator(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/Save${n.pascal}Validator.cs`,
-    text: `using FastEndpoints;
-using FluentValidation;
-
-namespace ${product}.Api.${n.pascalPlural};
-
-/// <summary>Request-shape validation for ${n.opPrefix}.save. Runs before the handler; a failure
-/// returns 400 with the field errors. Business rules (uniqueness) live in ${n.pascal}Service.</summary>
-public sealed class Save${n.pascal}Validator : Validator<Save${n.pascal}Request>
-{
-    public Save${n.pascal}Validator()
-    {
-${body}    }
-}
-`,
+    text: renderTemplate('dotnet/validator.cs.ejs', validatorModel(spec, n, product)),
   };
 }
 
@@ -313,24 +313,31 @@ ${body}    }
 // services/api/src/{P}.Api/{Es}/{E}Mapping.cs — shape source: UserMapping.cs
 // ---------------------------------------------------------------------------
 
+interface MappingModel {
+  product: string;
+  pascal: string;
+  pascalPlural: string;
+  camel: string;
+  assigns: { property: string; value: string }[];
+}
+
+function mappingModel(spec: SliceSpec, n: SliceNames, product: string): MappingModel {
+  return {
+    product,
+    pascal: n.pascal,
+    pascalPlural: n.pascalPlural,
+    camel: n.camel,
+    assigns: spec.fields.map((f) => ({
+      property: pascalField(f.name),
+      value: `${n.camel}.${pascalField(f.name)}`,
+    })),
+  };
+}
+
 function emitMapping(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
-  const assigns = spec.fields.map((f) => `        ${pascalField(f.name)} = ${n.camel}.${pascalField(f.name)},`).join('\n');
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/${n.pascal}Mapping.cs`,
-    text: `using ${product}.Domain;
-
-namespace ${product}.Api.${n.pascalPlural};
-
-/// <summary>Maps the ${n.pascal} domain entity to its wire DTO. The one place that shape crossing happens.</summary>
-internal static class ${n.pascal}Mapping
-{
-    public static ${n.pascal}Response ToResponse(this ${n.pascal} ${n.camel}) => new()
-    {
-        Id = ${n.camel}.Id,
-${assigns}
-    };
-}
-`,
+    text: renderTemplate('dotnet/mapping.cs.ejs', mappingModel(spec, n, product)),
   };
 }
 
@@ -338,15 +345,20 @@ ${assigns}
 // services/api/src/{P}.Infrastructure/{E}Repository.cs — shape source: UserRepository.cs
 // ---------------------------------------------------------------------------
 
-function emitRepository(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+interface RepositoryModel {
+  product: string;
+  camel: string;
+  kebab: string;
+  camelPlural: string;
+  pascal: string;
+  pascalPlural: string;
+  sortKey: string;
+  lookupMethod: { property: string; type: string; param: string } | null;
+  assignExisting: { property: string }[];
+}
+
+function repositoryModel(spec: SliceSpec, n: SliceNames, product: string): RepositoryModel {
   const unique = uniqueField(spec);
-  const lookupMethod = unique
-    ? `
-    public Task<${n.pascal}?> GetBy${pascalField(unique.name)}Async(${CS_TYPE[unique.type]} ${unique.name}, CancellationToken ct)
-        => _db.${n.pascalPlural}.AsNoTracking().FirstOrDefaultAsync(x => x.${pascalField(unique.name)} == ${unique.name}, ct);
-`
-    : '';
-  const assignExisting = spec.fields.map((f) => `            existing.${pascalField(f.name)} = ${n.camel}.${pascalField(f.name)};`).join('\n');
   // The exemplar sorts by its first field, and so does the native store. The EF Core SQLite
   // provider cannot translate ORDER BY on a decimal and throws at query time, so the sort
   // runs in memory after the load; GetAllAsync loads every row regardless. A string sorts
@@ -357,46 +369,28 @@ function emitRepository(spec: SliceSpec, n: SliceNames, product: string): Emitte
   const sortKey = `x => x.${pascalField(first.name)}${first.type === 'string' ? ', StringComparer.Ordinal' : ''}`;
 
   return {
-    path: `services/api/src/${product}.Infrastructure/${n.pascal}Repository.cs`,
-    text: `using ${product}.Application;
-using ${product}.Domain;
-using Microsoft.EntityFrameworkCore;
-
-namespace ${product}.Infrastructure;
-
-/// <summary>EF Core implementation of the ${n.camel} persistence port.</summary>
-/// <capability>api.${n.kebab}-repository</capability>
-/// <intent>The only place that touches EF Core for ${n.camelPlural}; the application never sees a DbContext.</intent>
-/// <reuse>Registered for I${n.pascal}Repository by AddInfrastructure; do not new it up directly.</reuse>
-public sealed class ${n.pascal}Repository : I${n.pascal}Repository
-{
-    private readonly ${product}DbContext _db;
-
-    public ${n.pascal}Repository(${product}DbContext db) => _db = db;
-
-    public async Task<IReadOnlyList<${n.pascal}>> GetAllAsync(CancellationToken ct)
-        => (await _db.${n.pascalPlural}.AsNoTracking().ToListAsync(ct)).OrderBy(${sortKey}).ThenBy(x => x.Id).ToList();
-
-    public Task<${n.pascal}?> GetByIdAsync(Guid id, CancellationToken ct)
-        => _db.${n.pascalPlural}.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-${lookupMethod}
-    public async Task<${n.pascal}> UpsertAsync(${n.pascal} ${n.camel}, CancellationToken ct)
-    {
-        var existing = await _db.${n.pascalPlural}.FirstOrDefaultAsync(x => x.Id == ${n.camel}.Id, ct);
-        if (existing is null)
-        {
-            _db.${n.pascalPlural}.Add(${n.camel});
+    product,
+    camel: n.camel,
+    kebab: n.kebab,
+    camelPlural: n.camelPlural,
+    pascal: n.pascal,
+    pascalPlural: n.pascalPlural,
+    sortKey,
+    lookupMethod: unique
+      ? {
+          property: pascalField(unique.name),
+          type: CS_TYPE[unique.type],
+          param: unique.name,
         }
-        else
-        {
-${assignExisting}
-        }
-
-        await _db.SaveChangesAsync(ct);
-        return existing ?? ${n.camel};
-    }
+      : null,
+    assignExisting: spec.fields.map((f) => ({ property: pascalField(f.name) })),
+  };
 }
-`,
+
+function emitRepository(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+  return {
+    path: `services/api/src/${product}.Infrastructure/${n.pascal}Repository.cs`,
+    text: renderTemplate('dotnet/repository.cs.ejs', repositoryModel(spec, n, product)),
   };
 }
 

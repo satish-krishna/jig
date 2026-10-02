@@ -1,0 +1,51 @@
+using <%- m.product %>.Domain;
+
+namespace <%- m.product %>.Application;
+
+/// <summary>The <%- m.camel %> use-cases: list, get, and save. Returns Result envelopes so
+/// expected failures travel as data, not exceptions.</summary>
+/// <capability>api.<%- m.kebab %>-service</capability>
+/// <intent>One cohesive place for the <%- m.camel %> use-case logic, independent of transport and database.</intent>
+/// <reuse>Inject <%- m.pascal %>Service into endpoints; it speaks I<%- m.pascal %>Repository, never EF Core directly.</reuse>
+public sealed class <%- m.pascal %>Service
+{
+    private readonly I<%- m.pascal %>Repository _repo;
+
+    public <%- m.pascal %>Service(I<%- m.pascal %>Repository repo) => _repo = repo;
+
+    public async Task<Result<IReadOnlyList<<%- m.pascal %>>>> ListAsync(CancellationToken ct)
+        => Result<IReadOnlyList<<%- m.pascal %>>>.Success(await _repo.GetAllAsync(ct));
+
+    public async Task<Result<<%- m.pascal %>>> GetAsync(Guid id, CancellationToken ct)
+    {
+        var <%- m.camel %> = await _repo.GetByIdAsync(id, ct);
+        return <%- m.camel %> is null ? Error.NotFound($"<%- m.pascal %> {id} was not found.") : <%- m.camel %>;
+    }
+
+    public async Task<Result<<%- m.pascal %>>> SaveAsync(Guid? id<% for (const p of m.saveParams) { %>, <%- p.type %> <%- p.name %><% } %>, CancellationToken ct)
+    {
+<%_ if (m.conflictCheck) { _%>
+        var by<%- m.conflictCheck.property %> = await _repo.GetBy<%- m.conflictCheck.property %>Async(<%- m.conflictCheck.param %>, ct);
+        if (by<%- m.conflictCheck.property %> is not null && by<%- m.conflictCheck.property %>.Id != id)
+            return Error.Conflict($"<%- m.conflictCheck.message %>");
+
+<%_ } _%>
+        <%- m.pascal %> <%- m.camel %>;
+        if (id is Guid existingId)
+        {
+            var current = await _repo.GetByIdAsync(existingId, ct);
+            if (current is null)
+                return Error.NotFound($"<%- m.pascal %> {existingId} was not found.");
+<%_ for (const assign of m.assignExisting) { _%>
+            current.<%- assign.property %> = <%- assign.param %>;
+<%_ } _%>
+            <%- m.camel %> = current;
+        }
+        else
+        {
+            <%- m.camel %> = new <%- m.pascal %> { Id = Guid.NewGuid()<% for (const f of m.newFields) { %>, <%- f.property %> = <%- f.param %><% } %> };
+        }
+
+        return await _repo.UpsertAsync(<%- m.camel %>, ct);
+    }
+}

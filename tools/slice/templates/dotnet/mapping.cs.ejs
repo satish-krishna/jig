@@ -1,0 +1,15 @@
+using <%- m.product %>.Domain;
+
+namespace <%- m.product %>.Api.<%- m.pascalPlural %>;
+
+/// <summary>Maps the <%- m.pascal %> domain entity to its wire DTO. The one place that shape crossing happens.</summary>
+internal static class <%- m.pascal %>Mapping
+{
+    public static <%- m.pascal %>Response ToResponse(this <%- m.pascal %> <%- m.camel %>) => new()
+    {
+        Id = <%- m.camel %>.Id,
+<%_ for (const assign of m.assigns) { _%>
+        <%- assign.property %> = <%- assign.value %>,
+<%_ } _%>
+    };
+}
