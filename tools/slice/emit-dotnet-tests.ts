@@ -8,6 +8,7 @@
 import type { EmittedFile, FieldSpec, SliceNames, SliceSpec } from './spec.ts';
 import { deriveNames } from './spec.ts';
 import { CS_TYPE, pascalField, uniqueField } from './csharp.ts';
+import { renderTemplate } from './render.ts';
 
 /**
  * A source-ready C# literal for a field's sample value: a quoted string, a decimal literal,
@@ -43,7 +44,15 @@ function uniqueSample(f: FieldSpec, slot: 0 | 1): string {
 // shape source: Jig.Application.Tests/UserServiceTests.cs
 // ---------------------------------------------------------------------------
 
-function emitServiceTests(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+interface ServiceTestsModel {
+  product: string;
+  pascal: string;
+  camelPlural: string;
+  camel: string;
+  facts: string;
+}
+
+function serviceTestsModel(spec: SliceSpec, n: SliceNames, product: string): ServiceTestsModel {
   const unique = uniqueField(spec);
   const assertField = spec.fields[0];
 
@@ -136,21 +145,18 @@ ${uniqueStubNoConflict}        A.CallTo(() => _repo.GetByIdAsync(A<Guid>._, A<Ca
     }`);
 
   return {
-    path: `services/api/tests/${product}.Application.Tests/${n.pascal}ServiceTests.cs`,
-    text: `using FakeItEasy;
-using Shouldly;
-using ${product}.Domain;
-
-namespace ${product}.Application.Tests;
-
-public class ${n.pascal}ServiceTests
-{
-    private readonly I${n.pascal}Repository _repo = A.Fake<I${n.pascal}Repository>();
-    private ${n.pascal}Service Sut() => new(_repo);
-
-${facts.join('\n\n')}
+    product,
+    pascal: n.pascal,
+    camelPlural: n.camelPlural,
+    camel: n.camel,
+    facts: facts.join('\n\n'),
+  };
 }
-`,
+
+function emitServiceTests(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+  return {
+    path: `services/api/tests/${product}.Application.Tests/${n.pascal}ServiceTests.cs`,
+    text: renderTemplate('dotnet-tests/service-tests.cs.ejs', serviceTestsModel(spec, n, product)),
   };
 }
 
@@ -159,7 +165,25 @@ ${facts.join('\n\n')}
 // shape source: Jig.Api.Tests/UsersEndpointTests.cs (consumes the shared ApiFixture)
 // ---------------------------------------------------------------------------
 
-function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+interface EndpointTestsModel {
+  product: string;
+  pascalPlural: string;
+  pascal: string;
+  camel: string;
+  route: string;
+  factoryProps: string;
+  roundtripField: string;
+  hasValidatedField: boolean;
+  invalidProps: string;
+  emailFacts: { name: string; props: string }[];
+  unique: boolean;
+  uniqueName: string;
+  uniqueLiteral: string;
+  dupProps0: string;
+  dupProps1: string;
+}
+
+function endpointTestsModel(spec: SliceSpec, n: SliceNames, product: string): EndpointTestsModel {
   const unique = uniqueField(spec);
   // Mirrors emit-dotnet.ts's emitValidator rule-emission predicate (`f.type === 'string'`):
   // a validator rule only exists for a string field, so the 400-on-invalid-body test only
@@ -174,101 +198,55 @@ function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): Emi
     .map((f) => `${f.name} = ${f === unique ? uniqueSample(f, 0) : sample(f, 0)}`)
     .join(', ');
 
-  const facts: string[] = [
-    `    [Fact]
-    public async Task list_returns_200()
-    {
-        var res = await _client.GetAsync("${n.route}");
-        res.StatusCode.ShouldBe(HttpStatusCode.OK);
-    }`,
-    `    [Fact]
-    public async Task save_then_get_roundtrips_the_${n.camel}()
-    {
-        var post = await _client.PostAsJsonAsync("${n.route}", New${n.pascal}());
-        post.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var created = await post.Content.ReadFromJsonAsync<${n.pascal}Response>();
-        created!.Id.ShouldNotBe(Guid.Empty);
+  // Invalid props for the bad-request test: boolean→false, number→0m, string→""
+  const invalidProps = spec.fields
+    .map((f) => `${f.name} = ${f.type === 'boolean' ? 'false' : f.type === 'number' ? '0m' : '""'}`)
+    .join(', ');
 
-        var get = await _client.GetAsync($"${n.route}/{created.Id}");
-        get.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var fetched = await get.Content.ReadFromJsonAsync<${n.pascal}Response>();
-        fetched!.${pascalField(roundtripField.name)}.ShouldBe(created.${pascalField(roundtripField.name)});
-    }`,
-  ];
+  // Email field malformed tests: one per email field
+  const emailFacts = spec.fields
+    .filter((f) => f.format === 'email')
+    .map((emailField) => {
+      const malformedProps = spec.fields
+        .map((f) => `${f.name} = ${f === emailField ? '"not-an-email"' : sample(f, 0)}`)
+        .join(', ');
+      return { name: emailField.name, props: malformedProps };
+    });
 
-  if (hasValidatedField) {
-    const invalidProps = spec.fields
-      .map((f) => `${f.name} = ${f.type === 'boolean' ? 'false' : f.type === 'number' ? '0m' : '""'}`)
-      .join(', ');
-    facts.push(`    [Fact]
-    public async Task save_with_invalid_body_returns_400()
-    {
-        var res = await _client.PostAsJsonAsync("${n.route}", new { ${invalidProps} });
-        res.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-    }`);
-  }
-
-  // The fact above empties every string, so NotEmpty() alone already fails it; only a
-  // malformed address beside otherwise valid values proves EmailAddress().
-  for (const emailField of spec.fields.filter((f) => f.format === 'email')) {
-    const malformedProps = spec.fields
-      .map((f) => `${f.name} = ${f === emailField ? '"not-an-email"' : sample(f, 0)}`)
-      .join(', ');
-    facts.push(`    [Fact]
-    public async Task save_with_malformed_${emailField.name}_returns_400()
-    {
-        var res = await _client.PostAsJsonAsync("${n.route}", new { ${malformedProps} });
-        res.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-    }`);
-  }
-
-  facts.push(`    [Fact]
-    public async Task get_unknown_id_returns_404()
-    {
-        var res = await _client.GetAsync($"${n.route}/{Guid.NewGuid()}");
-        res.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-    }`);
-
-  // The Conflict outcome, like on the service side, only exists when there is a unique field
-  // to violate.
+  // Duplicate field test props
+  let dupProps0 = '';
+  let dupProps1 = '';
   if (unique) {
     const otherFields = spec.fields.filter((f) => f !== unique);
     // The unique field's own entry has no "= value": it is the projection-initializer shorthand
     // `new { x }`, which C# treats as `new { x = x }` against the local variable declared below.
-    const dupProps = (variant: 0 | 1) =>
-      [...otherFields.map((f) => `${f.name} = ${sample(f, variant)}`), unique.name].join(', ');
-    const uniqueLiteral = uniqueSample(unique, 1);
-    facts.push(`    [Fact]
-    public async Task save_duplicate_${unique.name}_returns_409()
-    {
-        var ${unique.name} = ${uniqueLiteral};
-        (await _client.PostAsJsonAsync("${n.route}", new { ${dupProps(0)} })).EnsureSuccessStatusCode();
-
-        var res = await _client.PostAsJsonAsync("${n.route}", new { ${dupProps(1)} });
-        res.StatusCode.ShouldBe(HttpStatusCode.Conflict);
-    }`);
+    dupProps0 = [...otherFields.map((f) => `${f.name} = ${sample(f, 0)}`), unique.name].join(', ');
+    dupProps1 = [...otherFields.map((f) => `${f.name} = ${sample(f, 1)}`), unique.name].join(', ');
   }
 
   return {
-    path: `services/api/tests/${product}.Api.Tests/${n.pascalPlural}EndpointTests.cs`,
-    text: `using System.Net;
-using System.Net.Http.Json;
-using Shouldly;
-using ${product}.Api.${n.pascalPlural};
-
-namespace ${product}.Api.Tests;
-
-public class ${n.pascalPlural}EndpointTests : IClassFixture<ApiFixture>
-{
-    private readonly HttpClient _client;
-
-    public ${n.pascalPlural}EndpointTests(ApiFixture app) => _client = app.Client;
-
-    private static object New${n.pascal}() => new { ${factoryProps} };
-
-${facts.join('\n\n')}
+    product,
+    pascalPlural: n.pascalPlural,
+    pascal: n.pascal,
+    camel: n.camel,
+    route: n.route,
+    factoryProps,
+    roundtripField: pascalField(roundtripField.name),
+    hasValidatedField,
+    invalidProps,
+    emailFacts,
+    unique: !!unique,
+    uniqueName: unique?.name || '',
+    uniqueLiteral: unique ? uniqueSample(unique, 1) : '',
+    dupProps0,
+    dupProps1,
+  };
 }
-`,
+
+function emitEndpointTests(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
+  return {
+    path: `services/api/tests/${product}.Api.Tests/${n.pascalPlural}EndpointTests.cs`,
+    text: renderTemplate('dotnet-tests/endpoint-tests.cs.ejs', endpointTestsModel(spec, n, product)),
   };
 }
 

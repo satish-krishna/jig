@@ -1,0 +1,13 @@
+using FakeItEasy;
+using Shouldly;
+using <%- m.product %>.Domain;
+
+namespace <%- m.product %>.Application.Tests;
+
+public class <%- m.pascal %>ServiceTests
+{
+    private readonly I<%- m.pascal %>Repository _repo = A.Fake<I<%- m.pascal %>Repository>();
+    private <%- m.pascal %>Service Sut() => new(_repo);
+
+<%- m.facts %>
+}
