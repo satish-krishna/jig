@@ -1,0 +1,69 @@
+import { describe, it, expect } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { type Observable, of, throwError } from 'rxjs';
+import { <%- m.pascal %>ListView } from './<%- m.kebab %>-list.view';
+import { Transport } from '../../transport';
+import type { OperationName, Req, Res } from '../../contracts';
+import type { AppError } from '../../transport';
+
+/** A fake wire whose response (or failure) is supplied per test. Mirrors the ViewModel spec. */
+class FakeTransport extends Transport {
+  constructor(private readonly impl: () => Observable<unknown>) {
+    super();
+  }
+  request<K extends OperationName>(_op: K, _payload: Req<K>): Observable<Res<K>> {
+    return this.impl() as Observable<Res<K>>;
+  }
+}
+
+function render(impl: () => Observable<unknown> = () => of([])) {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({
+    providers: [{ provide: Transport, useValue: new FakeTransport(impl) }],
+  });
+  const fixture = TestBed.createComponent(<%- m.pascal %>ListView);
+  fixture.detectChanges();
+  return fixture;
+}
+
+describe('<%- m.pascal %>ListView', () => {
+  it('renders one row per <%- m.camel %>', () => {
+    const <%- m.camelPlural %> = [<%- m.rowLiteral1_0 %>, <%- m.rowLiteral2_1 %>];
+    const list = render(() => of(<%- m.camelPlural %>)).nativeElement.querySelectorAll('li');
+
+    expect(list.length).toBe(2);
+    expect(list[0].textContent).toContain('<%- m.firstFieldSample %>');
+  });
+
+  it('renders the empty state when the list comes back empty', () => {
+    const fixture = render(() => of([]));
+
+    expect(fixture.nativeElement.textContent).toContain('No <%- m.labelPlural %> yet');
+  });
+
+  it('surfaces a load failure to the user', () => {
+    const err: AppError = { kind: 'network', message: 'offline', operation: '<%- m.opPrefix %>.list' };
+    const fixture = render(() => throwError(() => err));
+
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('offline');
+  });
+
+  it('reports a failure through the alert primitive', () => {
+    const err: AppError = { kind: 'network', message: 'offline', operation: '<%- m.opPrefix %>.list' };
+    const alert = render(() => throwError(() => err)).nativeElement.querySelector('[role="alert"]');
+
+    expect(alert.hasAttribute('hlmAlert')).toBe(true);
+  });
+
+  it('titles the page with a typography primitive, not a bare heading', () => {
+    const heading = render().nativeElement.querySelector('h1');
+
+    expect(heading.hasAttribute('hlmH3')).toBe(true);
+  });
+
+  it('renders its list through the typography primitive', () => {
+    const list = render().nativeElement.querySelector('ul');
+
+    expect(list.hasAttribute('hlmUl')).toBe(true);
+  });
+});

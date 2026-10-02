@@ -1,0 +1,30 @@
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { new<%- m.pascal %>Command, register<%- m.pascalPlural %>Nav } from './<%- m.kebabPlural %>.commands';
+import type { <%- m.pascal %>ListViewModel } from './<%- m.kebab %>-list.view-model';
+import { MenuService } from '../../menu';
+
+describe('new<%- m.pascal %>Command', () => {
+  it('opens the form on execute and is disabled while saving', () => {
+    const saving = signal(false);
+    const openForm = vi.fn();
+    const vm = { saving, openForm } as unknown as <%- m.pascal %>ListViewModel;
+    const cmd = new<%- m.pascal %>Command(vm);
+    expect(cmd.id).toBe('new-<%- m.kebab %>');
+    expect(cmd.canExecute()).toBe(true);
+    cmd.execute();
+    expect(openForm).toHaveBeenCalled();
+    saving.set(true);
+    expect(cmd.canExecute()).toBe(false);
+  });
+
+  it('register<%- m.pascalPlural %>Nav registers the <%- m.kebabPlural %> nav command into the sidebar', () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    const menu = TestBed.inject(MenuService);
+    TestBed.runInInjectionContext(() => register<%- m.pascalPlural %>Nav(menu));
+    const items = menu.items('sidebar')();
+    expect(items.map((c) => c.id)).toEqual(['nav-<%- m.kebabPlural %>']);
+    expect(items[0].label).toBe('<%- m.labelPlural %>');
+  });
+});
