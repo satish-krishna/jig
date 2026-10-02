@@ -27,10 +27,6 @@ export function strict<T extends object>(value: T, path = 'm'): T {
       }
       throw new Error(`template read ${path}.${String(key)}, which the model does not have`);
     },
-    has(target, key) {
-      // Always claim the key exists so that the get trap is called for the error
-      return true;
-    },
   });
 }
 
