@@ -54,23 +54,16 @@ function emitEntity(spec: SliceSpec, n: SliceNames, product: string): EmittedFil
 // services/api/src/{P}.Application/I{E}Repository.cs — shape source: IUserRepository.cs
 // ---------------------------------------------------------------------------
 
-interface RepositoryPortModel {
+interface RepositoryPortModel extends SliceNames {
   product: string;
-  camelPlural: string;
-  kebab: string;
-  pascal: string;
-  camel: string;
   lookup: { property: string; type: string; param: string } | null;
 }
 
 function repositoryPortModel(spec: SliceSpec, n: SliceNames, product: string): RepositoryPortModel {
   const unique = uniqueField(spec);
   return {
+    ...n,
     product,
-    camelPlural: n.camelPlural,
-    kebab: n.kebab,
-    pascal: n.pascal,
-    camel: n.camel,
     lookup: unique
       ? { property: pascalField(unique.name), type: CS_TYPE[unique.type], param: unique.name }
       : null,
@@ -88,11 +81,8 @@ function emitRepositoryPort(spec: SliceSpec, n: SliceNames, product: string): Em
 // services/api/src/{P}.Application/{E}Service.cs — shape source: UserService.cs
 // ---------------------------------------------------------------------------
 
-interface ServiceModel {
+interface ServiceModel extends SliceNames {
   product: string;
-  camel: string;
-  kebab: string;
-  pascal: string;
   saveParams: { type: string; name: string }[];
   assignExisting: { property: string; param: string }[];
   newFields: { property: string; param: string }[];
@@ -101,14 +91,13 @@ interface ServiceModel {
 
 function serviceModel(spec: SliceSpec, n: SliceNames, product: string): ServiceModel {
   const unique = uniqueField(spec);
+  const fieldAssignments = spec.fields.map((f) => ({ property: pascalField(f.name), param: f.name }));
   return {
+    ...n,
     product,
-    camel: n.camel,
-    kebab: n.kebab,
-    pascal: n.pascal,
     saveParams: spec.fields.map((f) => ({ type: CS_TYPE[f.type], name: f.name })),
-    assignExisting: spec.fields.map((f) => ({ property: pascalField(f.name), param: f.name })),
-    newFields: spec.fields.map((f) => ({ property: pascalField(f.name), param: f.name })),
+    assignExisting: fieldAssignments,
+    newFields: fieldAssignments,
     conflictCheck: unique
       ? {
           property: pascalField(unique.name),
@@ -130,12 +119,8 @@ function emitService(spec: SliceSpec, n: SliceNames, product: string): EmittedFi
 // services/api/src/{P}.Api/{Es}/{E}Contracts.cs — shape source: UserContracts.cs
 // ---------------------------------------------------------------------------
 
-interface ContractsModel {
+interface ContractsModel extends SliceNames {
   product: string;
-  pascalPlural: string;
-  camel: string;
-  pascal: string;
-  opPrefix: string;
   responseProps: { type: string; name: string; initializer: string }[];
   saveProps: { type: string; name: string; initializer: string }[];
 }
@@ -148,15 +133,13 @@ function contractsModel(spec: SliceSpec, n: SliceNames, product: string): Contra
     name: pascalField(f.name),
     initializer: f.type === 'string' ? ' = "";' : '',
   });
+  const props = spec.fields.map(prop);
 
   return {
+    ...n,
     product,
-    pascalPlural: n.pascalPlural,
-    camel: n.camel,
-    pascal: n.pascal,
-    opPrefix: n.opPrefix,
-    responseProps: spec.fields.map(prop),
-    saveProps: spec.fields.map(prop),
+    responseProps: props,
+    saveProps: props,
   };
 }
 
@@ -172,25 +155,14 @@ function emitContracts(spec: SliceSpec, n: SliceNames, product: string): Emitted
 // services/api/src/{P}.Api/{Es}/Get{E}Endpoint.cs — shape source: GetUserEndpoint.cs
 // ---------------------------------------------------------------------------
 
-interface EndpointModel {
+interface EndpointModel extends SliceNames {
   product: string;
-  opPrefix: string;
-  route: string;
-  camel: string;
-  camelPlural: string;
-  pascal: string;
-  pascalPlural: string;
 }
 
 function endpointModel(n: SliceNames, product: string): EndpointModel {
   return {
+    ...n,
     product,
-    opPrefix: n.opPrefix,
-    route: n.route,
-    camel: n.camel,
-    camelPlural: n.camelPlural,
-    pascal: n.pascal,
-    pascalPlural: n.pascalPlural,
   };
 }
 
@@ -212,28 +184,19 @@ function emitGetEndpoint(spec: SliceSpec, n: SliceNames, product: string): Emitt
 // services/api/src/{P}.Api/{Es}/Save{E}Endpoint.cs — shape source: SaveUserEndpoint.cs
 // ---------------------------------------------------------------------------
 
-interface SaveEndpointModel {
+interface SaveEndpointModel extends SliceNames {
   product: string;
-  opPrefix: string;
-  route: string;
   article: string;
   noun: string;
-  camelPlural: string;
-  pascal: string;
-  pascalPlural: string;
   saveArgs: string[];
 }
 
 function saveEndpointModel(spec: SliceSpec, n: SliceNames, product: string): SaveEndpointModel {
   return {
+    ...n,
     product,
-    opPrefix: n.opPrefix,
-    route: n.route,
     article: articleFor(label(n.kebab)).toLowerCase(),
     noun: label(n.kebab),
-    camelPlural: n.camelPlural,
-    pascal: n.pascal,
-    pascalPlural: n.pascalPlural,
     saveArgs: spec.fields.map((f) => pascalField(f.name)),
   };
 }
@@ -249,11 +212,8 @@ function emitSaveEndpoint(spec: SliceSpec, n: SliceNames, product: string): Emit
 // services/api/src/{P}.Api/{Es}/Save{E}Validator.cs — shape source: SaveUserValidator.cs
 // ---------------------------------------------------------------------------
 
-interface ValidatorModel {
+interface ValidatorModel extends SliceNames {
   product: string;
-  opPrefix: string;
-  pascal: string;
-  pascalPlural: string;
   rules: { property: string; suffix: string }[];
 }
 
@@ -270,10 +230,8 @@ function validatorModel(spec: SliceSpec, n: SliceNames, product: string): Valida
     }));
 
   return {
+    ...n,
     product,
-    opPrefix: n.opPrefix,
-    pascal: n.pascal,
-    pascalPlural: n.pascalPlural,
     rules,
   };
 }
@@ -289,20 +247,15 @@ function emitValidator(spec: SliceSpec, n: SliceNames, product: string): Emitted
 // services/api/src/{P}.Api/{Es}/{E}Mapping.cs — shape source: UserMapping.cs
 // ---------------------------------------------------------------------------
 
-interface MappingModel {
+interface MappingModel extends SliceNames {
   product: string;
-  pascal: string;
-  pascalPlural: string;
-  camel: string;
   assigns: { property: string; value: string }[];
 }
 
 function mappingModel(spec: SliceSpec, n: SliceNames, product: string): MappingModel {
   return {
+    ...n,
     product,
-    pascal: n.pascal,
-    pascalPlural: n.pascalPlural,
-    camel: n.camel,
     assigns: spec.fields.map((f) => ({
       property: pascalField(f.name),
       value: `${n.camel}.${pascalField(f.name)}`,
@@ -321,13 +274,8 @@ function emitMapping(spec: SliceSpec, n: SliceNames, product: string): EmittedFi
 // services/api/src/{P}.Infrastructure/{E}Repository.cs — shape source: UserRepository.cs
 // ---------------------------------------------------------------------------
 
-interface RepositoryModel {
+interface RepositoryModel extends SliceNames {
   product: string;
-  camel: string;
-  kebab: string;
-  camelPlural: string;
-  pascal: string;
-  pascalPlural: string;
   sortKey: string;
   lookupMethod: { property: string; type: string; param: string } | null;
   assignExisting: { property: string }[];
@@ -345,12 +293,8 @@ function repositoryModel(spec: SliceSpec, n: SliceNames, product: string): Repos
   const sortKey = `x => x.${pascalField(first.name)}${first.type === 'string' ? ', StringComparer.Ordinal' : ''}`;
 
   return {
+    ...n,
     product,
-    camel: n.camel,
-    kebab: n.kebab,
-    camelPlural: n.camelPlural,
-    pascal: n.pascal,
-    pascalPlural: n.pascalPlural,
     sortKey,
     lookupMethod: unique
       ? {

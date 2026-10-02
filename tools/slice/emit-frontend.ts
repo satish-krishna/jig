@@ -48,18 +48,10 @@ function zodField(f: FieldSpec, order: number): string {
 // frontend/src/app/operations/{kebab}.operations.ts — shape source: user.operations.ts
 // ---------------------------------------------------------------------------
 
-interface OperationsModel {
-  pascal: string;
-  camel: string;
-  opPrefix: string;
-}
+interface OperationsModel extends SliceNames {}
 
 function operationsModel(n: SliceNames): OperationsModel {
-  return {
-    pascal: n.pascal,
-    camel: n.camel,
-    opPrefix: n.opPrefix,
-  };
+  return { ...n };
 }
 
 function emitOperations(n: SliceNames): EmittedFile {
@@ -74,20 +66,10 @@ function emitOperations(n: SliceNames): EmittedFile {
 // shape source: user-list.view-model.ts
 // ---------------------------------------------------------------------------
 
-interface ListViewModelModel {
-  pascal: string;
-  kebabPlural: string;
-  kebab: string;
-  camelPlural: string;
-}
+interface ListViewModelModel extends SliceNames {}
 
 function listViewModelModel(n: SliceNames): ListViewModelModel {
-  return {
-    pascal: n.pascal,
-    kebabPlural: n.kebabPlural,
-    kebab: n.kebab,
-    camelPlural: n.camelPlural,
-  };
+  return { ...n };
 }
 
 function emitListViewModel(n: SliceNames): EmittedFile {
@@ -102,12 +84,7 @@ function emitListViewModel(n: SliceNames): EmittedFile {
 // shape source: user-list.view.ts
 // ---------------------------------------------------------------------------
 
-interface ListViewModel {
-  pascal: string;
-  kebab: string;
-  kebabPlural: string;
-  camel: string;
-  camelPlural: string;
+interface ListViewModel extends SliceNames {
   listHeading: string;
   rowFields: { name: string; sep: string }[];
   emptyMessage: string;
@@ -115,11 +92,7 @@ interface ListViewModel {
 
 function listViewModel(spec: SliceSpec, n: SliceNames): ListViewModel {
   return {
-    pascal: n.pascal,
-    kebab: n.kebab,
-    kebabPlural: n.kebabPlural,
-    camel: n.camel,
-    camelPlural: n.camelPlural,
+    ...n,
     listHeading: sentenceCase(label(n.kebabPlural)),
     rowFields: spec.fields.map((f, i) => ({ name: f.name, sep: i === 0 ? '' : ' · ' })),
     emptyMessage: label(n.kebabPlural),
@@ -138,17 +111,14 @@ function emitListView(spec: SliceSpec, n: SliceNames): EmittedFile {
 // shape source: user-form.schema.ts
 // ---------------------------------------------------------------------------
 
-interface FormSchemaModel {
-  camel: string;
-  pascal: string;
+interface FormSchemaModel extends SliceNames {
   formLabel: string;
   zodFields: string[];
 }
 
 function formSchemaModel(spec: SliceSpec, n: SliceNames): FormSchemaModel {
   return {
-    camel: n.camel,
-    pascal: n.pascal,
+    ...n,
     formLabel: label(n.kebabPlural),
     zodFields: spec.fields.map((f, i) => zodField(f, i + 1)),
   };
@@ -166,19 +136,14 @@ function emitFormSchema(spec: SliceSpec, n: SliceNames): EmittedFile {
 // shape source: showcase/pages/schema-form.page.ts (SchemaForm's real usage)
 // ---------------------------------------------------------------------------
 
-interface FormModel {
-  camel: string;
-  pascal: string;
-  kebab: string;
+interface FormModel extends SliceNames {
   formLabel: string;
   submitLabel: string;
 }
 
 function formModel(n: SliceNames): FormModel {
   return {
-    camel: n.camel,
-    pascal: n.pascal,
-    kebab: n.kebab,
+    ...n,
     formLabel: label(n.kebabPlural),
     submitLabel: `Add ${label(n.kebab)}`,
   };
@@ -196,27 +161,18 @@ function emitForm(n: SliceNames): EmittedFile {
 // shape source: users.commands.ts
 // ---------------------------------------------------------------------------
 
-interface CommandsModel {
-  pascal: string;
-  kebab: string;
-  kebabPlural: string;
-  pascalPlural: string;
+interface CommandsModel extends SliceNames {
   newCommandLabel: string;
   navLabel: string;
   icon: string;
-  route: string;
 }
 
 function commandsModel(spec: SliceSpec, n: SliceNames): CommandsModel {
   return {
-    pascal: n.pascal,
-    kebab: n.kebab,
-    kebabPlural: n.kebabPlural,
-    pascalPlural: n.pascalPlural,
+    ...n,
     newCommandLabel: `new ${label(n.kebab)}`,
     navLabel: label(n.kebabPlural),
     icon: spec.icon,
-    route: n.route,
   };
 }
 
