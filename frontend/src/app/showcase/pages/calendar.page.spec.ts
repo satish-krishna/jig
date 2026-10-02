@@ -42,7 +42,9 @@ describe('CalendarPage', () => {
 
   it('selects a real day on click in the default usage', () => {
     const stage = host.querySelectorAll('[data-slot="usage-stage"]')[0] as HTMLElement;
-    const day = enabledDaysIn(stage)[0];
+    // The default usage starts with today selected, and clicking a selected day deselects it.
+    // Taking the first enabled day failed on the 1st of every month, when that day is today.
+    const day = enabledDaysIn(stage).find((b) => b.getAttribute('aria-selected') !== 'true')!;
     day.click();
     fixture.detectChanges();
 
