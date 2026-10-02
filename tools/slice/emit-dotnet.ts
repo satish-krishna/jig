@@ -168,9 +168,10 @@ function emitContracts(spec: SliceSpec, n: SliceNames, product: string): Emitted
 
 // ---------------------------------------------------------------------------
 // services/api/src/{P}.Api/{Es}/List{Es}Endpoint.cs — shape source: ListUsersEndpoint.cs
+// services/api/src/{P}.Api/{Es}/Get{E}Endpoint.cs — shape source: GetUserEndpoint.cs
 // ---------------------------------------------------------------------------
 
-interface ListEndpointModel {
+interface EndpointModel {
   product: string;
   opPrefix: string;
   route: string;
@@ -180,7 +181,7 @@ interface ListEndpointModel {
   pascalPlural: string;
 }
 
-function listEndpointModel(spec: SliceSpec, n: SliceNames, product: string): ListEndpointModel {
+function endpointModel(n: SliceNames, product: string): EndpointModel {
   return {
     product,
     opPrefix: n.opPrefix,
@@ -195,40 +196,14 @@ function listEndpointModel(spec: SliceSpec, n: SliceNames, product: string): Lis
 function emitListEndpoint(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/List${n.pascalPlural}Endpoint.cs`,
-    text: renderTemplate('dotnet/list-endpoint.cs.ejs', listEndpointModel(spec, n, product)),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// services/api/src/{P}.Api/{Es}/Get{E}Endpoint.cs — shape source: GetUserEndpoint.cs
-// ---------------------------------------------------------------------------
-
-interface GetEndpointModel {
-  product: string;
-  opPrefix: string;
-  route: string;
-  camel: string;
-  camelPlural: string;
-  pascal: string;
-  pascalPlural: string;
-}
-
-function getEndpointModel(spec: SliceSpec, n: SliceNames, product: string): GetEndpointModel {
-  return {
-    product,
-    opPrefix: n.opPrefix,
-    route: n.route,
-    camel: n.camel,
-    camelPlural: n.camelPlural,
-    pascal: n.pascal,
-    pascalPlural: n.pascalPlural,
+    text: renderTemplate('dotnet/list-endpoint.cs.ejs', endpointModel(n, product)),
   };
 }
 
 function emitGetEndpoint(spec: SliceSpec, n: SliceNames, product: string): EmittedFile {
   return {
     path: `services/api/src/${product}.Api/${n.pascalPlural}/Get${n.pascal}Endpoint.cs`,
-    text: renderTemplate('dotnet/get-endpoint.cs.ejs', getEndpointModel(spec, n, product)),
+    text: renderTemplate('dotnet/get-endpoint.cs.ejs', endpointModel(n, product)),
   };
 }
 
